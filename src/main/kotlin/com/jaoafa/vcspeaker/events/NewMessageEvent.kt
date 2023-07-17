@@ -28,7 +28,7 @@ class NewMessageEvent : Extension() {
                 val message = event.message
                 message.addReaction("👀")
 
-                val narrator = VCSpeaker.narrators[event.guildId]!!
+                val narrator = VCSpeaker.narrators[event.guildId]!! // checked in check
 
                 narrator.queue(message.content, Voice(speaker = Speaker.Hikari)) // Not bot
 

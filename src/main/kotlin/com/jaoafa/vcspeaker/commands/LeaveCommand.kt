@@ -24,7 +24,8 @@ class LeaveCommand : Extension() {
             }
 
             action {
-                val narrator = VCSpeaker.narrators[guild!!.id] ?: run {
+                val guildId = guild!!.id
+                val narrator = VCSpeaker.narrators[guildId] ?: run {
                     respond { content = "**:question: VC に参加していません。**" }
                     return@action
                 }
@@ -32,7 +33,7 @@ class LeaveCommand : Extension() {
                 narrator.connection.leave()
                 narrator.player.destroy()
 
-                VCSpeaker.narrators.remove(guild!!.id)
+                VCSpeaker.narrators.remove(guildId)
 
                 respond { content = "**:wave: 切断しました。**" }
             }

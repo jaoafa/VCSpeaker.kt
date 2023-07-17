@@ -106,12 +106,13 @@ class VCSpeakerCommand : Extension() {
                 }
 
                 action {
-                    val current = GuildStore[guild!!.id]
+                    val guildId = guild!!.id
+                    val current = GuildStore[guildId]
                     val currentVoice = current?.voice
 
                     // option > current > default
                     val guildData = GuildStore.createOrUpdate(
-                        guildId = guild!!.id,
+                        guildId = guildId,
                         channelId = arguments.channel?.id ?: current?.channelId,
                         prefix = arguments.prefix ?: current?.prefix,
                         voice = arguments.run {

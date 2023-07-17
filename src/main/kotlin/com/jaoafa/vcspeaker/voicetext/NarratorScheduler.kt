@@ -31,9 +31,7 @@ class NarratorScheduler(private val player: AudioPlayer) : AudioEventAdapter() {
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext && queue.isNotEmpty()) {
             now = queue.removeFirst()
-            runBlocking {
-                player.speak(now!!.text, now!!.voice)
-            }
+            runBlocking { player.speak(now!!.text, now!!.voice) }
         } else now = null
     }
 }
