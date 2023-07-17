@@ -3,5 +3,10 @@ build
 gradle
 
 config.yml
-ignore.json
 cache
+caches.json
+guilds.json
+ignores.json
+voices.json
+
+test.wav

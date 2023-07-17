@@ -11,18 +11,18 @@ enum class Format {
 }
 
 @Serializable
-enum class Speaker {
-    @SerialName("show") SHOW,
-    @SerialName("haruka") HARUKA,
-    @SerialName("hikari") HIKARI,
-    @SerialName("takeru") TAKERU,
-    @SerialName("santa") SANTA,
-    @SerialName("bear") BEAR
+enum class Speaker(val speakerName: String) {
+    @SerialName("show") Show("ショウ"),
+    @SerialName("haruka") Haruka("ハルカ"),
+    @SerialName("hikari") Hikari("ヒカリ"),
+    @SerialName("takeru") Takeru("タケル"),
+    @SerialName("santa") Santa("サンタ"),
+    @SerialName("bear") Bear("ベアー")
 }
 
 @Serializable
-enum class Emotion {
-    @SerialName("happiness") HAPPINESS,
-    @SerialName("anger") ANGER,
-    @SerialName("sadness") SADNESS
+enum class Emotion(val emotionName: String) {
+    @SerialName("happiness") Happiness("喜び"),
+    @SerialName("anger") Anger("怒り"),
+    @SerialName("sadness") Sadness("悲しみ")
 }

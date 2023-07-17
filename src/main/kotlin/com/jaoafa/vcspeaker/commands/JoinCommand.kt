@@ -1,6 +1,8 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.tools.devGuild
+import com.jaoafa.vcspeaker.voicetext.GuildNarrator
 import com.jaoafa.vcspeaker.voicetext.Narrator.speakSelf
 import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.commands.Arguments
@@ -31,9 +33,9 @@ class JoinCommand : Extension() {
     override suspend fun setup() {
         publicSlashCommand(::JoinOptions) {
             name = "join"
-            description = "Joins the specified voice channel."
+            description = "VC に接続します。"
 
-            guild(839462224505339954)
+            devGuild()
 
             check {
                 isNotBot()
@@ -42,23 +44,24 @@ class JoinCommand : Extension() {
             action {
                 // option > member's voice channel > error
                 val target =
-                    arguments.target?.asChannelOf<VoiceChannel>() ?: member!!.getVoiceState().getChannelOrNull()
+                    arguments.target?.asChannelOf<VoiceChannel>() ?: member!!.getVoiceStateOrNull()?.getChannelOrNull()
                     ?: run {
                         respond { content = "**:question: VC に参加、または指定してください。**" }
                         return@action
                     }
 
                 val player = VCSpeaker.lavaplayer.createPlayer()
+                val guildId = guild!!.id
 
-                VCSpeaker.guildPlayer[guild!!.id] = player
+                player.speakSelf("接続しました。", guildId)
 
-                player.speakSelf("接続しました。")
-
-                VCSpeaker.connections[guild!!.id] = (target as VoiceChannelBehavior).connect {
+                val connection = (target as VoiceChannelBehavior).connect {
                     audioProvider {
                         AudioFrame.fromData(player.provide()?.data ?: ByteArray(0))
                     }
                 }
+
+                VCSpeaker.narrators[guildId] = GuildNarrator(guildId, player, connection)
 
                 respond { content = "**:loud_sound: ${target.mention} に接続しました。**" }
             }

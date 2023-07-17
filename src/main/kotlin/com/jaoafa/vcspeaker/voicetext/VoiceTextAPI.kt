@@ -23,12 +23,12 @@ class VoiceTextAPI(private val apiKey: String) {
 
     suspend fun generateSpeech(
         text: String,
-        parameter: VoiceParameter
+        voice: Voice
     ): ByteArray {
         val response = client.post(baseURL) {
             parameter("text", text)
-            Json.parseToJsonElement(parameter.toJson()).jsonObject.toMap().forEach { (t, u) ->
-                parameter(t, u.jsonPrimitive.content)
+            Json.parseToJsonElement(voice.toJson()).jsonObject.toMap().forEach { (t, u) ->
+                parameter(t, u.jsonPrimitive.content.lowercase())
             }
             basicAuth(apiKey, "")
         }
@@ -56,9 +56,9 @@ class VoiceTextAPITest {
         val voice = runBlocking {
             VCSpeaker.voiceText.generateSpeech(
                 text = "どこどこだ！！┗(^o^;)┓どこどこかな？？？？ｗｗｗ┏(;^o^)┛どこどこかな？？？？ｗｗｗ(´･｀;)こ…これ…これは…………どこどこだあああああ┗(^o^)┛ｗｗｗｗｗ┏(^o^)┓どこどこどこどこｗｗｗｗ",
-                parameter = VoiceParameter(
-                    speaker = Speaker.HIKARI,
-                    emotion = Emotion.ANGER,
+                voice = Voice(
+                    speaker = Speaker.Hikari,
+                    emotion = Emotion.Anger,
                     emotionLevel = 3,
                     pitch = 100,
                     speed = 100,

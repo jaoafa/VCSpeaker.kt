@@ -1,9 +1,11 @@
 package com.jaoafa.vcspeaker.store
 
-import com.jaoafa.vcspeaker.tools.readOrCreateAs
+import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.writeAs
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.security.MessageDigest
 
@@ -13,18 +15,18 @@ data class CacheData(
     val lastUsed: Long
 )
 
-object CacheStore : StoreStruct<CacheData> {
-    override var data = File("./cache/caches.json").readOrCreateAs(
-        ListSerializer(CacheData.serializer()),
-        mutableListOf()
-    )
-
+// fixme voice parameter is not considered
+object CacheStore : StoreStruct<CacheData>(
+    VCSpeaker.Files.caches.path,
+    CacheData.serializer(),
+    { Json.decodeFromString(this) }
+) {
     private fun hash(text: String) = MessageDigest
         .getInstance("MD5")
         .digest(text.toByteArray())
         .fold("") { str, it -> str + "%02x".format(it) }
 
-    private fun cacheFile(hash: String) = File("./cache/audio-${hash}.wav")
+    private fun cacheFile(hash: String) = VCSpeaker.Files.cacheFolder.resolve(File("audio-${hash}.wav"))
 
     fun exists(text: String) = data.find { it.hash == hash(text) } != null
 
@@ -54,7 +56,7 @@ object CacheStore : StoreStruct<CacheData> {
     private var act = 0
 
     private fun sync() {
-        File("./cache/caches.json").writeAs(ListSerializer(CacheData.serializer()), data)
+        VCSpeaker.Files.caches.writeAs(ListSerializer(CacheData.serializer()), data)
         if (act == 50) {
             act = 0
             audit()
@@ -69,8 +71,7 @@ object CacheStore : StoreStruct<CacheData> {
     }
 
     init {
-        val cacheFolder = File("./cache")
-
+        val cacheFolder = VCSpeaker.Files.cacheFolder
         if (!cacheFolder.exists()) cacheFolder.mkdir()
     }
 }

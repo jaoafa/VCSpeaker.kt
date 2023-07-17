@@ -1,9 +1,9 @@
 package com.jaoafa.vcspeaker.store
 
-import com.jaoafa.vcspeaker.tools.readOrCreateAs
+import com.jaoafa.vcspeaker.VCSpeaker
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import java.io.File
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 @Serializable
 data class IgnoreData(
@@ -12,9 +12,10 @@ data class IgnoreData(
     val string: String
 )
 
-object IgnoreStore : StoreStruct<IgnoreData> {
-    override val data = File("./ignores.json").readOrCreateAs(
-        ListSerializer(IgnoreData.serializer()),
-        mutableListOf()
-    )
+object IgnoreStore : StoreStruct<IgnoreData>(
+    VCSpeaker.Files.ignores.path,
+    IgnoreData.serializer(),
+    { Json.decodeFromString(this) }
+) {
+
 }

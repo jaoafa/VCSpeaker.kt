@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 @Serializable
-data class VoiceParameter(
+data class Voice(
     val speaker: Speaker,
     val format: Format = Format.WAV,
     val emotion: Emotion? = null,

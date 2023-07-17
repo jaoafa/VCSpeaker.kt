@@ -2,18 +2,24 @@ package com.jaoafa.vcspeaker
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.long
 import com.github.ajalt.clikt.parameters.types.path
 import com.jaoafa.vcspeaker.commands.JoinCommand
 import com.jaoafa.vcspeaker.commands.LeaveCommand
 import com.jaoafa.vcspeaker.commands.SpeakCommand
+import com.jaoafa.vcspeaker.commands.VCSpeakerCommand
 import com.jaoafa.vcspeaker.config.TokenSpec
+import com.jaoafa.vcspeaker.events.NewMessageEvent
 import com.jaoafa.vcspeaker.voicetext.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
+import dev.kord.common.entity.Snowflake
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import java.io.File
 import kotlin.io.path.Path
 
 class Main : CliktCommand() {
@@ -22,15 +28,17 @@ class Main : CliktCommand() {
         help = "The config file location."
     ).path(mustExist = true, canBeDir = false).default(Path("./config.yml"))
 
-    private val devEnv by option(
+    private val dev by option(
         "-d", "--dev",
-        help = "Whether to enable development environment."
-    ).flag(default = false)
+        help = "The guild id for development."
+    ).long()
 
     private val discordToken by option(
         "-t", "--token",
         help = "The token for discord bot."
     )
+
+    inline fun <reified T> File.readAs() = Json.decodeFromString<T>(readText())
 
     override fun run() {
         val config = Config {
@@ -41,7 +49,9 @@ class Main : CliktCommand() {
 
         VCSpeaker.voiceText = VoiceTextAPI(config[TokenSpec.voicetext])
 
-        val token = discordToken ?: if (devEnv) config[TokenSpec.discordDev] else config[TokenSpec.discord]
+        val token = discordToken ?: if (dev != null) config[TokenSpec.discordDev] else config[TokenSpec.discord]
+
+        VCSpeaker.dev = dev?.let { Snowflake(it) }
 
         runBlocking {
             VCSpeaker.kord = ExtensibleBot(token) {
@@ -51,13 +61,15 @@ class Main : CliktCommand() {
 
                 chatCommands {
                     enabled = true
-                    defaultPrefix = "#"
+                    defaultPrefix = "$"
                 }
 
                 extensions {
                     add(::JoinCommand)
                     add(::LeaveCommand)
                     add(::SpeakCommand)
+                    add(::VCSpeakerCommand)
+                    add(::NewMessageEvent)
                 }
             }
 

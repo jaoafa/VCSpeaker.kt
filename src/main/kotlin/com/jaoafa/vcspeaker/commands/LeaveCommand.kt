@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.tools.devGuild
 import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
@@ -14,29 +15,24 @@ class LeaveCommand : Extension() {
     override suspend fun setup() {
         publicSlashCommand {
             name = "leave"
-            description = "Leaves the voice channel."
+            description = "VC から退出します。"
 
-            guild(839462224505339954)
+            devGuild()
 
             check {
                 isNotBot()
             }
 
             action {
-                val connection = VCSpeaker.connections[guild!!.id] ?: run {
+                val narrator = VCSpeaker.narrators[guild!!.id] ?: run {
                     respond { content = "**:question: VC に参加していません。**" }
                     return@action
                 }
 
-                val player = VCSpeaker.guildPlayer[guild!!.id]
+                narrator.connection.leave()
+                narrator.player.destroy()
 
-                connection.leave()
-                player?.destroy()
-
-                VCSpeaker.run {
-                    connections.remove(guild!!.id)
-                    guildPlayer.remove(guild!!.id)
-                }
+                VCSpeaker.narrators.remove(guild!!.id)
 
                 respond { content = "**:wave: 切断しました。**" }
             }
