@@ -2,8 +2,6 @@ package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.store.GuildStore
-import com.jaoafa.vcspeaker.voicetext.Speaker
-import com.jaoafa.vcspeaker.voicetext.Voice
 import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -20,17 +18,18 @@ class NewMessageEvent : Extension() {
             check {
                 anyGuild()
                 isNotBot()
-                assert(GuildStore.getTextChannels().contains(event.message.channelId)) // In target text channel
-                assert(VCSpeaker.narrators.contains(event.guildId)) // In VC
             }
 
             action {
+                if (!GuildStore.getTextChannels().contains(event.message.channelId)) return@action
+                if (!VCSpeaker.narrators.contains(event.guildId)) return@action
+
                 val message = event.message
                 message.addReaction("👀")
 
                 val narrator = VCSpeaker.narrators[event.guildId]!! // checked in check
 
-                narrator.queue(message.content, Voice(speaker = Speaker.Hikari)) // Not bot
+                narrator.queueUser(message.content, message.author!!.id, message) // Not bot
 
                 message.deleteOwnReaction("👀")
             }

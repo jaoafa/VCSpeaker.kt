@@ -26,7 +26,7 @@ class SpeakCommand : Extension() {
             devGuild()
 
             action {
-                VCSpeaker.narrators[guild!!.id]?.queueUser(arguments.text, member!!.id)
+                VCSpeaker.narrators[guild!!.id]?.queueSelf(arguments.text)
                 respond {
                     content = arguments.text
                 }
