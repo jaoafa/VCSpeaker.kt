@@ -16,6 +16,4 @@ object IgnoreStore : StoreStruct<IgnoreData>(
     VCSpeaker.Files.ignores.path,
     IgnoreData.serializer(),
     { Json.decodeFromString(this) }
-) {
-
-}
+)

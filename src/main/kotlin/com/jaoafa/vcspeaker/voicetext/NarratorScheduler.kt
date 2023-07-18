@@ -38,7 +38,7 @@ class NarratorScheduler(
         runBlocking {
             (track.userData as SpeakInfo).message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
         }
-        
+
         if (endReason.mayStartNext && queue.isNotEmpty()) {
             now = queue.removeFirst()
             runBlocking {

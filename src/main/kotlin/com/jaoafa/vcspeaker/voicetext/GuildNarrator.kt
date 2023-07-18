@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
+import dev.kord.core.entity.ReactionEmoji
 import dev.kord.voice.VoiceConnection
 
 class GuildNarrator @OptIn(KordVoice::class) constructor(
@@ -13,17 +14,29 @@ class GuildNarrator @OptIn(KordVoice::class) constructor(
     val player: AudioPlayer,
     val connection: VoiceConnection
 ) {
-    val scheduler = NarratorScheduler(guildId, player)
+    private val scheduler = NarratorScheduler(guildId, player)
 
-    suspend fun queue(text: String, voice: Voice) = scheduler.queue(SpeakInfo(text, voice))
+    private suspend fun queue(text: String, voice: Voice, message: Message? = null) =
+        scheduler.queue(SpeakInfo(text, voice, message))
+
+    suspend fun queueSelf(text: String) =
+        queue(text, GuildStore.getOrDefault(guildId).voice)
+
+    suspend fun queueUser(text: String, userId: Snowflake, message: Message) =
+        queue(text, VoiceStore.byIdOrDefault(userId), message)
+
 
     suspend fun skip() = scheduler.skip()
 
-    suspend fun queueSelf(text: String) =
-        scheduler.queue(SpeakInfo(text, GuildStore.getOrDefault(guildId).voice))
-
-    suspend fun queueUser(text: String, userId: Snowflake, message: Message) =
-        scheduler.queue(SpeakInfo(text, VoiceStore.byIdOrDefault(userId), message))
+    suspend fun clear() {
+        listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
+            it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
+            it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
+        }
+        scheduler.queue.clear()
+        scheduler.now = null
+        player.stopTrack()
+    }
 
     init {
         player.addListener(scheduler)

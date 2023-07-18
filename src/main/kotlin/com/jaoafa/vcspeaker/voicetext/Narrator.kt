@@ -16,7 +16,6 @@ import kotlin.coroutines.suspendCoroutine
 
 object Narrator {
     suspend fun AudioPlayer.speakSelf(text: String, guildId: Snowflake) {
-        // fixme
         speak(SpeakInfo(text, GuildStore[guildId]?.voice ?: Voice(speaker = Speaker.Hikari)))
     }
 

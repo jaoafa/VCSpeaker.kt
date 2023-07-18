@@ -37,9 +37,7 @@ class JoinCommand : Extension() {
 
             devGuild()
 
-            check {
-                isNotBot()
-            }
+            check { isNotBot() }
 
             action {
                 // option > member's voice channel > error
@@ -53,7 +51,7 @@ class JoinCommand : Extension() {
                 val player = VCSpeaker.lavaplayer.createPlayer()
                 val guildId = guild!!.id
 
-                player.speakSelf("接続しました。", guildId)
+                player.speakSelf("接続しました。", guildId) // DO NOT REMOVE
 
                 val connection = (target as VoiceChannelBehavior).connect {
                     audioProvider {

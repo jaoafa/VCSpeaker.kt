@@ -5,10 +5,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.long
 import com.github.ajalt.clikt.parameters.types.path
-import com.jaoafa.vcspeaker.commands.JoinCommand
-import com.jaoafa.vcspeaker.commands.LeaveCommand
-import com.jaoafa.vcspeaker.commands.SpeakCommand
-import com.jaoafa.vcspeaker.commands.VCSpeakerCommand
+import com.jaoafa.vcspeaker.commands.*
 import com.jaoafa.vcspeaker.config.TokenSpec
 import com.jaoafa.vcspeaker.events.NewMessageEvent
 import com.jaoafa.vcspeaker.voicetext.VoiceTextAPI
@@ -37,8 +34,6 @@ class Main : CliktCommand() {
         "-t", "--token",
         help = "The token for discord bot."
     )
-
-    inline fun <reified T> File.readAs() = Json.decodeFromString<T>(readText())
 
     override fun run() {
         val config = Config {
@@ -69,6 +64,7 @@ class Main : CliktCommand() {
                     add(::LeaveCommand)
                     add(::SpeakCommand)
                     add(::VCSpeakerCommand)
+                    add(::ClearCommand)
                     add(::NewMessageEvent)
                 }
             }
