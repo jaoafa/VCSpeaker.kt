@@ -7,7 +7,6 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class Voice(
     val speaker: Speaker,
-    val format: Format = Format.WAV,
     val emotion: Emotion? = null,
     @SerialName("emotion_level") val emotionLevel: Int = 2,
     val pitch: Int = 100,

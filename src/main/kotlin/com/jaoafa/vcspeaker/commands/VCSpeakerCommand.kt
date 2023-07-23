@@ -118,7 +118,6 @@ class VCSpeakerCommand : Extension() {
                         voice = arguments.run {
                             Voice(
                                 speaker = Speaker.valueOf(speaker ?: currentVoice?.speaker?.name ?: "Haruka"),
-                                format = Format.WAV,
                                 emotion = if (emotion != null) Emotion.valueOf(emotion!!) else currentVoice?.emotion,
                                 emotionLevel = emotionLevel ?: currentVoice?.emotionLevel ?: 2,
                                 pitch = pitch ?: currentVoice?.pitch ?: 100,

@@ -10,6 +10,7 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChanne
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
+import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.behavior.channel.VoiceChannelBehavior
@@ -47,6 +48,19 @@ class JoinCommand : Extension() {
                         respond { content = "**:question: VC に参加、または指定してください。**" }
                         return@action
                     }
+
+                // force disconnection
+                if (guild!!.selfMember().getVoiceStateOrNull()?.getChannelOrNull() == null)
+                    VCSpeaker.narrators.remove(guild!!.id)
+
+                val narrator = VCSpeaker.narrators[guild!!.id]
+
+                if (narrator != null) { // already connected
+                    narrator.connection.move(target.id)
+
+                    respond { content = "**:loud_sound: ${target.mention} に移動しました。**" }
+                    return@action
+                }
 
                 val player = VCSpeaker.lavaplayer.createPlayer()
                 val guildId = guild!!.id

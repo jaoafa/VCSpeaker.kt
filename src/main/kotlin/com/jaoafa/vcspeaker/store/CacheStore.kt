@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.store
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.writeAs
+import com.jaoafa.vcspeaker.voicetext.Voice
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.decodeFromString
@@ -12,10 +13,10 @@ import java.security.MessageDigest
 @Serializable
 data class CacheData(
     val hash: String,
+    val voice: Voice,
     val lastUsed: Long
 )
 
-// fixme voice parameter is not considered
 object CacheStore : StoreStruct<CacheData>(
     VCSpeaker.Files.caches.path,
     CacheData.serializer(),
@@ -28,13 +29,13 @@ object CacheStore : StoreStruct<CacheData>(
 
     private fun cacheFile(hash: String) = VCSpeaker.Files.cacheFolder.resolve(File("audio-${hash}.wav"))
 
-    fun exists(text: String) = data.find { it.hash == hash(text) } != null
+    fun exists(text: String, voice: Voice) = data.find { it.hash == hash(text) && it.voice == voice } != null
 
-    fun create(text: String, byteArray: ByteArray): File {
+    fun create(text: String, voice: Voice, byteArray: ByteArray): File {
         val hash = hash(text)
         val file = cacheFile(hash).apply { writeBytes(byteArray) }
 
-        data += CacheData(hash, System.currentTimeMillis())
+        data += CacheData(hash, voice, System.currentTimeMillis())
 
         sync()
 

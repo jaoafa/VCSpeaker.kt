@@ -22,4 +22,10 @@ object VoiceStore : StoreStruct<VoiceData>(
     fun byId(userId: Snowflake) = data.find { it.userId == userId }?.voice
 
     fun byIdOrDefault(userId: Snowflake) = byId(userId) ?: Voice(speaker = Speaker.Hikari)
+
+    operator fun set(userId: Snowflake, voice: Voice) {
+        data.removeIf { it.userId == userId }
+        data.add(VoiceData(userId, voice))
+        write()
+    }
 }

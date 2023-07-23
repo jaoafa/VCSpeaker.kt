@@ -27,9 +27,9 @@ object Narrator {
         val text = info.text
         val voice = info.voice
 
-        val file = if (!CacheStore.exists(text)) {
+        val file = if (!CacheStore.exists(text, voice)) {
             val audio = VCSpeaker.voiceText.generateSpeech(text, voice)
-            CacheStore.create(text, audio)
+            CacheStore.create(text, voice, audio)
         } else CacheStore.read(text)
 
         val track = suspendCoroutine {

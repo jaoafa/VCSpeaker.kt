@@ -14,9 +14,6 @@ import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import dev.kord.common.entity.Snowflake
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import java.io.File
 import kotlin.io.path.Path
 
 class Main : CliktCommand() {
@@ -65,6 +62,7 @@ class Main : CliktCommand() {
                     add(::SpeakCommand)
                     add(::VCSpeakerCommand)
                     add(::ClearCommand)
+                    add(::VoiceCommand)
                     add(::NewMessageEvent)
                 }
             }
