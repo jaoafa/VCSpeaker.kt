@@ -17,6 +17,11 @@ open class StoreStruct<T>(
         deserializer
     )
 
+    fun add(element: T) {
+        data.add(element)
+        write()
+    }
+
     fun write() {
         File(path).writeAs(ListSerializer(serializer), this.data)
     }

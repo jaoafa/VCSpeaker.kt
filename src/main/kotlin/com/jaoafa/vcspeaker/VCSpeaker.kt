@@ -14,6 +14,8 @@ object VCSpeaker {
     lateinit var voiceText: VoiceTextAPI
     lateinit var config: Config
 
+    var cachePolicy: Int = 7
+
     var dev: Snowflake? = null
 
     val lavaplayer = DefaultAudioPlayerManager()

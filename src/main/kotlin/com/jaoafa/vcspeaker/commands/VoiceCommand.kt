@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.store.VoiceStore
+import com.jaoafa.vcspeaker.tools.devGuild
 import com.jaoafa.vcspeaker.voicetext.Emotion
 import com.jaoafa.vcspeaker.voicetext.Speaker
 import com.kotlindiscord.kord.extensions.commands.Arguments
@@ -69,6 +70,8 @@ class VoiceCommand : Extension() {
         publicSlashCommand(::VoiceOptions) {
             name = "voice"
             description = "自分の声を設定します。"
+
+            devGuild()
 
             action {
                 val voice = VoiceStore.byIdOrDefault(event.interaction.user.id).copy(

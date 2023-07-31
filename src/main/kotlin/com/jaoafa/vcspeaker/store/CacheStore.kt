@@ -9,6 +9,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.security.MessageDigest
+import kotlin.concurrent.timer
 
 @Serializable
 data class CacheData(
@@ -54,21 +55,18 @@ object CacheStore : StoreStruct<CacheData>(
         return cacheFile(hash)
     }
 
-    private var act = 0
 
     private fun sync() {
         VCSpeaker.Files.caches.writeAs(ListSerializer(CacheData.serializer()), data)
-        if (act == 50) {
-            act = 0
-            audit()
-        } else act++
     }
 
-    private fun audit() {
-        data.sortByDescending { it.lastUsed }
-        data.drop(100).forEach { cacheFile(it.hash).delete() }
-        data = data.take(100).toMutableList()
-        sync()
+    fun initiateAuditJob(interval: Int,) {
+        timer("CacheAudit", false, 0, (1000 * 60 * 60 * 24 * interval).toLong()) {
+            data.sortByDescending { it.lastUsed }
+            data.drop(100).forEach { cacheFile(it.hash).delete() }
+            data = data.take(100).toMutableList()
+            sync()
+        }
     }
 
     init {
