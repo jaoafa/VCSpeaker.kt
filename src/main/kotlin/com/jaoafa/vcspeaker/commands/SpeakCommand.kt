@@ -9,7 +9,7 @@ import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
 
 class SpeakCommand : Extension() {
-    override val name = "Speak"
+    override val name = this::class.simpleName!!
 
     inner class SpeakOptions : Arguments() {
         val text by string {

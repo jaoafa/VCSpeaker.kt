@@ -9,7 +9,7 @@ import com.kotlindiscord.kord.extensions.types.respond
 import dev.kord.common.annotation.KordVoice
 
 class LeaveCommand : Extension() {
-    override val name = "LeaveCommand"
+    override val name = this::class.simpleName!!
 
     @OptIn(KordVoice::class)
     override suspend fun setup() {

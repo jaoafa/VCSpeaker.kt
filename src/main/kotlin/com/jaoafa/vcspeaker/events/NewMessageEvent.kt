@@ -11,7 +11,7 @@ import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
 import dev.kord.core.event.message.MessageCreateEvent
 
 class NewMessageEvent : Extension() {
-    override val name = "NewMessageEvent"
+    override val name = this::class.simpleName!!
 
     override suspend fun setup() {
         event<MessageCreateEvent> {

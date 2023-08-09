@@ -22,7 +22,7 @@ import dev.kord.common.entity.ChannelType
 import dev.kord.rest.builder.message.create.embed
 
 class VCSpeakerCommand : Extension() {
-    override val name = "vcspeaker"
+    override val name = this::class.simpleName!!
 
     inner class SettingsOptions : Arguments() {
         val channel by optionalChannel {

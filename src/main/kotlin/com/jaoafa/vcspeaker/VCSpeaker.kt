@@ -27,6 +27,7 @@ object VCSpeaker {
         val caches = File("caches.json")
         val guilds = File("guilds.json")
         val ignores = File("ignores.json")
+        val aliases = File("aliases.json")
         val voices = File("voices.json")
     }
 

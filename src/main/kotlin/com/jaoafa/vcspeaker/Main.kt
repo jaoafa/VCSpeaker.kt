@@ -76,6 +76,7 @@ class Main : CliktCommand() {
                     add(::ClearCommand)
                     add(::VoiceCommand)
                     add(::RestartCommand)
+                    add(::AliasCommand)
                     add(::NewMessageEvent)
                 }
             }

@@ -7,7 +7,7 @@ import com.kotlindiscord.kord.extensions.types.respond
 import kotlin.system.exitProcess
 
 class RestartCommand : Extension() {
-    override val name = "RestartCommand"
+    override val name = this::class.simpleName!!
 
     override suspend fun setup() {
         publicSlashCommand {

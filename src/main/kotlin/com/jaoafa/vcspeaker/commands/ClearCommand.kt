@@ -8,7 +8,7 @@ import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
 
 class ClearCommand : Extension() {
-    override val name = "ClearCommand"
+    override val name = this::class.simpleName!!
 
     override suspend fun setup() {
         publicSlashCommand {

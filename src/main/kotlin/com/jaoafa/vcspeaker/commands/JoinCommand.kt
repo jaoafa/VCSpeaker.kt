@@ -20,7 +20,7 @@ import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.voice.AudioFrame
 
 class JoinCommand : Extension() {
-    override val name = "JoinCommand"
+    override val name = this::class.simpleName!!
 
     inner class JoinOptions : Arguments() {
         val target by optionalChannel {

@@ -14,7 +14,7 @@ import dev.kord.common.Color
 import dev.kord.rest.builder.message.create.embed
 
 class VoiceCommand : Extension() {
-    override val name = "VoiceCommand"
+    override val name = this::class.simpleName!!
 
     inner class VoiceOptions : Arguments() {
         val speaker by optionalStringChoice {
