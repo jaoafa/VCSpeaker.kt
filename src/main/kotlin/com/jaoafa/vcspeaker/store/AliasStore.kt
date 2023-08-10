@@ -20,10 +20,13 @@ data class AliasData(
     val to: String
 )
 
+// todo rewrite using Arrow
 object AliasStore : StoreStruct<AliasData>(
     VCSpeaker.Files.aliases.path,
     AliasData.serializer(),
     { Json.decodeFromString(this) }
 ) {
     fun existsFrom(guildId: Snowflake, from: String) = data.any { it.guildId == guildId && it.from == from }
+
+    fun find(guildId: Snowflake, from: String) = data.find { it.guildId == guildId && it.from == from }
 }
