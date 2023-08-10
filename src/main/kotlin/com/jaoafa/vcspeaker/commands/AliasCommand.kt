@@ -1,34 +1,22 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.features.Alias
+import com.jaoafa.vcspeaker.features.Alias.Companion.fieldAliasFrom
 import com.jaoafa.vcspeaker.store.AliasData
 import com.jaoafa.vcspeaker.store.AliasStore
 import com.jaoafa.vcspeaker.store.AliasType
-import com.jaoafa.vcspeaker.tools.devGuild
+import com.jaoafa.vcspeaker.tools.*
 import com.kotlindiscord.kord.extensions.commands.Arguments
+import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
 import com.kotlindiscord.kord.extensions.commands.application.slash.publicSubCommand
+import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
-import com.kotlindiscord.kord.extensions.types.respond
-import com.kotlindiscord.kord.extensions.utils.FilterStrategy
-import com.kotlindiscord.kord.extensions.utils.suggestStringMap
-import dev.kord.common.Color
-import dev.kord.core.entity.interaction.AutoCompleteInteraction
-import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
-import dev.kord.rest.builder.message.create.embed
 
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
-
-    val aliasAutoComplete : suspend AutoCompleteInteraction.(AutoCompleteInteractionCreateEvent) -> Unit = { event ->
-        val guildId = event.interaction.getChannel().data.guildId.value
-
-        suggestStringMap(
-            AliasStore.data.filter { it.guildId == guildId }.associate { "${it.type.displayName} / ${it.from} → ${it.to}" to it.from },
-            FilterStrategy.Contains
-        )
-    }
 
     inner class CreateOptions : Arguments() {
         val type by stringChoice {
@@ -54,10 +42,17 @@ class AliasCommand : Extension() {
             name = "alias"
             description = "更新するエイリアス"
 
-            autoComplete(aliasAutoComplete)
+            autoComplete(Alias.autocomplete)
         }
 
-        val to by string {
+        val type by optionalStringChoice {
+            name = "type"
+            description = "エイリアスの種類"
+            for (aliasType in AliasType.values())
+                choice(aliasType.displayName, aliasType.name)
+        }
+
+        val to by optionalString {
             name = "to"
             description = "置き換える文字列"
         }
@@ -68,10 +63,11 @@ class AliasCommand : Extension() {
             name = "alias"
             description = "削除するエイリアス"
 
-            autoComplete(aliasAutoComplete)
+            autoComplete(Alias.autocomplete)
         }
     }
 
+    // todo AliasType diff
     override suspend fun setup() {
         publicSlashCommand {
             name = "alias"
@@ -88,39 +84,25 @@ class AliasCommand : Extension() {
                     val from = arguments.from
                     val to = arguments.to
 
-                    val doUpdate = AliasStore.existsFrom(guild!!.id, from)
+                    val duplicate = AliasStore.find(guild!!.id, from)
+                    val oldTo = duplicate?.to
 
-                    if (doUpdate) {
-                        AliasStore.data.removeIf {
-                            it.guildId == guild!!.id && it.from == from
+                    if (duplicate != null) AliasStore.remove(duplicate)
+
+                    AliasStore.create(AliasData(guild!!.id, user.id, type, from, to))
+
+                    respondEmbed(
+                        ":loudspeaker: ${type.displayName}のエイリアスを${if (duplicate != null) "更新" else "作成"}しました"
+                    ) {
+                        authorOf(user)
+
+                        fieldAliasFrom(type, from)
+
+                        field(":arrows_counterclockwise: 置き換える文字列", true) {
+                            if (duplicate != null) "$oldTo → **$to**" else to
                         }
-                    }
 
-                    AliasStore.add(AliasData(guild!!.id, user.id, type, from, to))
-
-                    respond {
-                        embed {
-                            author {
-                                name = user.asUser().username
-                                icon = user.asUser().avatar?.url
-                            }
-
-                            title = ":loudspeaker: ${type.displayName}のエイリアスを${if (doUpdate) "更新" else "作成"}しました"
-
-                            field(":mag: ${type.displayName}", true) {
-                                when (type) {
-                                    AliasType.Text -> from
-                                    AliasType.Regex -> "`$from`"
-                                    AliasType.Emoji -> "$from `$from`"
-                                }
-                            }
-
-                            field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                to
-                            }
-
-                            color = Color(0x7bda81)
-                        }
+                        successColor()
                     }
                 }
             }
@@ -132,47 +114,32 @@ class AliasCommand : Extension() {
                 action {
                     val aliasData = AliasStore.find(guild!!.id, arguments.search)
                     if (aliasData != null) {
-                        AliasStore.data.remove(aliasData)
-                        AliasStore.add(aliasData.copy(to = arguments.to))
-
                         val (_, _, type, from, to) = aliasData
-                        val originalTo = aliasData.to
 
-                        respond {
-                            embed {
-                                author {
-                                    name = user.asUser().username
-                                    icon = user.asUser().avatar?.url
-                                }
+                        val updatedType = arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: type
+                        val updatedTo = arguments.to ?: to
 
-                                title = ":repeat: エイリアスを更新しました"
+                        AliasStore.remove(aliasData)
+                        AliasStore.create(aliasData.copy(userId = user.id, type = updatedType, to = updatedTo))
 
-                                field(":mag: ${type.displayName}", true) {
-                                    when (type) {
-                                        AliasType.Text -> from
-                                        AliasType.Regex -> "`$from`"
-                                        AliasType.Emoji -> "$from `$from`"
-                                    }
-                                }
+                        respondEmbed(":repeat: エイリアスを更新しました") {
+                            authorOf(user)
 
-                                field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                    "$originalTo → **$to**"
-                                }
+                            fieldAliasFrom(updatedType, from)
 
-                                color = Color(0x7bda81)
+                            field(":arrows_counterclockwise: 置き換える文字列", true) {
+                                "$to → **${updatedTo}**"
                             }
+
+                            successColor()
                         }
                     } else {
-                        respond {
-                            embed {
-                                author {
-                                    name = user.asUser().username
-                                    icon = user.asUser().avatar?.url
-                                }
-
-                                title = ":question: エイリアスが見つかりません"
-                                description = "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
-                            }
+                        respondEmbed(
+                            ":question: エイリアスが見つかりません",
+                            "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
                         }
                     }
                 }
@@ -184,46 +151,30 @@ class AliasCommand : Extension() {
 
                 action {
                     val aliasData = AliasStore.find(guild!!.id, arguments.search)
+
                     if (aliasData != null) {
-                        AliasStore.data.remove(aliasData)
+                        AliasStore.remove(aliasData)
 
                         val (_, _, type, from, to) = aliasData
 
-                        respond {
-                            embed {
-                                author {
-                                    name = user.asUser().username
-                                    icon = user.asUser().avatar?.url
-                                }
+                        respondEmbed(":wastebasket: エイリアスを削除しました") {
+                            authorOf(user)
 
-                                title = ":repeat: エイリアスを更新しました"
+                            fieldAliasFrom(type, from)
 
-                                field(":mag: ${type.displayName}", true) {
-                                    when (type) {
-                                        AliasType.Text -> from
-                                        AliasType.Regex -> "`$from`"
-                                        AliasType.Emoji -> "$from `$from`"
-                                    }
-                                }
-
-                                field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                    to
-                                }
-
-                                color = Color(0x7bda81)
+                            field(":arrows_counterclockwise: 置き換える文字列", true) {
+                                to
                             }
+
+                            successColor()
                         }
                     } else {
-                        respond {
-                            embed {
-                                author {
-                                    name = user.asUser().username
-                                    icon = user.asUser().avatar?.url
-                                }
-
-                                title = ":question: エイリアスが見つかりません"
-                                description = "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
-                            }
+                        respondEmbed(
+                            ":question: エイリアスが見つかりません",
+                            "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
                         }
                     }
                 }

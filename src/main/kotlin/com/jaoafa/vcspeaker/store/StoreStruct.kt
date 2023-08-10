@@ -17,8 +17,20 @@ open class StoreStruct<T>(
         deserializer
     )
 
-    fun add(element: T) {
+    fun create(element: T) {
         data.add(element)
+        write()
+    }
+
+    fun remove(element: T): Boolean {
+        val result = data.remove(element)
+        write()
+
+        return result
+    }
+
+    fun removeIf(predicate: (T) -> Boolean) {
+        data.removeIf(predicate)
         write()
     }
 
