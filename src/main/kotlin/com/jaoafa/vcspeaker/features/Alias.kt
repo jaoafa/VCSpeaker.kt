@@ -20,7 +20,7 @@ class Alias {
             )
         }
 
-        fun EmbedBuilder.fieldAliasFrom(type: AliasType, from: String) = this.field(":mag: ${type.displayName}", true) {
+        fun EmbedBuilder.fieldAliasFrom(type: AliasType, from: String) = this.field("${type.emoji} ${type.displayName}", true) {
             when (type) {
                 AliasType.Text -> from
                 AliasType.Regex -> "`$from`"

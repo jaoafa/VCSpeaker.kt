@@ -1,22 +1,18 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.store.VoiceStore
-import com.jaoafa.vcspeaker.tools.devGuild
+import com.jaoafa.vcspeaker.tools.*
 import com.jaoafa.vcspeaker.voicetext.Emotion
 import com.jaoafa.vcspeaker.voicetext.Speaker
-import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
-import com.kotlindiscord.kord.extensions.types.respond
-import dev.kord.common.Color
-import dev.kord.rest.builder.message.create.embed
 
 class VoiceCommand : Extension() {
+
     override val name = this::class.simpleName!!
 
-    inner class VoiceOptions : Arguments() {
+    inner class VoiceOptions : Options() {
         val speaker by optionalStringChoice {
             name = "speaker"
             description = "デフォルトの話者"
@@ -67,9 +63,7 @@ class VoiceCommand : Extension() {
     }
 
     override suspend fun setup() {
-        publicSlashCommand(::VoiceOptions) {
-            name = "voice"
-            description = "自分の声を設定します。"
+        publicSlashCommand("voice", "自分の声を設定します。", ::VoiceOptions) {
 
             devGuild()
 
@@ -92,41 +86,41 @@ class VoiceCommand : Extension() {
                     null -> ":neutral_face:"
                 }
 
-                respond {
-                    embed {
-                        title = ":repeat: あなたの声を更新しました"
-                        color = Color(0x6082bf)
-                        field {
-                            name = ":grinning: 話者"
-                            value = voice.speaker.speakerName
-                            inline = true
-                        }
-                        field {
-                            name = "$emotionEmoji 感情"
-                            value = voice.emotion?.emotionName ?: "未設定"
-                            inline = true
-                        }
-                        field {
-                            name = ":signal_strength: 感情レベル"
-                            value = voice.emotionLevel.let { "`Level $it`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":arrow_up_down: ピッチ"
-                            value = voice.pitch.let { "`$it%`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":fast_forward: 速度"
-                            value = voice.speed.let { "`$it%`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":loud_sound: 音量"
-                            value = voice.volume.let { "`$it%`" }
-                            inline = true
-                        }
+                respondEmbed(":repeat: あなたの声を更新しました") {
+                    authorOf(user)
+
+                    field {
+                        name = ":grinning: 話者"
+                        value = voice.speaker.speakerName
+                        inline = true
                     }
+                    field {
+                        name = "$emotionEmoji 感情"
+                        value = voice.emotion?.emotionName ?: "未設定"
+                        inline = true
+                    }
+                    field {
+                        name = ":signal_strength: 感情レベル"
+                        value = voice.emotionLevel.let { "`Level $it`" }
+                        inline = true
+                    }
+                    field {
+                        name = ":arrow_up_down: ピッチ"
+                        value = voice.pitch.let { "`$it%`" }
+                        inline = true
+                    }
+                    field {
+                        name = ":fast_forward: 速度"
+                        value = voice.speed.let { "`$it%`" }
+                        inline = true
+                    }
+                    field {
+                        name = ":loud_sound: 音量"
+                        value = voice.volume.let { "`$it%`" }
+                        inline = true
+                    }
+
+                    successColor()
                 }
             }
         }

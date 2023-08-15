@@ -1,30 +1,25 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.store.GuildStore
-import com.jaoafa.vcspeaker.tools.devGuild
+import com.jaoafa.vcspeaker.tools.*
 import com.jaoafa.vcspeaker.voicetext.Emotion
-import com.jaoafa.vcspeaker.voicetext.Format
 import com.jaoafa.vcspeaker.voicetext.Speaker
 import com.jaoafa.vcspeaker.voicetext.Voice
-import com.kotlindiscord.kord.extensions.checks.anyGuild
-import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
-import com.kotlindiscord.kord.extensions.commands.application.slash.publicSubCommand
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalBoolean
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
-import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
-import dev.kord.rest.builder.message.create.embed
+import kotlin.system.exitProcess
 
 class VCSpeakerCommand : Extension() {
+
     override val name = this::class.simpleName!!
 
-    inner class SettingsOptions : Arguments() {
+    inner class SettingsOptions : Options() {
         val channel by optionalChannel {
             name = "channel"
             description = "読み上げるテキストチャンネル"
@@ -91,19 +86,20 @@ class VCSpeakerCommand : Extension() {
     }
 
     override suspend fun setup() {
-        publicSlashCommand {
-            name = "vcspeaker"
-            description = "VCSpeaker を操作します。"
+        publicSlashCommand("vcspeaker", "VCSpeaker を操作します。") {
 
             devGuild()
 
-            publicSubCommand(::SettingsOptions) {
-                name = "settings"
-                description = "VCSpeaker の設定を行います。"
+            publicSubCommand("restart", "VCSpeaker を再起動します。") {
 
-                check {
-                    anyGuild()
+                action {
+                    respond { content = ":firecracker: **再起動します。**" }
+                    event.kord.shutdown()
+                    exitProcess(0)
                 }
+            }
+
+            publicSubCommand("settings", "VCSpeaker の設定を行います。", ::SettingsOptions) {
 
                 action {
                     val guildId = guild!!.id
@@ -135,56 +131,56 @@ class VCSpeakerCommand : Extension() {
                         null -> ":neutral_face:"
                     }
 
-                    respond {
-                        embed {
-                            title = ":repeat: 設定を更新しました"
-                            color = Color(0x6082bf)
-                            field {
-                                name = ":hash: 読み上げチャンネル"
-                                value = guildData.channelId?.let { guild!!.getChannelOrNull(it)?.mention } ?: "未設定"
-                                inline = true
-                            }
-                            field {
-                                name = ":symbols: プレフィックス"
-                                value = guildData.prefix?.let { "`$it`" } ?: "未設定"
-                                inline = true
-                            }
-                            field {
-                                name = ":grinning: 話者"
-                                value = guildData.voice.speaker.speakerName
-                                inline = true
-                            }
-                            field {
-                                name = "$emotionEmoji 感情"
-                                value = guildData.voice.emotion?.emotionName ?: "未設定"
-                                inline = true
-                            }
-                            field {
-                                name = ":signal_strength: 感情レベル"
-                                value = guildData.voice.emotionLevel.let { "`Level $it`" }
-                                inline = true
-                            }
-                            field {
-                                name = ":arrow_up_down: ピッチ"
-                                value = guildData.voice.pitch.let { "`$it%`" }
-                                inline = true
-                            }
-                            field {
-                                name = ":fast_forward: 速度"
-                                value = guildData.voice.speed.let { "`$it%`" }
-                                inline = true
-                            }
-                            field {
-                                name = ":loud_sound: 音量"
-                                value = guildData.voice.volume.let { "`$it%`" }
-                                inline = true
-                            }
-                            field {
-                                name = ":inbox_tray: 自動入退室"
-                                value = if (guildData.autoJoin) "有効" else "無効"
-                                inline = true
-                            }
+                    respondEmbed(":repeat: 設定を更新しました") {
+                        authorOf(user)
+
+                        field {
+                            name = ":hash: 読み上げチャンネル"
+                            value = guildData.channelId?.let { guild!!.getChannelOrNull(it)?.mention } ?: "未設定"
+                            inline = true
                         }
+                        field {
+                            name = ":symbols: プレフィックス"
+                            value = guildData.prefix?.let { "`$it`" } ?: "未設定"
+                            inline = true
+                        }
+                        field {
+                            name = ":grinning: 話者"
+                            value = guildData.voice.speaker.speakerName
+                            inline = true
+                        }
+                        field {
+                            name = "$emotionEmoji 感情"
+                            value = guildData.voice.emotion?.emotionName ?: "未設定"
+                            inline = true
+                        }
+                        field {
+                            name = ":signal_strength: 感情レベル"
+                            value = guildData.voice.emotionLevel.let { "`Level $it`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":arrow_up_down: ピッチ"
+                            value = guildData.voice.pitch.let { "`$it%`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":fast_forward: 速度"
+                            value = guildData.voice.speed.let { "`$it%`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":loud_sound: 音量"
+                            value = guildData.voice.volume.let { "`$it%`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":inbox_tray: 自動入退室"
+                            value = if (guildData.autoJoin) "有効" else "無効"
+                            inline = true
+                        }
+
+                        successColor()
                     }
                 }
             }

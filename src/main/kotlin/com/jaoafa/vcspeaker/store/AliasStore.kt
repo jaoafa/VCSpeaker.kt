@@ -7,8 +7,13 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Serializable
-enum class AliasType(val displayName: String) {
-    Text("文字列"), Regex("正規表現"), Emoji("絵文字")
+enum class AliasType(
+    val displayName: String,
+    val emoji: String
+) {
+    Text("文字列", ":pencil:"),
+    Regex("正規表現", ":asterisk:"),
+    Emoji("絵文字", ":neutral_face:")
 }
 
 @Serializable
@@ -27,5 +32,7 @@ object AliasStore : StoreStruct<AliasData>(
 ) {
     fun find(guildId: Snowflake, from: String) =
         data.find { it.guildId == guildId && it.from == from }
+
+    fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
 }
 

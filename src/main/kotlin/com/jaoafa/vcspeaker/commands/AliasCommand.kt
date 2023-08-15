@@ -6,19 +6,18 @@ import com.jaoafa.vcspeaker.store.AliasData
 import com.jaoafa.vcspeaker.store.AliasStore
 import com.jaoafa.vcspeaker.store.AliasType
 import com.jaoafa.vcspeaker.tools.*
-import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
-import com.kotlindiscord.kord.extensions.commands.application.slash.publicSubCommand
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
+import com.kotlindiscord.kord.extensions.types.respondingPaginator
 
 class AliasCommand : Extension() {
+
     override val name = this::class.simpleName!!
 
-    inner class CreateOptions : Arguments() {
+    inner class CreateOptions : Options() {
         val type by stringChoice {
             name = "type"
             description = "エイリアスの種類"
@@ -37,7 +36,7 @@ class AliasCommand : Extension() {
         }
     }
 
-    inner class UpdateOptions : Arguments() {
+    inner class UpdateOptions : Options() {
         val search by string {
             name = "alias"
             description = "更新するエイリアス"
@@ -58,7 +57,7 @@ class AliasCommand : Extension() {
         }
     }
 
-    inner class DeleteOptions : Arguments() {
+    inner class DeleteOptions : Options() {
         val search by string {
             name = "alias"
             description = "削除するエイリアス"
@@ -67,18 +66,12 @@ class AliasCommand : Extension() {
         }
     }
 
-    // todo AliasType diff
     override suspend fun setup() {
-        publicSlashCommand {
-            name = "alias"
-            description = "エイリアスを設定します。"
+        publicSlashCommand("alias", "エイリアスを設定します。") {
 
             devGuild()
 
-            publicSubCommand(::CreateOptions) {
-                name = "create"
-                description = "エイリアスを作成します。"
-
+            publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
                     val type = AliasType.valueOf(arguments.type)
                     val from = arguments.from
@@ -107,10 +100,7 @@ class AliasCommand : Extension() {
                 }
             }
 
-            publicSubCommand(::UpdateOptions) {
-                name = "update"
-                description = "エイリアスを更新します。"
-
+            publicSubCommand("update", "エイリアスを更新します。", ::UpdateOptions) {
                 action {
                     val aliasData = AliasStore.find(guild!!.id, arguments.search)
                     if (aliasData != null) {
@@ -145,10 +135,7 @@ class AliasCommand : Extension() {
                 }
             }
 
-            publicSubCommand(::DeleteOptions) {
-                name = "delete"
-                description = "エイリアスを削除します。"
-
+            publicSubCommand("delete", "エイリアスを削除します。", ::DeleteOptions) {
                 action {
                     val aliasData = AliasStore.find(guild!!.id, arguments.search)
 
@@ -180,12 +167,38 @@ class AliasCommand : Extension() {
                 }
             }
 
-            publicSubCommand {
-                name = "list"
-                description = "エイリアスの一覧を表示します。"
-
+            publicSubCommand("list", "エイリアスの一覧を表示します。") {
                 action {
+                    val aliases = AliasStore.filter(guild!!.id)
 
+                    if (aliases.isEmpty()) {
+                        respondEmbed(
+                            ":question: エイリアスが存在しません",
+                            "`/alias create` でエイリアスを作成してみましょう！"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        return@action
+                    }
+
+                    respondingPaginator {
+                        for (chunkedAliases in aliases.chunked(10)) {
+                            page {
+                                authorOf(user)
+
+                                for (alias in chunkedAliases) {
+                                    val (_, _, type, from, to) = alias
+
+                                    field("${type.emoji} ${type.displayName}", false) {
+                                        "${if (type == AliasType.Regex) "`$from`" else from} → **$to**"
+                                    }
+                                }
+
+                                successColor()
+                            }
+                        }
+                    }
                 }
             }
         }

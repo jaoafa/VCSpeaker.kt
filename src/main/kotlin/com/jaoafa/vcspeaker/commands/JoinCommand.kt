@@ -1,14 +1,13 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.tools.Options
 import com.jaoafa.vcspeaker.tools.devGuild
+import com.jaoafa.vcspeaker.tools.publicSlashCommand
 import com.jaoafa.vcspeaker.voicetext.GuildNarrator
 import com.jaoafa.vcspeaker.voicetext.Narrator.speakSelf
-import com.kotlindiscord.kord.extensions.checks.isNotBot
-import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
 import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.annotation.KordVoice
@@ -20,25 +19,22 @@ import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.voice.AudioFrame
 
 class JoinCommand : Extension() {
+
     override val name = this::class.simpleName!!
 
-    inner class JoinOptions : Arguments() {
+    inner class JoinOptions : Options() {
         val target by optionalChannel {
             name = "channel"
-            description = "The voice channel to join."
+            description = "参加する VC"
             requireChannelType(ChannelType.GuildVoice)
         }
     }
 
     @OptIn(KordVoice::class)
     override suspend fun setup() {
-        publicSlashCommand(::JoinOptions) {
-            name = "join"
-            description = "VC に接続します。"
+        publicSlashCommand("join", "VC に接続します。", ::JoinOptions) {
 
             devGuild()
-
-            check { isNotBot() }
 
             action {
                 // option > member's voice channel > error

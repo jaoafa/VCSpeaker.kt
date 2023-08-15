@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.types.long
 import com.github.ajalt.clikt.parameters.types.path
 import com.jaoafa.vcspeaker.commands.*
 import com.jaoafa.vcspeaker.config.TokenSpec
+import com.jaoafa.vcspeaker.events.AutoJoinEvent
 import com.jaoafa.vcspeaker.events.NewMessageEvent
 import com.jaoafa.vcspeaker.store.CacheStore
 import com.jaoafa.vcspeaker.voicetext.VoiceTextAPI
@@ -75,9 +76,10 @@ class Main : CliktCommand() {
                     add(::VCSpeakerCommand)
                     add(::ClearCommand)
                     add(::VoiceCommand)
-                    add(::RestartCommand)
+                    add(::IgnoreCommand)
                     add(::AliasCommand)
                     add(::NewMessageEvent)
+                    add(::AutoJoinEvent)
                 }
             }
 

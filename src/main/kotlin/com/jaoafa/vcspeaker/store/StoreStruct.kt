@@ -29,11 +29,6 @@ open class StoreStruct<T>(
         return result
     }
 
-    fun removeIf(predicate: (T) -> Boolean) {
-        data.removeIf(predicate)
-        write()
-    }
-
     fun write() {
         File(path).writeAs(ListSerializer(serializer), this.data)
     }
