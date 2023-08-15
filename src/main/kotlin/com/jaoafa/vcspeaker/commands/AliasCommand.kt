@@ -21,7 +21,7 @@ class AliasCommand : Extension() {
         val type by stringChoice {
             name = "type"
             description = "エイリアスの種類"
-            for (aliasType in AliasType.values())
+            for (aliasType in AliasType.entries)
                 choice(aliasType.displayName, aliasType.name)
         }
 
@@ -47,7 +47,7 @@ class AliasCommand : Extension() {
         val type by optionalStringChoice {
             name = "type"
             description = "エイリアスの種類"
-            for (aliasType in AliasType.values())
+            for (aliasType in AliasType.entries)
                 choice(aliasType.displayName, aliasType.name)
         }
 

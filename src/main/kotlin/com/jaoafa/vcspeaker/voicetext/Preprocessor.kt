@@ -54,4 +54,24 @@ object Preprocessor {
 
         return replacedText
     }
+
+    private fun replaceChannelMention(guildId: Snowflake, text: String): String {
+        TODO()
+    }
+
+    private fun replaceRoleMention(guildId: Snowflake, text: String): String {
+        TODO()
+    }
+
+    private fun replaceUserMention(guildId: Snowflake, text: String): String {
+        TODO()
+    }
+
+    private fun replaceMessageMention(guildId: Snowflake, text: String): String {
+        TODO()
+    }
+
+    private fun replaceTimestamp(guildId: Snowflake, text: String): String {
+        TODO()
+    }
 }

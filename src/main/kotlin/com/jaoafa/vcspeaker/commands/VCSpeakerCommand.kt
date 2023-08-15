@@ -35,7 +35,7 @@ class VCSpeakerCommand : Extension() {
             name = "speaker"
             description = "デフォルトの話者"
 
-            for (value in Speaker.values())
+            for (value in Speaker.entries)
                 choice(value.speakerName, value.name)
         }
 
@@ -43,7 +43,7 @@ class VCSpeakerCommand : Extension() {
             name = "emotion"
             description = "デフォルトの感情"
 
-            for (value in Emotion.values())
+            for (value in Emotion.entries)
                 choice(value.emotionName, value.name)
         }
 
