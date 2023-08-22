@@ -68,9 +68,6 @@ class AliasCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("alias", "エイリアスを設定します。") {
-
-            devGuild()
-
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
                     val type = AliasType.valueOf(arguments.type)
@@ -191,14 +188,14 @@ class AliasCommand : Extension() {
                                     val (_, _, type, from, to) = alias
 
                                     field("${type.emoji} ${type.displayName}", false) {
-                                        "${if (type == AliasType.Regex) "`$from`" else from} → **$to**"
+                                        "${if (type == AliasType.Regex) "`$from`" else from} → $to"
                                     }
                                 }
 
                                 successColor()
                             }
                         }
-                    }
+                    }.send()
                 }
             }
         }

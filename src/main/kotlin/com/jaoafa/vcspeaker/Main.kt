@@ -59,7 +59,7 @@ class Main : CliktCommand() {
         VCSpeaker.dev = dev?.let { Snowflake(it) }
 
         runBlocking {
-            VCSpeaker.kord = ExtensibleBot(token) {
+            VCSpeaker.instance = ExtensibleBot(token) {
                 applicationCommands {
                     enabled = true
                 }
@@ -83,7 +83,7 @@ class Main : CliktCommand() {
                 }
             }
 
-            VCSpeaker.kord.start()
+            VCSpeaker.instance.start()
         }
     }
 }

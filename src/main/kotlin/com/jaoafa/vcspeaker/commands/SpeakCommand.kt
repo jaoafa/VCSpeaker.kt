@@ -21,10 +21,8 @@ class SpeakCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("speak", "Speaks the text. (Debug use only)", ::SpeakOptions) {
-
-            devGuild()
-
             action {
+
                 VCSpeaker.narrators[guild!!.id]?.queueSelf(arguments.text)
                 respond {
                     content = arguments.text

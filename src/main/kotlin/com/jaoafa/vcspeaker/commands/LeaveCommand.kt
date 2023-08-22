@@ -14,9 +14,6 @@ class LeaveCommand : Extension() {
     @OptIn(KordVoice::class)
     override suspend fun setup() {
         publicSlashCommand("leave", "VC から退出します。") {
-
-            devGuild()
-
             action {
                 val guildId = guild!!.id
                 val narrator = VCSpeaker.narrators[guildId] ?: run {

@@ -12,9 +12,6 @@ class ClearCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("clear", "読み上げ予定のメッセージを全て中止します。") {
-
-            devGuild()
-
             action {
                 val narrator = VCSpeaker.narrators[guild!!.id] ?: run {
                     respond { content = "**:question: VC に参加していません。**" }

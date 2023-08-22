@@ -64,9 +64,6 @@ class VoiceCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("voice", "自分の声を設定します。", ::VoiceOptions) {
-
-            devGuild()
-
             action {
                 val voice = VoiceStore.byIdOrDefault(event.interaction.user.id).copy(
                     speaker = arguments.speaker?.let { Speaker.valueOf(it) } ?: Speaker.Hikari,

@@ -75,7 +75,7 @@ suspend fun FollowupMessageCreateBuilder.embed(
 }
 
 // Command Extension Functions
-//todo
+@JvmName("namedPublicSlashCommandWithOptionModal")
 suspend fun <O : Options, M : ModalForm> Extension.publicSlashCommand(
     name: String,
     description: String,
@@ -84,13 +84,16 @@ suspend fun <O : Options, M : ModalForm> Extension.publicSlashCommand(
     builder: suspend PublicSlashCommand<O, M>.() -> Unit
 ) {
     publicSlashCommand(options, modal) {
-        this.name = name
+        this.name = if (VCSpeaker.isDev()) "dev-$name" else name
         this.description = description
+
+        devGuild()
 
         apply { builder() }
     }
 }
 
+@JvmName("namedPublicSlashCommandWithModal")
 suspend fun <M : ModalForm> Extension.publicSlashCommand(
     name: String,
     description: String,
@@ -98,13 +101,16 @@ suspend fun <M : ModalForm> Extension.publicSlashCommand(
     builder: suspend PublicSlashCommand<Options, M>.() -> Unit
 ) {
     publicSlashCommand(modal) {
-        this.name = name
+        this.name = if (VCSpeaker.isDev()) "dev-$name" else name
         this.description = description
+
+        devGuild()
 
         apply { builder() }
     }
 }
 
+@JvmName("namedPublicSlashCommandWithOption")
 suspend fun <O : Options> Extension.publicSlashCommand(
     name: String,
     description: String,
@@ -112,21 +118,26 @@ suspend fun <O : Options> Extension.publicSlashCommand(
     builder: suspend PublicSlashCommand<O, ModalForm>.() -> Unit
 ) {
     publicSlashCommand(options) {
-        this.name = name
+        this.name = if (VCSpeaker.isDev()) "dev-$name" else name
         this.description = description
+
+        devGuild()
 
         apply { builder() }
     }
 }
 
+@JvmName("namedPublicSlashCommand")
 suspend fun Extension.publicSlashCommand(
     name: String,
     description: String,
     builder: suspend PublicSlashCommand<Options, ModalForm>.() -> Unit
 ) {
     publicSlashCommand {
-        this.name = name
+        this.name = if (VCSpeaker.isDev()) "dev-$name" else name
         this.description = description
+
+        devGuild()
 
         apply { builder() }
     }
@@ -134,6 +145,7 @@ suspend fun Extension.publicSlashCommand(
 
 // Subcommand Extension Functions
 
+@JvmName("namedPublicSubCommandWithOptionModal")
 suspend fun <O : Options, M : ModalForm> SlashCommand<*, *, *>.publicSubCommand(
     name: String,
     description: String,
@@ -149,6 +161,7 @@ suspend fun <O : Options, M : ModalForm> SlashCommand<*, *, *>.publicSubCommand(
     }
 }
 
+@JvmName("namedPublicSubCommandWithModal")
 suspend fun <M : ModalForm> SlashCommand<*, *, *>.publicSubCommand(
     name: String,
     description: String,
@@ -163,6 +176,7 @@ suspend fun <M : ModalForm> SlashCommand<*, *, *>.publicSubCommand(
     }
 }
 
+@JvmName("namedPublicSubCommandWithOption")
 suspend fun <O : Options> SlashCommand<*, *, *>.publicSubCommand(
     name: String,
     description: String,
@@ -177,6 +191,7 @@ suspend fun <O : Options> SlashCommand<*, *, *>.publicSubCommand(
     }
 }
 
+@JvmName("namedPublicSubCommand")
 suspend fun SlashCommand<*, *, *>.publicSubCommand(
     name: String,
     description: String,

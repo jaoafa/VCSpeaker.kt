@@ -38,15 +38,12 @@ class IgnoreCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("ignore", "無視項目を設定します。") {
-
-            devGuild()
-
             publicSubCommand("create", "無視する文字列を作成します。", ::CreateOptions) {
                 action {
                     val text = arguments.text
                     val duplicateExists = IgnoreStore.find(guild!!.id, text) != null
 
-                    if (duplicateExists)
+                    if (!duplicateExists)
                         IgnoreStore.create(IgnoreData(guild!!.id, user.id, text))
 
                     respondEmbed(
@@ -59,7 +56,7 @@ class IgnoreCommand : Extension() {
                 }
             }
 
-            publicSlashCommand("delete", "無視する文字列を削除します。", ::DeleteOptions) {
+            publicSubCommand("delete", "無視する文字列を削除します。", ::DeleteOptions) {
                 action {
                     val text = arguments.text
                     val target = IgnoreStore.find(guild!!.id, text)
@@ -83,7 +80,7 @@ class IgnoreCommand : Extension() {
                 }
             }
 
-            publicSlashCommand("list", "無視する文字列の一覧を表示します。") {
+            publicSubCommand("list", "無視する文字列の一覧を表示します。") {
                 action {
                     val ignores = IgnoreStore.filter(guild!!.id)
 
@@ -110,7 +107,7 @@ class IgnoreCommand : Extension() {
                                 successColor()
                             }
                         }
-                    }
+                    }.send()
                 }
             }
         }

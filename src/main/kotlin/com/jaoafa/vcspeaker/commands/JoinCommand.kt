@@ -33,9 +33,6 @@ class JoinCommand : Extension() {
     @OptIn(KordVoice::class)
     override suspend fun setup() {
         publicSlashCommand("join", "VC に接続します。", ::JoinOptions) {
-
-            devGuild()
-
             action {
                 // option > member's voice channel > error
                 val target =

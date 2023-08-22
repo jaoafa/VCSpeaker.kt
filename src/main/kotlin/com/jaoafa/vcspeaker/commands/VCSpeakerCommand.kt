@@ -87,9 +87,6 @@ class VCSpeakerCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("vcspeaker", "VCSpeaker を操作します。") {
-
-            devGuild()
-
             publicSubCommand("restart", "VCSpeaker を再起動します。") {
 
                 action {

@@ -10,13 +10,14 @@ import dev.kord.common.entity.Snowflake
 import java.io.File
 
 object VCSpeaker {
-    lateinit var kord: ExtensibleBot
+    lateinit var instance: ExtensibleBot
     lateinit var voiceText: VoiceTextAPI
     lateinit var config: Config
 
     var cachePolicy: Int = 7
 
     var dev: Snowflake? = null
+    fun isDev() = dev != null
 
     val lavaplayer = DefaultAudioPlayerManager()
     val narrators = hashMapOf<Snowflake, GuildNarrator>()
