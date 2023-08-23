@@ -1,10 +1,9 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tools.devGuild
-import com.jaoafa.vcspeaker.tools.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.types.respond
 
 class ClearCommand : Extension() {
 
@@ -14,14 +13,14 @@ class ClearCommand : Extension() {
         publicSlashCommand("clear", "読み上げ予定のメッセージを全て中止します。") {
             action {
                 val narrator = VCSpeaker.narrators[guild!!.id] ?: run {
-                    respond { content = "**:question: VC に参加していません。**" }
+                    respond("**:question: VC に参加していません。**")
                     return@action
                 }
 
                 narrator.clear()
                 narrator.queueSelf("")
 
-                respond { content = "**:white_check_mark: キューをクリアしました。**" }
+                respond("**:white_check_mark: キューをクリアしました。**")
             }
         }
     }

@@ -1,7 +1,10 @@
-package com.jaoafa.vcspeaker
+package com.jaoafa.vcspeaker.voicetext
 
 object NarrationScripts {
-    fun selfJoin(channel: String) = "$channel に参加しました。"
+    const val SELF_JOIN = "接続しました。"
+    const val SELF_MOVE = "移動しました。"
+
+    // todo user join/leave/move announce 
     fun userJoin(name: String) = "$name が参加しました。"
     fun userLeave(name: String) = "$name が退出しました。"
     fun userJoinOtherChannel(name: String, channel: String) = "$name が $channel に参加しました。"

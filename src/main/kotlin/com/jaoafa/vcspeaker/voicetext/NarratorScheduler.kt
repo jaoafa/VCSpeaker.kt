@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.voicetext
 
-import com.jaoafa.vcspeaker.voicetext.Narrator.speak
+import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.speak
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter

@@ -1,16 +1,18 @@
 package com.jaoafa.vcspeaker
 
-import com.jaoafa.vcspeaker.voicetext.GuildNarrator
-import com.jaoafa.vcspeaker.voicetext.VoiceTextAPI
+import com.jaoafa.vcspeaker.voicetext.Narrator
+import com.jaoafa.vcspeaker.voicetext.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
+import dev.kord.core.Kord
 import java.io.File
 
 object VCSpeaker {
     lateinit var instance: ExtensibleBot
+    lateinit var kord: Kord
     lateinit var voiceText: VoiceTextAPI
     lateinit var config: Config
 
@@ -20,7 +22,7 @@ object VCSpeaker {
     fun isDev() = dev != null
 
     val lavaplayer = DefaultAudioPlayerManager()
-    val narrators = hashMapOf<Snowflake, GuildNarrator>()
+    val narrators = hashMapOf<Snowflake, Narrator>()
 
     object Files {
         val config = File("config.yml")

@@ -1,9 +1,15 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.store.GuildStore
-import com.jaoafa.vcspeaker.tools.*
-import com.jaoafa.vcspeaker.voicetext.Emotion
-import com.jaoafa.vcspeaker.voicetext.Speaker
+import com.jaoafa.vcspeaker.tools.Discord.authorOf
+import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.Discord.publicSubCommand
+import com.jaoafa.vcspeaker.tools.Discord.respond
+import com.jaoafa.vcspeaker.tools.Discord.respondEmbed
+import com.jaoafa.vcspeaker.tools.Discord.successColor
+import com.jaoafa.vcspeaker.tools.Options
+import com.jaoafa.vcspeaker.voicetext.api.Emotion
+import com.jaoafa.vcspeaker.voicetext.api.Speaker
 import com.jaoafa.vcspeaker.voicetext.Voice
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalBoolean
@@ -11,7 +17,6 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChanne
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.types.respond
 import dev.kord.common.entity.ChannelType
 import kotlin.system.exitProcess
 
@@ -90,7 +95,7 @@ class VCSpeakerCommand : Extension() {
             publicSubCommand("restart", "VCSpeaker を再起動します。") {
 
                 action {
-                    respond { content = ":firecracker: **再起動します。**" }
+                    respond("**:firecracker: 再起動します。**")
                     event.kord.shutdown()
                     exitProcess(0)
                 }

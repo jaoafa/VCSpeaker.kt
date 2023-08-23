@@ -1,14 +1,14 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.jaoafa.vcspeaker.tools.Options
-import com.jaoafa.vcspeaker.tools.devGuild
-import com.jaoafa.vcspeaker.tools.publicSlashCommand
-import com.jaoafa.vcspeaker.voicetext.GuildNarrator
-import com.jaoafa.vcspeaker.voicetext.Narrator.speakSelf
+import com.jaoafa.vcspeaker.voicetext.NarrationScripts
+import com.jaoafa.vcspeaker.voicetext.Narrator
+import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.speakSelf
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.types.respond
 import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.ChannelType
@@ -35,10 +35,10 @@ class JoinCommand : Extension() {
         publicSlashCommand("join", "VC に接続します。", ::JoinOptions) {
             action {
                 // option > member's voice channel > error
-                val target =
-                    arguments.target?.asChannelOf<VoiceChannel>() ?: member!!.getVoiceStateOrNull()?.getChannelOrNull()
+                val target = arguments.target?.asChannelOf<VoiceChannel>()
+                    ?: member!!.getVoiceStateOrNull()?.getChannelOrNull()
                     ?: run {
-                        respond { content = "**:question: VC に参加、または指定してください。**" }
+                        respond("**:question: VC に参加、または指定してください。**")
                         return@action
                     }
 
@@ -50,15 +50,15 @@ class JoinCommand : Extension() {
 
                 if (narrator != null) { // already connected
                     narrator.connection.move(target.id)
-
-                    respond { content = "**:loud_sound: ${target.mention} に移動しました。**" }
+                    narrator.player.speakSelf(NarrationScripts.SELF_MOVE, guild!!.id)
+                    respond("**:arrow_right: ${target.mention} に移動しました。**")
                     return@action
                 }
 
                 val player = VCSpeaker.lavaplayer.createPlayer()
                 val guildId = guild!!.id
 
-                player.speakSelf("接続しました。", guildId) // DO NOT REMOVE
+                player.speakSelf(NarrationScripts.SELF_JOIN, guildId) // DO NOT REMOVE
 
                 val connection = (target as VoiceChannelBehavior).connect {
                     audioProvider {
@@ -66,9 +66,9 @@ class JoinCommand : Extension() {
                     }
                 }
 
-                VCSpeaker.narrators[guildId] = GuildNarrator(guildId, player, connection)
+                VCSpeaker.narrators[guildId] = Narrator(guildId, player, connection)
 
-                respond { content = "**:loud_sound: ${target.mention} に接続しました。**" }
+                respond("**:loud_sound: ${target.mention} に接続しました。**")
             }
         }
     }

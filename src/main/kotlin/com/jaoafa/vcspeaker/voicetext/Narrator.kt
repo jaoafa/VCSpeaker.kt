@@ -1,61 +1,46 @@
 package com.jaoafa.vcspeaker.voicetext
 
-import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.store.CacheStore
 import com.jaoafa.vcspeaker.store.GuildStore
 import com.jaoafa.vcspeaker.store.VoiceStore
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
-import java.rmi.UnexpectedException
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import dev.kord.core.entity.Message
+import dev.kord.core.entity.ReactionEmoji
+import dev.kord.voice.VoiceConnection
 
-object Narrator {
-    suspend fun AudioPlayer.speakSelf(text: String, guildId: Snowflake) {
-        speak(SpeakInfo(text, GuildStore[guildId]?.voice ?: Voice(speaker = Speaker.Hikari)))
+class Narrator @OptIn(KordVoice::class) constructor(
+    val guildId: Snowflake,
+    val player: AudioPlayer,
+    val connection: VoiceConnection
+) {
+    private val scheduler = NarratorScheduler(guildId, player)
+
+    private suspend fun queue(text: String, voice: Voice, message: Message? = null) {
+        val processedText = Preprocessor.processText(guildId, text) ?: return
+        scheduler.queue(SpeakInfo(processedText, voice, message))
     }
 
-    suspend fun AudioPlayer.speakUser(text: String, userId: Snowflake) {
-        speak(SpeakInfo(text, VoiceStore.byIdOrDefault(userId)))
-    }
+    suspend fun queueSelf(text: String) =
+        queue(text, GuildStore.getOrDefault(guildId).voice)
 
-    suspend fun AudioPlayer.speak(info: SpeakInfo) {
-        val text = info.text
-        val voice = info.voice
+    suspend fun queueUser(text: String, userId: Snowflake, message: Message) =
+        queue(text, VoiceStore.byIdOrDefault(userId), message)
 
-        val file = if (!CacheStore.exists(text, voice)) {
-            val audio = VCSpeaker.voiceText.generateSpeech(text, voice)
-            CacheStore.create(text, voice, audio)
-        } else CacheStore.read(text)
 
-        val track = suspendCoroutine {
-            VCSpeaker.lavaplayer.loadItemOrdered(
-                this,
-                file!!.path, // already checked
-                object : AudioLoadResultHandler {
-                    override fun trackLoaded(track: AudioTrack) {
-                        track.userData = info
-                        it.resume(track)
-                    }
+    suspend fun skip() = scheduler.skip()
 
-                    override fun playlistLoaded(playlist: AudioPlaylist?) {
-                        throw UnexpectedException("This code should not be reached.")
-                    }
-
-                    override fun noMatches() {
-                        return
-                    }
-
-                    override fun loadFailed(exception: FriendlyException?) {
-                        return
-                    }
-                })
+    suspend fun clear() {
+        listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
+            it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
+            it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
         }
+        scheduler.queue.clear()
+        scheduler.now = null
+        player.stopTrack()
+    }
 
-        this.playTrack(track)
+    init {
+        player.addListener(scheduler)
     }
 }

@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.store
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.voicetext.Speaker
+import com.jaoafa.vcspeaker.voicetext.api.Speaker
 import com.jaoafa.vcspeaker.voicetext.Voice
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
