@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tools
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.store.GuildStore
 import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommand
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
@@ -13,7 +14,8 @@ import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
 import com.kotlindiscord.kord.extensions.types.respond
 import dev.kord.common.Color
 import dev.kord.core.behavior.UserBehavior
-import dev.kord.core.behavior.channel.MessageChannelBehavior
+import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
+import dev.kord.core.entity.Guild
 import dev.kord.core.entity.User
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
@@ -22,7 +24,11 @@ import dev.kord.rest.builder.message.create.embed
 typealias Options = Arguments
 
 object Discord {
-    fun PublicSlashCommand<*, *>.devGuild() {
+    fun Guild.autoJoinEnabled() = GuildStore.getOrDefault(this.id).autoJoin
+
+    suspend fun BaseVoiceChannelBehavior.isAfk() = this.getGuild().afkChannel == this
+
+    private fun PublicSlashCommand<*, *>.devGuild() {
         val devGuildId = VCSpeaker.dev
         if (devGuildId != null) guild(devGuildId)
     }

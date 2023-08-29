@@ -4,18 +4,42 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.store.CacheStore
 import com.jaoafa.vcspeaker.store.GuildStore
 import com.jaoafa.vcspeaker.store.VoiceStore
+import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
+import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.kord.common.entity.Snowflake
+import dev.kord.core.entity.Guild
+import dev.kord.core.entity.channel.TextChannel
 import java.rmi.UnexpectedException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 object NarratorExtensions {
+    suspend fun Narrator.announce(voice: String, text: String, interaction: PublicInteractionContext? = null) {
+        VCSpeaker.kord.getGuildOrNull(guildId)?.announce(voice, text, interaction)
+    }
+
+    suspend fun Guild.announce(voice: String, text: String, interaction: PublicInteractionContext? = null) {
+        val narrator = VCSpeaker.narrators[id]
+
+        narrator?.queueSelf(voice)
+
+        if (interaction != null) {
+            interaction.respond(text)
+        } else {
+            val channel = GuildStore.getOrDefault(id).channelId?.let {
+                VCSpeaker.kord.getChannelOf<TextChannel>(it)
+            }
+
+            channel?.createMessage(text)
+        }
+    }
+
     suspend fun AudioPlayer.speakSelf(text: String, guildId: Snowflake) {
         speak(SpeakInfo(text, GuildStore[guildId]?.voice ?: Voice(speaker = Speaker.Hikari)))
     }

@@ -154,9 +154,8 @@ object Preprocessor {
      */
     private suspend fun replaceUserMention(text: String, guildId: Snowflake) =
         replaceMentionable(text, Regex("<@!?(\\d+)>")) { kord, id ->
-            val nickname = kord.getGuildOrNull(guildId)?.getMember(id)?.nickname
-            val username = kord.getUser(id)?.data?.username
-            nickname ?: username ?: "不明なユーザー"
+            val displayName = kord.getGuildOrNull(guildId)?.getMember(id)?.displayName
+            displayName ?: "不明なユーザー"
         }
 
     /**
