@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.store
+package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.writeAs

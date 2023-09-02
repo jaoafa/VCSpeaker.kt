@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.voicetext
 
-import com.jaoafa.vcspeaker.store.GuildStore
-import com.jaoafa.vcspeaker.store.VoiceStore
+import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake

@@ -1,12 +1,9 @@
 .gradle
+.idea
 build
 gradle
 
+stores
 cache
 config.yml
-caches.json
-guilds.json
-voices.json
-ignores.json
-aliases.json
 test.wav

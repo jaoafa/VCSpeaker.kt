@@ -1,10 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.features.Alias
-import com.jaoafa.vcspeaker.features.Alias.Companion.fieldAliasFrom
-import com.jaoafa.vcspeaker.store.AliasData
-import com.jaoafa.vcspeaker.store.AliasStore
-import com.jaoafa.vcspeaker.store.AliasType
+import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
+import com.jaoafa.vcspeaker.stores.AliasData
+import com.jaoafa.vcspeaker.stores.AliasStore
+import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tools.Discord.authorOf
 import com.jaoafa.vcspeaker.tools.Discord.errorColor
 import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
@@ -88,7 +88,8 @@ class AliasCommand : Extension() {
                     AliasStore.create(AliasData(guild!!.id, user.id, type, from, to))
 
                     respondEmbed(
-                        ":loudspeaker: ${type.displayName}のエイリアスを${if (duplicate != null) "更新" else "作成"}しました"
+                        ":loudspeaker: Alias ${if (duplicate != null) "Updated" else "Created"}",
+                        "${type.displayName}のエイリアスを${if (duplicate != null) "更新" else "作成"}しました"
                     ) {
                         authorOf(user)
 
@@ -115,7 +116,10 @@ class AliasCommand : Extension() {
                         AliasStore.remove(aliasData)
                         AliasStore.create(aliasData.copy(userId = user.id, type = updatedType, to = updatedTo))
 
-                        respondEmbed(":repeat: エイリアスを更新しました") {
+                        respondEmbed(
+                            ":repeat: Alias Updated",
+                            "${type.displayName}のエイリアスを更新しました。"
+                        ) {
                             authorOf(user)
 
                             fieldAliasFrom(updatedType, from)
@@ -128,7 +132,7 @@ class AliasCommand : Extension() {
                         }
                     } else {
                         respondEmbed(
-                            ":question: エイリアスが見つかりません",
+                            ":question: Alias Not Found",
                             "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
                         ) {
                             authorOf(user)
@@ -147,7 +151,10 @@ class AliasCommand : Extension() {
 
                         val (_, _, type, from, to) = aliasData
 
-                        respondEmbed(":wastebasket: エイリアスを削除しました") {
+                        respondEmbed(
+                            ":wastebasket: Alias Deleted",
+                            "${type.displayName}のエイリアスを削除しました。"
+                        ) {
                             authorOf(user)
 
                             fieldAliasFrom(type, from)
@@ -160,7 +167,7 @@ class AliasCommand : Extension() {
                         }
                     } else {
                         respondEmbed(
-                            ":question: エイリアスが見つかりません",
+                            ":question: Alias Not Found",
                             "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
                         ) {
                             authorOf(user)
@@ -176,8 +183,8 @@ class AliasCommand : Extension() {
 
                     if (aliases.isEmpty()) {
                         respondEmbed(
-                            ":question: エイリアスが存在しません",
-                            "`/alias create` でエイリアスを作成してみましょう！"
+                            ":grey_question: Aliases Not Found",
+                            "エイリアスが設定されていないようです。`/alias create` で作成してみましょう！"
                         ) {
                             authorOf(user)
                             errorColor()

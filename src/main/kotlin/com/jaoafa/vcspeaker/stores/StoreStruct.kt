@@ -1,5 +1,6 @@
-package com.jaoafa.vcspeaker.store
+package com.jaoafa.vcspeaker.stores
 
+import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.readOrCreateAs
 import com.jaoafa.vcspeaker.tools.writeAs
 import kotlinx.serialization.KSerializer
@@ -9,7 +10,7 @@ import java.io.File
 open class StoreStruct<T>(
     private val path: String,
     private val serializer: KSerializer<T>,
-    deserializer: String.() -> MutableList<T> // To avoid type inference error
+    deserializer: String.() -> MutableList<T> // To avoid type inference error. DO NOT REMOVE.
 ) {
     var data: MutableList<T> = File(path).readOrCreateAs(
         ListSerializer(serializer),
@@ -25,7 +26,6 @@ open class StoreStruct<T>(
     fun remove(element: T): Boolean {
         val result = data.remove(element)
         write()
-
         return result
     }
 

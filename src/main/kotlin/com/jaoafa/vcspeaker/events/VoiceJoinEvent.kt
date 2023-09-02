@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker.join
 import com.jaoafa.vcspeaker.VCSpeaker.move
-import com.jaoafa.vcspeaker.store.GuildStore
+import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.Discord.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.Discord.isAfk
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts

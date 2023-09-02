@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.store.IgnoreData
-import com.jaoafa.vcspeaker.store.IgnoreStore
+import com.jaoafa.vcspeaker.stores.IgnoreData
+import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.tools.Discord.authorOf
 import com.jaoafa.vcspeaker.tools.Discord.errorColor
 import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
@@ -43,7 +43,7 @@ class IgnoreCommand : Extension() {
     }
 
     override suspend fun setup() {
-        publicSlashCommand("ignore", "無視項目を設定します。") {
+        publicSlashCommand("ignore", "無視機能を設定します。") {
             publicSubCommand("create", "無視する文字列を作成します。", ::CreateOptions) {
                 action {
                     val text = arguments.text
@@ -53,7 +53,7 @@ class IgnoreCommand : Extension() {
                         IgnoreStore.create(IgnoreData(guild!!.id, user.id, text))
 
                     respondEmbed(
-                        ":loudspeaker: 無視する文字列を作成しました",
+                        ":face_with_symbols_over_mouth: Ignore Created",
                         "今後「$text」を含むメッセージは読み上げられません。"
                     ) {
                         authorOf(user)
@@ -71,7 +71,7 @@ class IgnoreCommand : Extension() {
                         IgnoreStore.remove(target)
 
                         respondEmbed(
-                            ":wastebasket: 無視する文字列を削除しました",
+                            ":wastebasket: Ignore Deleted",
                             "「$text」が含まれていても読み上げます。"
                         ) {
                             authorOf(user)
@@ -79,7 +79,7 @@ class IgnoreCommand : Extension() {
                         }
                     } else {
                         respondEmbed(
-                            ":question: 無視する文字列が見つかりません",
+                            ":question: Ignore Not Found",
                             "「$text」を含むメッセージは無視されていません。"
                         )
                     }
@@ -92,8 +92,8 @@ class IgnoreCommand : Extension() {
 
                     if (ignores.isEmpty()) {
                         respondEmbed(
-                            ":question: 無視する文字列が存在しません",
-                            "`/ignore create` で無視する文字列を作成してみましょう！"
+                            ":grey_question: Ignores Not Found",
+                            "無視機能が設定されていないようです。`/ignore create` で作成してみましょう！"
                         ) {
                             authorOf(user)
                             errorColor()

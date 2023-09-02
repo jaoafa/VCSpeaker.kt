@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.store.GuildStore
+import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.Discord.authorOf
 import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.Discord.publicSubCommand
@@ -8,9 +8,9 @@ import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.jaoafa.vcspeaker.tools.Discord.respondEmbed
 import com.jaoafa.vcspeaker.tools.Discord.successColor
 import com.jaoafa.vcspeaker.tools.Options
+import com.jaoafa.vcspeaker.voicetext.Voice
 import com.jaoafa.vcspeaker.voicetext.api.Emotion
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
-import com.jaoafa.vcspeaker.voicetext.Voice
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalBoolean
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
@@ -38,7 +38,7 @@ class VCSpeakerCommand : Extension() {
 
         val speaker by optionalStringChoice {
             name = "speaker"
-            description = "デフォルトの話者"
+            description = "話者"
 
             for (value in Speaker.entries)
                 choice(value.speakerName, value.name)
@@ -46,7 +46,7 @@ class VCSpeakerCommand : Extension() {
 
         val emotion by optionalStringChoice {
             name = "emotion"
-            description = "デフォルトの感情"
+            description = "感情"
 
             for (value in Emotion.entries)
                 choice(value.emotionName, value.name)
@@ -54,7 +54,7 @@ class VCSpeakerCommand : Extension() {
 
         val emotionLevel by optionalInt {
             name = "emotion-level"
-            description = "デフォルトの感情レベル"
+            description = "感情レベル"
 
             maxValue = 4
             minValue = 1
@@ -62,7 +62,7 @@ class VCSpeakerCommand : Extension() {
 
         val pitch by optionalInt {
             name = "pitch"
-            description = "デフォルトのピッチ"
+            description = "ピッチ"
 
             maxValue = 200
             minValue = 50
@@ -70,7 +70,7 @@ class VCSpeakerCommand : Extension() {
 
         val speed by optionalInt {
             name = "speed"
-            description = "デフォルトの速度"
+            description = "速度"
 
             maxValue = 200
             minValue = 50
@@ -78,7 +78,7 @@ class VCSpeakerCommand : Extension() {
 
         val volume by optionalInt {
             name = "volume"
-            description = "デフォルトの音量"
+            description = "音量"
 
             maxValue = 200
             minValue = 50
@@ -92,8 +92,8 @@ class VCSpeakerCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("vcspeaker", "VCSpeaker を操作します。") {
-            publicSubCommand("restart", "VCSpeaker を再起動します。") {
 
+            publicSubCommand("restart", "VCSpeaker を再起動します。") {
                 action {
                     respond("**:firecracker: 再起動します。**")
                     event.kord.shutdown()
@@ -101,18 +101,17 @@ class VCSpeakerCommand : Extension() {
                 }
             }
 
-            publicSubCommand("settings", "VCSpeaker の設定を行います。", ::SettingsOptions) {
-
+            publicSubCommand("settings", "VCSpeaker を設定します。", ::SettingsOptions) {
                 action {
                     val guildId = guild!!.id
-                    val current = GuildStore[guildId]
-                    val currentVoice = current?.voice
+                    val oldGuildData = GuildStore[guildId]
+                    val currentVoice = oldGuildData?.voice
 
                     // option > current > default
-                    val guildData = GuildStore.createOrUpdate(
+                    val newGuildData = GuildStore.createOrUpdate(
                         guildId = guildId,
-                        channelId = arguments.channel?.id ?: current?.channelId,
-                        prefix = arguments.prefix ?: current?.prefix,
+                        channelId = arguments.channel?.id ?: oldGuildData?.channelId,
+                        prefix = arguments.prefix ?: oldGuildData?.prefix,
                         voice = arguments.run {
                             Voice(
                                 speaker = Speaker.valueOf(speaker ?: currentVoice?.speaker?.name ?: "Haruka"),
@@ -123,62 +122,64 @@ class VCSpeakerCommand : Extension() {
                                 volume = volume ?: currentVoice?.volume ?: 100
                             )
                         },
-                        autoJoin = arguments.autoJoin ?: current?.autoJoin ?: true
+                        autoJoin = arguments.autoJoin ?: oldGuildData?.autoJoin ?: true
                     )
 
-                    val emotionEmoji = when (guildData.voice.emotion) {
-                        Emotion.Happiness -> ":grinning:"
-                        Emotion.Anger -> ":face_with_symbols_over_mouth:"
-                        Emotion.Sadness -> ":pensive:"
-                        null -> ":neutral_face:"
-                    }
+                    val emotionEmoji = newGuildData.voice.emotion?.emoji ?: ":neutral_face:"
 
-                    respondEmbed(":repeat: 設定を更新しました") {
+                    val viewOnly = oldGuildData == newGuildData
+
+                    respondEmbed(
+                        if (viewOnly) ":gear: Current Settings"
+                        else ":arrows_counterclockwise: Settings Updated"
+                    ) {
                         authorOf(user)
 
+                        // fixme redundant
+                        // todo settings diff
                         field {
                             name = ":hash: 読み上げチャンネル"
-                            value = guildData.channelId?.let { guild!!.getChannelOrNull(it)?.mention } ?: "未設定"
+                            value = newGuildData.channelId?.let { guild!!.getChannelOrNull(it)?.mention } ?: "未設定"
                             inline = true
                         }
                         field {
                             name = ":symbols: プレフィックス"
-                            value = guildData.prefix?.let { "`$it`" } ?: "未設定"
+                            value = newGuildData.prefix?.let { "`$it`" } ?: "未設定"
                             inline = true
                         }
                         field {
                             name = ":grinning: 話者"
-                            value = guildData.voice.speaker.speakerName
+                            value = newGuildData.voice.speaker.speakerName
                             inline = true
                         }
                         field {
                             name = "$emotionEmoji 感情"
-                            value = guildData.voice.emotion?.emotionName ?: "未設定"
+                            value = newGuildData.voice.emotion?.emotionName ?: "未設定"
                             inline = true
                         }
                         field {
                             name = ":signal_strength: 感情レベル"
-                            value = guildData.voice.emotionLevel.let { "`Level $it`" }
+                            value = newGuildData.voice.emotionLevel.let { "`Level $it`" }
                             inline = true
                         }
                         field {
                             name = ":arrow_up_down: ピッチ"
-                            value = guildData.voice.pitch.let { "`$it%`" }
+                            value = newGuildData.voice.pitch.let { "`$it%`" }
                             inline = true
                         }
                         field {
                             name = ":fast_forward: 速度"
-                            value = guildData.voice.speed.let { "`$it%`" }
+                            value = newGuildData.voice.speed.let { "`$it%`" }
                             inline = true
                         }
                         field {
                             name = ":loud_sound: 音量"
-                            value = guildData.voice.volume.let { "`$it%`" }
+                            value = newGuildData.voice.volume.let { "`$it%`" }
                             inline = true
                         }
                         field {
                             name = ":inbox_tray: 自動入退室"
-                            value = if (guildData.autoJoin) "有効" else "無効"
+                            value = if (newGuildData.autoJoin) "有効" else "無効"
                             inline = true
                         }
 

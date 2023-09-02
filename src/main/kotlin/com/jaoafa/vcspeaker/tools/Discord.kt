@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.tools
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.store.GuildStore
+import com.jaoafa.vcspeaker.stores.GuildStore
 import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommand
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
@@ -158,8 +158,7 @@ object Discord {
         }
     }
 
-// Subcommand Extension Functions
-
+    // Subcommand Extension Functions
     @JvmName("namedPublicSubCommandWithOptionModal")
     suspend fun <O : Options, M : ModalForm> SlashCommand<*, *, *>.publicSubCommand(
         name: String,

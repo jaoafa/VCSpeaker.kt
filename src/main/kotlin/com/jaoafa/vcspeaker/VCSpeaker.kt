@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker
 
-import com.jaoafa.vcspeaker.store.GuildStore
+import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts
 import com.jaoafa.vcspeaker.voicetext.Narrator
@@ -95,16 +95,25 @@ object VCSpeaker {
     }
 
     object Files {
-        val config = File("config.yml")
+        private operator fun File.plus(file: File) = File(this, file.name)
+
+        val storeFolder = File("stores")
         val cacheFolder = File("cache")
-        val caches = File("caches.json")
-        val guilds = File("guilds.json")
-        val ignores = File("ignores.json")
-        val aliases = File("aliases.json")
-        val voices = File("voices.json")
+        val caches = cacheFolder + File("caches.json")
+        val guilds = storeFolder + File("guilds.json")
+        val ignores = storeFolder + File("ignores.json")
+        val aliases = storeFolder + File("aliases.json")
+        val voices = storeFolder + File("voices.json")
+        val titles = storeFolder + File("titles.json")
     }
 
     init {
         AudioSourceManagers.registerLocalSource(lavaplayer)
+
+        val storeFolder = Files.storeFolder
+        if (!storeFolder.exists()) storeFolder.mkdir()
+
+        val cacheFolder = Files.cacheFolder
+        if (!cacheFolder.exists()) cacheFolder.mkdir()
     }
 }

@@ -14,12 +14,12 @@ class SpeakCommand : Extension() {
     inner class SpeakOptions : Options() {
         val text by string {
             name = "text"
-            description = "The text to speak."
+            description = "読み上げる文章"
         }
     }
 
     override suspend fun setup() {
-        publicSlashCommand("speak", "Speaks the text. (Debug use only)", ::SpeakOptions) {
+        publicSlashCommand("speak", "VCSpeaker として文章を読み上げます (デバッグ用)", ::SpeakOptions) {
             action {
                 VCSpeaker.narrators[guild!!.id]?.queueSelf(arguments.text)
                 respond(arguments.text)

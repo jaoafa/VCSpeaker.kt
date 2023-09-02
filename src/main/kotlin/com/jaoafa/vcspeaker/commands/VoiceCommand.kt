@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.store.VoiceStore
+import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.Discord.authorOf
 import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.Discord.respondEmbed
@@ -19,7 +19,7 @@ class VoiceCommand : Extension() {
     inner class VoiceOptions : Options() {
         val speaker by optionalStringChoice {
             name = "speaker"
-            description = "デフォルトの話者"
+            description = "話者"
 
             for (value in Speaker.entries)
                 choice(value.speakerName, value.name)
@@ -27,7 +27,7 @@ class VoiceCommand : Extension() {
 
         val emotion by optionalStringChoice {
             name = "emotion"
-            description = "デフォルトの感情"
+            description = "感情"
 
             for (value in Emotion.entries)
                 choice(value.emotionName, value.name)
@@ -35,7 +35,7 @@ class VoiceCommand : Extension() {
 
         val emotionLevel by optionalInt {
             name = "emotion-level"
-            description = "デフォルトの感情レベル"
+            description = "感情レベル"
 
             maxValue = 4
             minValue = 1
@@ -43,7 +43,7 @@ class VoiceCommand : Extension() {
 
         val pitch by optionalInt {
             name = "pitch"
-            description = "デフォルトのピッチ"
+            description = "ピッチ"
 
             maxValue = 200
             minValue = 50
@@ -51,7 +51,7 @@ class VoiceCommand : Extension() {
 
         val speed by optionalInt {
             name = "speed"
-            description = "デフォルトの速度"
+            description = "速度"
 
             maxValue = 200
             minValue = 50
@@ -59,7 +59,7 @@ class VoiceCommand : Extension() {
 
         val volume by optionalInt {
             name = "volume"
-            description = "デフォルトの音量"
+            description = "音量"
 
             maxValue = 200
             minValue = 50
@@ -69,55 +69,57 @@ class VoiceCommand : Extension() {
     override suspend fun setup() {
         publicSlashCommand("voice", "自分の声を設定します。", ::VoiceOptions) {
             action {
-                val voice = VoiceStore.byIdOrDefault(event.interaction.user.id).copy(
-                    speaker = arguments.speaker?.let { Speaker.valueOf(it) } ?: Speaker.Hikari,
-                    emotion = arguments.emotion?.let { Emotion.valueOf(it) },
-                    emotionLevel = arguments.emotionLevel ?: 2,
-                    pitch = arguments.pitch ?: 100,
-                    speed = arguments.speed ?: 100,
-                    volume = arguments.volume ?: 100
+                val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
+
+                val newVoice = VoiceStore.byIdOrDefault(event.interaction.user.id).copy(
+                    speaker = arguments.speaker?.let { Speaker.valueOf(it) } ?: oldVoice.speaker,
+                    emotion = arguments.emotion?.let { Emotion.valueOf(it) } ?: oldVoice.emotion,
+                    emotionLevel = arguments.emotionLevel ?: oldVoice.emotionLevel,
+                    pitch = arguments.pitch ?: oldVoice.pitch,
+                    speed = arguments.speed ?: oldVoice.speed,
+                    volume = arguments.volume ?: oldVoice.volume
                 )
 
-                VoiceStore[event.interaction.user.id] = voice
+                VoiceStore[event.interaction.user.id] = newVoice
 
-                val emotionEmoji = when (voice.emotion) {
-                    Emotion.Happiness -> ":grinning:"
-                    Emotion.Anger -> ":face_with_symbols_over_mouth:"
-                    Emotion.Sadness -> ":pensive:"
-                    null -> ":neutral_face:"
-                }
+                val emotionEmoji = newVoice.emotion?.emoji ?: ":neutral_face:"
 
-                respondEmbed(":repeat: あなたの声を更新しました") {
+                val viewOnly = oldVoice == newVoice
+
+                respondEmbed(
+                    if (viewOnly) ":loudspeaker: Current Voice"
+                    else ":arrows_counterclockwise: Voice Updated"
+                ) {
                     authorOf(user)
 
                     field {
                         name = ":grinning: 話者"
-                        value = voice.speaker.speakerName
+                        value = newVoice.speaker.speakerName
                         inline = true
                     }
                     field {
                         name = "$emotionEmoji 感情"
-                        value = voice.emotion?.emotionName ?: "未設定"
+                        value = newVoice.emotion?.emotionName ?: "未設定"
                         inline = true
                     }
                     field {
                         name = ":signal_strength: 感情レベル"
-                        value = voice.emotionLevel.let { "`Level $it`" }
+                        value = newVoice.emotionLevel.let { "`Level $it`" }
                         inline = true
                     }
                     field {
                         name = ":arrow_up_down: ピッチ"
-                        value = voice.pitch.let { "`$it%`" }
+                        value = newVoice.pitch.let { "`$it%`" }
                         inline = true
                     }
                     field {
                         name = ":fast_forward: 速度"
-                        value = voice.speed.let { "`$it%`" }
+                        value = newVoice.speed.let { "`$it%`" }
                         inline = true
                     }
                     field {
                         name = ":loud_sound: 音量"
-                        value = voice.volume.let { "`$it%`" }
+                        value = newVoice.volume.let { "`$it%`" }
                         inline = true
                     }
 

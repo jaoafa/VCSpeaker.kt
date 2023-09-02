@@ -10,7 +10,7 @@ class ClearCommand : Extension() {
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {
-        publicSlashCommand("clear", "読み上げ予定のメッセージを全て中止します。") {
+        publicSlashCommand("clear", "予定されているメッセージの読み上げを中止します。") {
             action {
                 val narrator = VCSpeaker.narrators[guild!!.id] ?: run {
                     respond("**:question: VC に参加していません。**")
@@ -18,9 +18,9 @@ class ClearCommand : Extension() {
                 }
 
                 narrator.clear()
-                narrator.queueSelf("")
+                narrator.queueSelf("読み上げを中止しました。")
 
-                respond("**:white_check_mark: キューをクリアしました。**")
+                respond("**:white_check_mark: 予定されていたメッセージの読み上げを中止しました。**")
             }
         }
     }

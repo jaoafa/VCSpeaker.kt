@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.config
+package com.jaoafa.vcspeaker.configs
 
 import com.uchuhimo.konf.ConfigSpec
 
