@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker
 
 import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
 import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts
 import com.jaoafa.vcspeaker.voicetext.Narrator
@@ -86,9 +87,7 @@ object VCSpeaker {
         if (interaction != null) {
             interaction.respond("**:wave: $mention から退出しました。**")
         } else {
-            val channel = GuildStore.getOrDefault(guildId).channelId?.let {
-                VCSpeaker.kord.getChannelOf<TextChannel>(it)
-            }
+            val channel = GuildStore.getOrDefault(guildId).channelId?.asChannelOf<TextChannel>()
 
             channel?.createMessage("**:wave: $mention から退出しました。**")
         }

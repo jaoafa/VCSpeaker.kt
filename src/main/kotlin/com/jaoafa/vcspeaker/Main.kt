@@ -8,10 +8,7 @@ import com.github.ajalt.clikt.parameters.types.long
 import com.github.ajalt.clikt.parameters.types.path
 import com.jaoafa.vcspeaker.commands.*
 import com.jaoafa.vcspeaker.configs.TokenSpec
-import com.jaoafa.vcspeaker.events.NewMessageEvent
-import com.jaoafa.vcspeaker.events.VoiceJoinEvent
-import com.jaoafa.vcspeaker.events.VoiceLeaveEvent
-import com.jaoafa.vcspeaker.events.VoiceMoveEvent
+import com.jaoafa.vcspeaker.events.*
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.voicetext.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
@@ -88,6 +85,7 @@ class Main : CliktCommand() {
                     add(::VoiceJoinEvent)
                     add(::VoiceLeaveEvent)
                     add(::VoiceMoveEvent)
+                    add(::TitleEvent)
                 }
             }
 

@@ -4,6 +4,7 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
+import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
 import com.jaoafa.vcspeaker.tools.Discord.errorColor
 import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
@@ -36,9 +37,7 @@ object NarratorExtensions {
         if (interaction != null) {
             interaction.respond(text)
         } else {
-            val channel = GuildStore.getOrDefault(id).channelId?.let {
-                VCSpeaker.kord.getChannelOf<TextChannel>(it)
-            }
+            val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
 
             channel?.createMessage(text)
         }

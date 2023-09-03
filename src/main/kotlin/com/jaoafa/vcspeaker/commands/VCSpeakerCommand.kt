@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
 import com.jaoafa.vcspeaker.tools.Discord.authorOf
 import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.Discord.publicSubCommand
@@ -18,6 +19,7 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
+import dev.kord.core.entity.channel.TextChannel
 import kotlin.system.exitProcess
 
 class VCSpeakerCommand : Extension() {
@@ -139,7 +141,7 @@ class VCSpeakerCommand : Extension() {
                         // todo settings diff
                         field {
                             name = ":hash: 読み上げチャンネル"
-                            value = newGuildData.channelId?.let { guild!!.getChannelOrNull(it)?.mention } ?: "未設定"
+                            value = newGuildData.channelId?.asChannelOf<TextChannel>()?.mention ?: "未設定"
                             inline = true
                         }
                         field {
