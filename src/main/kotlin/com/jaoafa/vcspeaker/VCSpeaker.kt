@@ -98,7 +98,7 @@ object VCSpeaker {
 
         val storeFolder = File("stores")
         val cacheFolder = File("cache")
-        val caches = cacheFolder + File("caches.json")
+        val caches = storeFolder + File("caches.json")
         val guilds = storeFolder + File("guilds.json")
         val ignores = storeFolder + File("ignores.json")
         val aliases = storeFolder + File("aliases.json")
