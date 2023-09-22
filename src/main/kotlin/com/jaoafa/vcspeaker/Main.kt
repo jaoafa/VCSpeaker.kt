@@ -86,6 +86,7 @@ class Main : CliktCommand() {
                     add(::LeaveCommand)
                     add(::SpeakCommand)
                     add(::TitleCommand)
+                    add(::ResetTitleCommand)
                     add(::VCSpeakerCommand)
                     add(::VoiceCommand)
 
