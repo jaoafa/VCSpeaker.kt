@@ -17,8 +17,11 @@ class Narrator @OptIn(KordVoice::class) constructor(
     private val scheduler = NarratorScheduler(guildId, player)
 
     private suspend fun queue(text: String, voice: Voice, message: Message? = null) {
-        val processedText = Preprocessor.processText(guildId, text) ?: return
-        scheduler.queue(SpeakInfo(processedText, voice, message))
+        val replacedText = Preprocessor.processText(guildId, text) ?: return
+
+        val (processedText, inlineVoice) = Preprocessor.extractInlineVoice(replacedText, voice)
+
+        scheduler.queue(SpeakInfo(processedText, inlineVoice, message))
     }
 
     suspend fun queueSelf(text: String) =

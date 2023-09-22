@@ -5,6 +5,8 @@ import com.jaoafa.vcspeaker.stores.AliasData
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.stores.IgnoreStore
+import com.jaoafa.vcspeaker.voicetext.api.Emotion
+import com.jaoafa.vcspeaker.voicetext.api.Speaker
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.entity.channel.TextChannel
@@ -16,14 +18,12 @@ object Preprocessor {
     suspend fun processText(guildId: Snowflake, text: String): String? {
         if (shouldIgnore(text, guildId)) return null
 
-        var processedText = text
+        suspend fun replace(vararg replacers: suspend (String, Snowflake) -> String) =
+            replacers.fold(text) { replacedText, replacer ->
+                replacer(replacedText, guildId)
+            }
 
-        suspend fun replace(vararg replacers: suspend (String, Snowflake) -> String) {
-            for (replacer in replacers)
-                processedText = replacer(processedText, guildId)
-        }
-
-        replace(
+        return replace(
             ::replaceEmoji,
             ::replaceRegex,
             ::replaceAlias,
@@ -32,8 +32,31 @@ object Preprocessor {
             ::replaceUserMention,
             ::replaceMessageMention
         )
+    }
 
-        return processedText
+    fun extractInlineVoice(text: String, voice: Voice): Pair<String, Voice> {
+        val syntax = Regex("(speaker|emotion|emotion_level|pitch|speed|volume):.+")
+
+        val parameters = syntax.findAll(text).map { it.value }
+
+        val parameterMap = parameters.map {
+            val (key, value) = it.split(":")
+            key to value
+        }.toMap()
+
+        val newVoice = voice.overwrite(
+            speaker = parameterMap["speaker"]?.let { Speaker.valueOf(it) },
+            emotion = parameterMap["emotion"]?.let { Emotion.valueOf(it) },
+            emotionLevel = parameterMap["emotion_level"]?.toIntOrNull(),
+            pitch = parameterMap["pitch"]?.toIntOrNull(),
+            speed = parameterMap["speed"]?.toIntOrNull()
+        )
+
+        val newText = parameters.fold(text) { partText, parameterText ->
+            partText.replace(parameterText, "")
+        }.trim()
+
+        return newText to newVoice
     }
 
     private fun shouldIgnore(text: String, guildId: Snowflake) =
@@ -64,10 +87,9 @@ object Preprocessor {
     ): String {
         val aliases = AliasStore.filter(guildId).filter { it.type == type }
 
-        var replacedText = text
-
-        for (alias in aliases)
-            replacedText = transform(alias, replacedText)
+        val replacedText = aliases.fold(text) { replacedText, alias ->
+            transform(alias, replacedText)
+        }
 
         return replacedText
     }
@@ -91,18 +113,16 @@ object Preprocessor {
     private suspend fun replaceMessageMention(text: String, guildId: Snowflake): String {
         val matches = Regex("https://(\\w+\\.)*discord.com/channels/(\\d+)/(\\d+)/(\\d+)").findAll(text)
 
-        var replacedText = text
-
-        for (match in matches) {
+        val replacedText = matches.fold(text) { replacedText, match ->
             val channelId = Snowflake(match.groupValues[3])
             val messageId = Snowflake(match.groupValues[4])
 
             val channel = VCSpeaker.instance.kordRef.getChannelOf<TextChannel>(channelId)
-            val message = channel?.getMessageOrNull(messageId) ?: continue
+            val message = channel?.getMessageOrNull(messageId) ?: return@fold replacedText
 
             val read = "${message.author?.username ?: "システム"} が ${channel.name} で送信したメッセージへのリンク"
 
-            replacedText = replacedText.replace(match.value, read)
+            replacedText.replace(match.value, read)
         }
 
         return replacedText
@@ -115,13 +135,11 @@ object Preprocessor {
     ): String {
         val matches = regex.findAll(text)
 
-        var replacedText = text
-
-        for (match in matches) {
+        val replacedText = matches.fold(text) { replacedText, match ->
             val id = Snowflake(match.groupValues[1]) // 0 is for whole match
             val name = nameSupplier(VCSpeaker.instance.kordRef, id)
 
-            replacedText = replacedText.replace(match.value, name)
+            replacedText.replace(match.value, name)
         }
 
         return replacedText

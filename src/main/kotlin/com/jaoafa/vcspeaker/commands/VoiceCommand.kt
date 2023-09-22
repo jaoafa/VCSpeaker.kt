@@ -71,13 +71,13 @@ class VoiceCommand : Extension() {
             action {
                 val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
 
-                val newVoice = VoiceStore.byIdOrDefault(event.interaction.user.id).copy(
-                    speaker = arguments.speaker?.let { Speaker.valueOf(it) } ?: oldVoice.speaker,
-                    emotion = arguments.emotion?.let { Emotion.valueOf(it) } ?: oldVoice.emotion,
-                    emotionLevel = arguments.emotionLevel ?: oldVoice.emotionLevel,
-                    pitch = arguments.pitch ?: oldVoice.pitch,
-                    speed = arguments.speed ?: oldVoice.speed,
-                    volume = arguments.volume ?: oldVoice.volume
+                val newVoice = oldVoice.overwrite(
+                    speaker = arguments.speaker?.let { Speaker.valueOf(it) },
+                    emotion = arguments.emotion?.let { Emotion.valueOf(it) },
+                    emotionLevel = arguments.emotionLevel,
+                    pitch = arguments.pitch,
+                    speed = arguments.speed,
+                    volume = arguments.volume
                 )
 
                 VoiceStore[event.interaction.user.id] = newVoice

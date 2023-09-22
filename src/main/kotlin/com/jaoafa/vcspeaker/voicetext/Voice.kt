@@ -16,4 +16,20 @@ data class Voice(
     val volume: Int = 100
 ) {
     fun toJson() = Json.encodeToString(serializer(), this)
+
+    fun overwrite(
+        speaker: Speaker? = null,
+        emotion: Emotion? = null,
+        emotionLevel: Int? = null,
+        pitch: Int? = null,
+        speed: Int? = null,
+        volume: Int? = null
+    ) = Voice(
+        speaker = speaker ?: this.speaker,
+        emotion = emotion ?: this.emotion,
+        emotionLevel = emotionLevel ?: this.emotionLevel,
+        pitch = pitch ?: this.pitch,
+        speed = speed ?: this.speed,
+        volume = volume ?: this.volume
+    )
 }
