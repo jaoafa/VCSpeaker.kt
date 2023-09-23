@@ -32,21 +32,23 @@ class ResetTitleCommand : Extension() {
     override suspend fun setup() {
         publicSlashCommand("reset-title", "タイトルをリセットします。", ::TitleOptions) {
             action {
-                val channel = arguments.channel?.asChannelOf<VoiceChannel>().orMembersCurrent(member!!)
+                val channel = (arguments.channel?.asChannelOf<VoiceChannel>() orMembersCurrent member!!)
                     ?: run {
                         respond("**:question: VC に参加、または指定してください。**")
                         return@action
                     }
 
                 val oldData = channel.getTitleData()
-                val user = event.interaction.user
 
                 val (_, newData) = channel.resetTitle(user)
 
                 if (newData != null) {
                     respondEmbed(
                         ":broom: Title Reset",
-                        "${channel.mention} のタイトルはリセットされました。"
+                        """
+                            ${channel.mention} のタイトルはリセットされました。
+                            レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
+                        """.trimIndent()
                     ) {
                         authorOf(user)
 

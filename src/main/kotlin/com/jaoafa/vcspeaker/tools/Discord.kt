@@ -226,5 +226,5 @@ object Discord {
 
     suspend inline fun <reified T : Channel> Snowflake.asChannelOf() = VCSpeaker.kord.getChannelOf<T>(this)
 
-    suspend fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) = this ?: member.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel?
+    suspend infix fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) = this ?: member.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel?
 }

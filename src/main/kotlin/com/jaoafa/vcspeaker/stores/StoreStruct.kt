@@ -1,6 +1,5 @@
 package com.jaoafa.vcspeaker.stores
 
-import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.readOrCreateAs
 import com.jaoafa.vcspeaker.tools.writeAs
 import kotlinx.serialization.KSerializer
@@ -18,15 +17,25 @@ open class StoreStruct<T>(
         deserializer
     )
 
-    fun create(element: T) {
+    fun create(element: T): T {
         data.add(element)
         write()
+
+        return element
     }
 
     fun remove(element: T): Boolean {
         val result = data.remove(element)
         write()
+
         return result
+    }
+
+    fun replace(from: T, to: T): T {
+        remove(from)
+        create(to)
+
+        return to
     }
 
     fun write() {

@@ -21,4 +21,6 @@ object TitleStore : StoreStruct<TitleData>(
     { Json.decodeFromString(this) }
 ) {
     fun find(channelId: Snowflake) = data.find { it.channelId == channelId }
+
+    fun filterGuild(guildId: Snowflake) = data.filter { it.guildId == guildId }
 }

@@ -45,12 +45,14 @@ class TitleCommand : Extension() {
                     }
 
                 val oldData = channel.getTitleData()
-                val user = event.interaction.user
-
                 val newData = channel.setTitle(title, user)
+
                 respondEmbed(
                     ":regional_indicator_t: Title Set",
-                    "${channel.mention} から全員が退出したらリセットされます。"
+                    """
+                        ${channel.mention} から全員が退出したらリセットされます。
+                        レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
+                    """.trimIndent()
                 ) {
                     authorOf(user)
 
