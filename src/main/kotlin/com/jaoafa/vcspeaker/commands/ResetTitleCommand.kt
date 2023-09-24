@@ -1,6 +1,5 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.features.Title.getTitleData
 import com.jaoafa.vcspeaker.features.Title.resetTitle
 import com.jaoafa.vcspeaker.tools.Discord.authorOf
 import com.jaoafa.vcspeaker.tools.Discord.errorColor
@@ -38,9 +37,7 @@ class ResetTitleCommand : Extension() {
                         return@action
                     }
 
-                val oldData = channel.getTitleData()
-
-                val (_, newData) = channel.resetTitle(user)
+                val (oldData, newData) = channel.resetTitle(user)
 
                 if (newData != null) {
                     respondEmbed(
