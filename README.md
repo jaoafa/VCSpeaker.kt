@@ -15,7 +15,7 @@
       voicetext: <VoiceText API Token>
       voicetext_dev: <VoiceText API Token for development>
     env:
-      dev: <The id of the guild for development>
+      dev: <The id of the guild for development. null to disable development mode.>
       cache_policy: 3
       command_prefix: '$'
     ```
