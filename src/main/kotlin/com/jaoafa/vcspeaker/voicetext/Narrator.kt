@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.voicetext
 
+import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer

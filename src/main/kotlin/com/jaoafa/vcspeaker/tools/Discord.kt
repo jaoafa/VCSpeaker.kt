@@ -7,11 +7,13 @@ import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashC
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
 import com.kotlindiscord.kord.extensions.commands.application.slash.SlashCommand
 import com.kotlindiscord.kord.extensions.commands.application.slash.publicSubCommand
+import com.kotlindiscord.kord.extensions.commands.chat.ChatCommandContext
 import com.kotlindiscord.kord.extensions.components.forms.ModalForm
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
 import com.kotlindiscord.kord.extensions.types.respond
+import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
@@ -227,7 +229,10 @@ object Discord {
 
     suspend inline fun <reified T : Channel> Snowflake.asChannelOf() = VCSpeaker.kord.getChannelOf<T>(this)
 
-    suspend infix fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) = this ?: member.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel?
+    suspend infix fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) =
+        this ?: member.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel?
 
     suspend fun GuildBehavior.selfVoiceChannel() = selfMember().getVoiceStateOrNull()?.getChannelOrNull()
+
+    suspend fun ChatCommandContext<out Arguments>.respond(content: String) = message.respond(content)
 }

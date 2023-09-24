@@ -10,7 +10,6 @@ import com.jaoafa.vcspeaker.tools.Options
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.chatCommand
-import com.kotlindiscord.kord.extensions.utils.respond
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.entity.channel.VoiceChannel
@@ -39,8 +38,8 @@ class JoinCommand : Extension() {
 
                 val selfChannel = guild!!.selfVoiceChannel()
 
-                if (selfChannel != null) targetChannel.move(this)
-                else targetChannel.join(this)
+                if (selfChannel != null) targetChannel.move(interaction = this)
+                else targetChannel.join(interaction = this)
             }
         }
 
@@ -49,19 +48,15 @@ class JoinCommand : Extension() {
             description = "VC に接続します。"
             aliases += "summon"
 
-            check {
-
-            }
-
             action {
                 val targetChannel = (member!!.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel?) ?: run {
-                    message.respond("**:question: VC に参加、または指定してください。**")
+                    respond("**:question: VC に参加してください。**")
                     return@action
                 }
                 val selfChannel = guild!!.selfVoiceChannel()
 
-                if (selfChannel != null) targetChannel.move()
-                else targetChannel.join()
+                if (selfChannel != null) targetChannel.move(message = message)
+                else targetChannel.join(message = message)
             }
         }
     }

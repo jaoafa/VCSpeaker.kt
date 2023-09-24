@@ -3,20 +3,19 @@ package com.jaoafa.vcspeaker.voicetext
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
 import com.jaoafa.vcspeaker.tools.Discord.errorColor
 import com.jaoafa.vcspeaker.tools.Discord.respond
-import com.jaoafa.vcspeaker.voicetext.api.Speaker
 import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
+import com.kotlindiscord.kord.extensions.utils.respond
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
+import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.coroutines.runBlocking
@@ -25,30 +24,39 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 object NarratorExtensions {
-    suspend fun Narrator.announce(voice: String, text: String, interaction: PublicInteractionContext? = null) {
-        VCSpeaker.kord.getGuildOrNull(guildId)?.announce(voice, text, interaction)
+    suspend fun Narrator.announce(
+        voice: String,
+        text: String,
+        interaction: PublicInteractionContext? = null,
+        message: Message? = null
+    ) {
+        val guild = VCSpeaker.kord.getGuildOrNull(guildId)
+
+        when {
+            message != null -> guild?.announce(voice, text, message = message)
+            interaction != null -> guild?.announce(voice, text, interaction = interaction)
+            else -> guild?.announce(voice, text)
+        }
     }
 
-    suspend fun Guild.announce(voice: String, text: String, interaction: PublicInteractionContext? = null) {
+    suspend fun Guild.announce(
+        voice: String,
+        text: String,
+        interaction: PublicInteractionContext? = null,
+        message: Message? = null
+    ) {
         val narrator = VCSpeaker.narrators[id]
 
         narrator?.queueSelf(voice)
 
-        if (interaction != null) {
-            interaction.respond(text)
-        } else {
-            val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
-
-            channel?.createMessage(text)
+        when {
+            message != null -> message.respond(text)
+            interaction != null -> interaction.respond(text)
+            else -> {
+                val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
+                channel?.createMessage(text)
+            }
         }
-    }
-
-    suspend fun AudioPlayer.speakSelf(text: String, guildId: Snowflake) {
-        speak(SpeakInfo(text, GuildStore[guildId]?.voice ?: Voice(speaker = Speaker.Hikari)))
-    }
-
-    suspend fun AudioPlayer.speakUser(text: String, userId: Snowflake) {
-        speak(SpeakInfo(text, VoiceStore.byIdOrDefault(userId)))
     }
 
     suspend fun AudioPlayer.speak(info: SpeakInfo) {

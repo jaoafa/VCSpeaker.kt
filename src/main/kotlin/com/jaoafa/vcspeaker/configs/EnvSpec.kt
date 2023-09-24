@@ -16,4 +16,9 @@ object EnvSpec : ConfigSpec() {
      * VCSpeaker will launch in development mode when this is set.
      */
     val dev by optional<Long?>(null)
+
+    /**
+     * The command prefix. The default value is `$`.
+     */
+    val commandPrefix by optional<String>("$")
 }

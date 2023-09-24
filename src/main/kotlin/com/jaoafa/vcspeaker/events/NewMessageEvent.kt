@@ -25,6 +25,9 @@ class NewMessageEvent : Extension() {
                 if (!VCSpeaker.narrators.contains(event.guildId)) return@action
 
                 val message = event.message
+
+                if (message.content.startsWith(VCSpeaker.prefix())) return@action
+
                 message.addReaction("👀")
 
                 val narrator = VCSpeaker.narrators[event.guildId]!! // checked in check

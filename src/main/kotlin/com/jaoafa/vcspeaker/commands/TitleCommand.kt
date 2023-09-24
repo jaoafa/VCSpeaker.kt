@@ -34,6 +34,7 @@ class TitleCommand : Extension() {
         }
     }
 
+    // todo emoji detection
     override suspend fun setup() {
         publicSlashCommand("title", "タイトルを設定します。", ::TitleOptions) {
             action {

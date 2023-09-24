@@ -4,6 +4,7 @@ import com.jaoafa.vcspeaker.VCSpeaker.leave
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.Discord.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.Discord.isAfk
+import com.jaoafa.vcspeaker.tools.Discord.selfVoiceChannel
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts
 import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -32,7 +33,7 @@ class VoiceLeaveEvent : Extension() {
                 val member = event.state.getMember()
                 val channelLeft = event.old?.getChannelOrNull() ?: return@action // checked
 
-                val selfChannel = guild.selfMember().getVoiceStateOrNull()?.getChannelOrNull()
+                val selfChannel = guild.selfVoiceChannel()
                 val selfChannelCount = selfChannel?.voiceStates?.count { !it.getMember().isBot }
 
                 val autoJoin = guild.autoJoinEnabled()

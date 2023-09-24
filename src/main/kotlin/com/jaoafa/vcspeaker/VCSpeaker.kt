@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker
 
+import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
 import com.jaoafa.vcspeaker.tools.Discord.respond
@@ -18,6 +19,7 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.VoiceChannelBehavior
 import dev.kord.core.behavior.channel.connect
+import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.voice.AudioFrame
 import java.io.File
@@ -29,6 +31,7 @@ object VCSpeaker {
     lateinit var config: Config
 
     var cachePolicy: Int = 7
+    fun prefix() = config[EnvSpec.commandPrefix]
 
     var dev: Snowflake? = null
     fun isDev() = dev != null
@@ -39,7 +42,10 @@ object VCSpeaker {
     val narrators = hashMapOf<Snowflake, Narrator>()
 
     @OptIn(KordVoice::class)
-    suspend fun BaseVoiceChannelBehavior.join(interaction: PublicInteractionContext? = null): Narrator {
+    suspend fun BaseVoiceChannelBehavior.join(
+        interaction: PublicInteractionContext? = null,
+        message: Message? = null
+    ): Narrator {
         narrators.remove(guild.id) // force disconnection
 
         val player = lavaplayer.createPlayer()
@@ -56,14 +62,18 @@ object VCSpeaker {
         narrator.announce(
             NarrationScripts.SELF_JOIN,
             "**:loudspeaker: $mention に接続しました。**",
-            interaction
+            interaction,
+            message
         )
 
         return narrator
     }
 
     @OptIn(KordVoice::class)
-    suspend fun BaseVoiceChannelBehavior.move(interaction: PublicInteractionContext? = null): Narrator? {
+    suspend fun BaseVoiceChannelBehavior.move(
+        interaction: PublicInteractionContext? = null,
+        message: Message? = null
+    ): Narrator? {
         val narrator = narrators[guild.id] ?: return null
 
         narrator.connection.move(id)
@@ -71,26 +81,29 @@ object VCSpeaker {
         narrator.announce(
             NarrationScripts.SELF_MOVE,
             "**:loudspeaker: $mention に移動しました。**",
-            interaction
+            interaction,
+            message
         )
 
         return narrator
     }
 
     @OptIn(KordVoice::class)
-    suspend fun BaseVoiceChannelBehavior.leave(interaction: PublicInteractionContext? = null) {
+    suspend fun BaseVoiceChannelBehavior.leave(
+        interaction: PublicInteractionContext? = null,
+        message: Message? = null
+    ) {
         val narrator = narrators[guild.id] ?: return
         narrator.connection.leave()
         narrator.player.destroy()
         narrators.remove(guild.id)
 
-        if (interaction != null) {
-            interaction.respond("**:wave: $mention から退出しました。**")
-        } else {
-            val channel = GuildStore.getOrDefault(guildId).channelId?.asChannelOf<TextChannel>()
-
-            channel?.createMessage("**:wave: $mention から退出しました。**")
-        }
+        narrator.announce(
+            "",
+            "**:wave: $mention から退出しました。**",
+            interaction,
+            message
+        )
     }
 
     object Files {

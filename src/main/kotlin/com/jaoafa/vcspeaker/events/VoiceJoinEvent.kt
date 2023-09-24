@@ -5,11 +5,11 @@ import com.jaoafa.vcspeaker.VCSpeaker.move
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.Discord.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.Discord.isAfk
+import com.jaoafa.vcspeaker.tools.Discord.selfVoiceChannel
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts
 import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
-import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 
@@ -33,7 +33,7 @@ class VoiceJoinEvent : Extension() {
                 val member = event.state.getMember()
                 val channelJoined = event.state.getChannelOrNull() ?: return@action // checked
 
-                val selfChannel = guild.selfMember().getVoiceStateOrNull()?.getChannelOrNull()
+                val selfChannel = guild.selfVoiceChannel()
                 val selfChannelCount = selfChannel?.voiceStates?.count { !it.getMember().isBot }
                 val selfConnected = selfChannel != null
 
