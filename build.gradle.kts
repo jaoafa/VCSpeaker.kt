@@ -42,13 +42,15 @@ kotlin {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("com.jaoafa.vcspeaker.MainKt")
 }
 
 tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = "com.jaoafa.vcspeaker.MainKt"
     }
+
+    exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
