@@ -25,6 +25,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("ch.qos.logback:logback-classic:1.3.7")
     implementation("com.sedmelluq:lavaplayer:1.3.77")
+    implementation("com.github.aikaterna:lavaplayer-natives:original-SNAPSHOT")
     implementation("com.uchuhimo:konf:1.1.2")
     implementation("com.github.ajalt.clikt:clikt:4.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
