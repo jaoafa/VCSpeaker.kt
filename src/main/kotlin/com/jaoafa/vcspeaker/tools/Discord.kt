@@ -37,7 +37,7 @@ object Discord {
     suspend fun BaseVoiceChannelBehavior.isAfk() = this.getGuild().afkChannel == this
 
     private fun PublicSlashCommand<*, *>.devGuild() {
-        val devGuildId = VCSpeaker.dev
+        val devGuildId = VCSpeaker.devId
         if (devGuildId != null) guild(devGuildId)
     }
 

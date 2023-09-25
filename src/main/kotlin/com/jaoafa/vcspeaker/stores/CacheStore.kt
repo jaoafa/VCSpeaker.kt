@@ -28,7 +28,7 @@ object CacheStore : StoreStruct<CacheData>(
         .digest(text.toByteArray())
         .fold("") { str, it -> str + "%02x".format(it) }
 
-    private fun cacheFile(hash: String) = VCSpeaker.Files.cacheFolder.resolve(File("audio-${hash}.wav"))
+    private fun cacheFile(hash: String) = VCSpeaker.cacheFolder.resolve(File("audio-${hash}.wav"))
 
     fun exists(text: String, voice: Voice) = data.find { it.hash == hash(text) && it.voice == voice } != null
 
@@ -60,7 +60,7 @@ object CacheStore : StoreStruct<CacheData>(
         VCSpeaker.Files.caches.writeAs(ListSerializer(CacheData.serializer()), data)
     }
 
-    fun initiateAuditJob(interval: Int,) {
+    fun initiateAuditJob(interval: Int) {
         timer("CacheAudit", false, 0, (1000 * 60 * 60 * 24 * interval).toLong()) {
             data.sortByDescending { it.lastUsed }
             data.drop(100).forEach { cacheFile(it.hash).delete() }
@@ -70,7 +70,7 @@ object CacheStore : StoreStruct<CacheData>(
     }
 
     init {
-        val cacheFolder = VCSpeaker.Files.cacheFolder
+        val cacheFolder = VCSpeaker.cacheFolder
         if (!cacheFolder.exists()) cacheFolder.mkdir()
     }
 }

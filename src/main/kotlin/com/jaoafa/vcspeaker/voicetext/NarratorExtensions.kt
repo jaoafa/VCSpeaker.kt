@@ -64,7 +64,7 @@ object NarratorExtensions {
         val voice = info.voice
 
         val file = if (!CacheStore.exists(text, voice)) {
-            val audio = VCSpeaker.voiceText.generateSpeech(text, voice)
+            val audio = VCSpeaker.voicetext.generateSpeech(text, voice)
             CacheStore.create(text, voice, audio)
         } else CacheStore.read(text)
 

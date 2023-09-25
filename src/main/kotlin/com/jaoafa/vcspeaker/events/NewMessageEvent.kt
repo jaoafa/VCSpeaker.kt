@@ -26,7 +26,7 @@ class NewMessageEvent : Extension() {
 
                 val message = event.message
 
-                if (message.content.startsWith(VCSpeaker.prefix())) return@action
+                if (message.content.startsWith(VCSpeaker.prefix)) return@action
 
                 message.addReaction("👀")
 

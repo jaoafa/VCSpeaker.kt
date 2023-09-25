@@ -1,9 +1,5 @@
 package com.jaoafa.vcspeaker
 
-import com.jaoafa.vcspeaker.configs.EnvSpec
-import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
-import com.jaoafa.vcspeaker.tools.Discord.respond
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts
 import com.jaoafa.vcspeaker.voicetext.Narrator
 import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
@@ -20,21 +16,23 @@ import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.VoiceChannelBehavior
 import dev.kord.core.behavior.channel.connect
 import dev.kord.core.entity.Message
-import dev.kord.core.entity.channel.TextChannel
 import dev.kord.voice.AudioFrame
 import java.io.File
 
 object VCSpeaker {
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
-    lateinit var voiceText: VoiceTextAPI
+    lateinit var voicetext: VoiceTextAPI
     lateinit var config: Config
 
-    var cachePolicy: Int = 7
-    fun prefix() = config[EnvSpec.commandPrefix]
+    lateinit var storeFolder: File
+    lateinit var cacheFolder: File
 
-    var dev: Snowflake? = null
-    fun isDev() = dev != null
+    var cachePolicy: Int = 7
+    lateinit var prefix: String
+
+    var devId: Snowflake? = null
+    fun isDev() = devId != null
 
     val lavaplayer = DefaultAudioPlayerManager()
 
@@ -108,9 +106,6 @@ object VCSpeaker {
 
     object Files {
         private operator fun File.plus(file: File) = File(this, file.name)
-
-        val storeFolder = File("stores")
-        val cacheFolder = File("cache")
         val caches = storeFolder + File("caches.json")
         val guilds = storeFolder + File("guilds.json")
         val ignores = storeFolder + File("ignores.json")
@@ -119,13 +114,28 @@ object VCSpeaker {
         val titles = storeFolder + File("titles.json")
     }
 
-    init {
+    fun init(
+        voicetext: VoiceTextAPI,
+        config: Config,
+        storeFolder: File,
+        cacheFolder: File,
+        devId: Snowflake?,
+        cachePolicy: Int?,
+        prefix: String
+    ) {
         AudioSourceManagers.registerLocalSource(lavaplayer)
 
-        val storeFolder = Files.storeFolder
         if (!storeFolder.exists()) storeFolder.mkdir()
-
-        val cacheFolder = Files.cacheFolder
         if (!cacheFolder.exists()) cacheFolder.mkdir()
+
+        VCSpeaker.run {
+            this.voicetext = voicetext
+            this.config = config
+            this.storeFolder = storeFolder
+            this.cacheFolder = cacheFolder
+            this.devId = devId
+            this.cachePolicy = cachePolicy ?: 7
+            this.prefix = prefix
+        }
     }
 }

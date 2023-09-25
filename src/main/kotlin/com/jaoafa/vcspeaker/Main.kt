@@ -23,50 +23,74 @@ class Main : CliktCommand() {
 
     private val configPath by option(
         "-c", "--config",
-        help = "The config file location."
+        help = "The config file location.",
+        envvar = "VCSKT_CONFIG"
     ).path(mustExist = true, canBeDir = false).default(Path("./config.yml"))
 
-    private val cachePolicy by option(
+    private val storePath by option(
+        "--store",
+        help = "The store folder location.",
+        envvar = "VCSKT_STORE"
+    ).path(mustExist = false, canBeDir = true)
+
+    private val cachePath by option(
         "--cache",
+        help = "The cache folder location.",
+        envvar = "VCSKT_CACHE"
+    ).path(mustExist = false, canBeDir = true)
+
+    private val cachePolicy by option(
+        "--cache-policy",
         help = "The days to keep the cache."
     ).int()
 
-    private val dev by option(
+    private val devId by option(
         "-d", "--dev",
         help = "The guild id for development."
     ).long()
 
     override fun run() {
+        // Options > Config > Default
+
         val config = Config {
             addSpec(TokenSpec)
             addSpec(EnvSpec)
         }.from.yaml.file(configPath.toFile())
 
-        VCSpeaker.config = config
+        val storeFolder = (storePath ?: Path(config[EnvSpec.storeFolder] ?: "./store")).toFile()
+        val cacheFolder = (cachePath ?: Path(config[EnvSpec.cacheFolder] ?: "./cache")).toFile()
 
-        VCSpeaker.dev = (dev ?: config[EnvSpec.dev])?.let { Snowflake(it) }
+        val devId = (devId ?: config[EnvSpec.dev])?.let { Snowflake(it) }
 
         val finalCachePolicy = cachePolicy ?: config[EnvSpec.cachePolicy]
-        if (finalCachePolicy != 0) {
-            VCSpeaker.cachePolicy = finalCachePolicy
-            CacheStore.initiateAuditJob(finalCachePolicy)
-        }
 
-        val voicetextToken = if (VCSpeaker.isDev()) {
+        val voicetextToken = if (devId != null) {
             config[TokenSpec.voicetextDev] ?: throw IllegalStateException("VoiceText API token for dev is not set.")
         } else {
             config[TokenSpec.voicetext]
         }
 
-        VCSpeaker.voiceText = VoiceTextAPI(voicetextToken)
+        val voicetext = VoiceTextAPI(voicetextToken)
 
-        val discordToken = if (VCSpeaker.isDev()) {
+        val discordToken = if (devId != null) {
             config[TokenSpec.discordDev] ?: throw IllegalStateException("Discord API token for dev is not set.")
         } else {
             config[TokenSpec.discord]
         }
 
+        val prefix = config[EnvSpec.commandPrefix]
+
         runBlocking {
+            VCSpeaker.init(
+                voicetext,
+                config,
+                storeFolder,
+                cacheFolder,
+                devId,
+                finalCachePolicy,
+                prefix
+            )
+
             VCSpeaker.instance = ExtensibleBot(discordToken) {
                 applicationCommands {
                     enabled = true
@@ -74,7 +98,7 @@ class Main : CliktCommand() {
 
                 chatCommands {
                     enabled = true
-                    defaultPrefix = "$"
+                    defaultPrefix = prefix
                 }
 
                 extensions {
@@ -101,6 +125,10 @@ class Main : CliktCommand() {
             }
 
             VCSpeaker.kord = VCSpeaker.instance.kordRef
+
+            if (finalCachePolicy != 0)
+                CacheStore.initiateAuditJob(finalCachePolicy)
+
             VCSpeaker.instance.start()
         }
     }

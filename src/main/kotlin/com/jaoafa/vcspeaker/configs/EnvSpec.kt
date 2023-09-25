@@ -4,6 +4,10 @@ import com.uchuhimo.konf.ConfigSpec
 
 object EnvSpec : ConfigSpec() {
 
+    val cacheFolder by optional<String?>(null)
+
+    val storeFolder by optional<String?>(null)
+
     /**
      * The days to keep the cache.
      * The default value is 10(days).
