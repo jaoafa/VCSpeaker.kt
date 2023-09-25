@@ -23,7 +23,7 @@ object Preprocessor {
                 replacer(replacedText, guildId)
             }
 
-        return replace(
+        val replacedText = replace(
             ::replaceEmoji,
             ::replaceRegex,
             ::replaceAlias,
@@ -32,6 +32,8 @@ object Preprocessor {
             ::replaceUserMention,
             ::replaceMessageMention
         )
+
+        return replacedText.let { if (it.length > 180) it.substring(0, 180) else it }
     }
 
     fun extractInlineVoice(text: String, voice: Voice): Pair<String, Voice> {
