@@ -7,6 +7,7 @@ import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.voicetext.api.Emotion
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
+import com.kotlindiscord.kord.extensions.utils.capitalizeWords
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.entity.channel.TextChannel
@@ -37,7 +38,7 @@ object Preprocessor {
     }
 
     fun extractInlineVoice(text: String, voice: Voice): Pair<String, Voice> {
-        val syntax = Regex("(speaker|emotion|emotion_level|pitch|speed|volume):.+")
+        val syntax = Regex("(speaker|emotion|emotion_level|pitch|speed|volume):\\w+")
 
         val parameters = syntax.findAll(text).map { it.value }
 
@@ -47,8 +48,8 @@ object Preprocessor {
         }.toMap()
 
         val newVoice = voice.overwrite(
-            speaker = parameterMap["speaker"]?.let { Speaker.valueOf(it) },
-            emotion = parameterMap["emotion"]?.let { Emotion.valueOf(it) },
+            speaker = parameterMap["speaker"]?.let { Speaker.valueOf(it.capitalizeWords()) },
+            emotion = parameterMap["emotion"]?.let { Emotion.valueOf(it.capitalizeWords()) },
             emotionLevel = parameterMap["emotion_level"]?.toIntOrNull(),
             pitch = parameterMap["pitch"]?.toIntOrNull(),
             speed = parameterMap["speed"]?.toIntOrNull()
