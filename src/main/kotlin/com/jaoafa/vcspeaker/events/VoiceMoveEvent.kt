@@ -25,9 +25,16 @@ class VoiceMoveEvent : Extension() {
             // user moved from one to another voice channel
             check {
                 failIf(event.state.getMember().isBot)
+
                 val settings = GuildStore.getOrDefault(event.state.guildId)
+
                 failIf(settings.channelId == null)
-                failIf(event.old?.getChannelOrNull() == null || event.state.getChannelOrNull() == null)
+
+                val channelJoined = event.state.getChannelOrNull()
+                val channelLeft = event.old?.getChannelOrNull()
+
+                failIf(channelJoined == null || channelLeft == null)
+                failIf(channelJoined == channelLeft)
             }
 
             action {
