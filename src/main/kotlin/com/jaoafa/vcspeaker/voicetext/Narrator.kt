@@ -1,6 +1,5 @@
 package com.jaoafa.vcspeaker.voicetext
 
-import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
@@ -21,6 +20,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
         val replacedText = Preprocessor.processText(guildId, text) ?: return
 
         val (processedText, inlineVoice) = Preprocessor.extractInlineVoice(replacedText, voice)
+
+        if (processedText.isBlank()) return
 
         scheduler.queue(SpeakInfo(processedText, inlineVoice, message))
     }
