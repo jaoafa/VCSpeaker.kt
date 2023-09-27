@@ -47,8 +47,6 @@ object NarratorExtensions {
     ) {
         val narrator = VCSpeaker.narrators[id]
 
-        narrator?.queueSelf(voice)
-
         when {
             message != null -> message.respond(text)
             interaction != null -> interaction.respond(text)
@@ -57,6 +55,8 @@ object NarratorExtensions {
                 channel?.createMessage(text)
             }
         }
+
+        narrator?.queueSelf(voice)
     }
 
     suspend fun AudioPlayer.speak(info: SpeakInfo) {
