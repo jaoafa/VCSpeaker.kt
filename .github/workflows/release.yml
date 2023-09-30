@@ -45,7 +45,6 @@ jobs:
       - name: 🗃️ Publish Release on main
         env:
           project_version: ${{ steps.version.outputs.new_version }}
-        if: github.ref_name == env.ref_main
         uses: softprops/action-gh-release@v1
         with:
           generate_release_notes: true
