@@ -68,5 +68,5 @@ jobs:
           context: ./project
           push: true
           tags: |
-            ghcr.io/jaoafa/VCSpeakerKt:latest
-            ghcr.io/jaoafa/VCSpeakerKt:${{ env.project_version }}
+            ghcr.io/jaoafa/vcspeaker-kt:latest
+            ghcr.io/jaoafa/vcspeaker-kt:${{ env.project_version }}
