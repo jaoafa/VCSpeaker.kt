@@ -64,19 +64,11 @@ class Main : CliktCommand() {
 
         val finalCachePolicy = cachePolicy ?: config[EnvSpec.cachePolicy]
 
-        val voicetextToken = if (devId != null) {
-            config[TokenSpec.voicetextDev] ?: throw IllegalStateException("VoiceText API token for dev is not set.")
-        } else {
-            config[TokenSpec.voicetext]
-        }
+        val voicetextToken = config[TokenSpec.voicetext]
 
         val voicetext = VoiceTextAPI(voicetextToken)
 
-        val discordToken = if (devId != null) {
-            config[TokenSpec.discordDev] ?: throw IllegalStateException("Discord API token for dev is not set.")
-        } else {
-            config[TokenSpec.discord]
-        }
+        val discordToken = config[TokenSpec.discord]
 
         val prefix = config[EnvSpec.commandPrefix]
 
