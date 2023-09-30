@@ -93,15 +93,15 @@ jobs:
       - name: Create and push manifest images (latest)
         uses: Noelware/docker-manifest-action@0.4.0
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-arm64
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-arm64
+          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           push: true
 
       - name: Create and push manifest images (version)
         uses: Noelware/docker-manifest-action@0.4.0
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}
-          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-arm64
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-arm64
+          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}
           push: true
 
   create-release:
