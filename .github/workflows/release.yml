@@ -61,9 +61,12 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: 🚀 Build Docker image
+        env:
+          project_version: ${{ steps.version.outputs.new_version }}
         uses: docker/build-push-action@v5
         with:
           context: ./project
           push: true
           tags: |
             ghcr.io/jaoafa/VCSpeakerKt:latest
+            ghcr.io/jaoafa/VCSpeakerKt:${{ env.project_version }}
