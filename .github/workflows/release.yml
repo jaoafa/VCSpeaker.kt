@@ -54,7 +54,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
-          images: ghcr.io/${{ github.repository }}:${{ matrix.architecture }}
+          images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=${{ needs.bump-version.outputs.new_version }}-${{ matrix.architecture }}
             type=raw,value=latest-${{ matrix.architecture }}
