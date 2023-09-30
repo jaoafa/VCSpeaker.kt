@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   bump-version:
     name: 🔼 Bump version
