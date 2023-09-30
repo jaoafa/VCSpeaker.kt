@@ -41,7 +41,7 @@ class EndGoLiveEvent : Extension() {
                 }
                 guild.announce(
                     voice = voice,
-                    text = ":satellite:  g `@${member.username}` が ${channelGoLiveStarted.mention} でGoLiveを終了しました。"
+                    text = ":satellite: `@${member.username}` が ${channelGoLiveStarted.mention} で GoLive を終了しました。"
                 )
             }
         }

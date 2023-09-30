@@ -41,7 +41,7 @@ class StartGoLiveEvent : Extension() {
                 }
                 guild.announce(
                     voice = voice,
-                    text = ":satellite: `@${member.username}` が ${channelGoLiveStarted.mention} でGoLiveを開始しました。"
+                    text = ":satellite: `@${member.username}` が ${channelGoLiveStarted.mention} で GoLive を開始しました。"
                 )
             }
         }
