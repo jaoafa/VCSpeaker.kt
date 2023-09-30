@@ -5,6 +5,7 @@ import com.jaoafa.vcspeaker.stores.AliasData
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.stores.IgnoreStore
+import com.jaoafa.vcspeaker.tools.Emoji.replaceEmojiToName
 import com.jaoafa.vcspeaker.voicetext.api.Emotion
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
 import com.kotlindiscord.kord.extensions.utils.capitalizeWords
@@ -32,7 +33,7 @@ object Preprocessor {
             ::replaceRoleMention,
             ::replaceUserMention,
             ::replaceMessageMention
-        )
+        ).replaceEmojiToName()
 
         return replacedText.let { if (it.length > 180) it.substring(0, 180) else it }
     }
