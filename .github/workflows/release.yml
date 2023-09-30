@@ -9,6 +9,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
+env:
+  IMAGE_NAME: vcspeaker.kt
+
 jobs:
   bump-version:
     name: 🔼 Bump version
@@ -57,7 +60,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ needs.bump-version.outputs.new_version }}-${{ matrix.architecture }}
             type=raw,value=latest-${{ matrix.architecture }}
@@ -90,15 +93,15 @@ jobs:
       - name: Create and push manifest images (latest)
         uses: Noelware/docker-manifest-action@0.4.0
         with:
-          images: ghcr.io/${{ github.repository }}:latest
-          inputs: ghcr.io/${{ github.repository }}:latest-amd64,ghcr.io/${{ github.repository }}:latest-arm64
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-arm64
           push: true
 
       - name: Create and push manifest images (version)
         uses: Noelware/docker-manifest-action@0.4.0
         with:
-          images: ghcr.io/${{ github.repository }}:${{ needs.bump-version.outputs.new_version }}
-          inputs: ghcr.io/${{ github.repository }}:${{ needs.bump-version.outputs.new_version }}-amd64,ghcr.io/${{ github.repository }}:${{ needs.bump-version.outputs.new_version }}-arm64
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}
+          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-arm64
           push: true
 
   create-release:
