@@ -2,6 +2,7 @@
 .idea
 build
 
+store
 stores
 cache
 config.yml
