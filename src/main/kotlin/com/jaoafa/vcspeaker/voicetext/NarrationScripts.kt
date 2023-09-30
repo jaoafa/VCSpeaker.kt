@@ -39,4 +39,28 @@ object NarrationScripts {
 
     private fun userAfkReturnedOtherChannel(name: String, channel: String) =
         "$name が AFK から $channel へ戻りました。"
+
+    fun userStartGoLive(member: Member) =
+        userStartGoLive(member.displayName)
+
+    private fun userStartGoLive(name: String) =
+        "$name でGoLiveを開始しました。"
+
+    fun userStartGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
+        userStartGoLiveOtherChannel(member.displayName, (channel as VoiceChannel).name)
+
+    private fun userStartGoLiveOtherChannel(name: String, channel: String) =
+        "$name が $channel でGoLiveを開始しました。"
+
+    fun userEndGoLive(member: Member) =
+        userEndGoLive(member.displayName)
+
+    private fun userEndGoLive(name: String) =
+        "$name でGoLiveを終了しました。"
+
+    fun userEndGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
+        userEndGoLiveOtherChannel(member.displayName, (channel as VoiceChannel).name)
+
+    private fun userEndGoLiveOtherChannel(name: String, channel: String) =
+        "$name が $channel でGoLiveを終了しました。"
 }
