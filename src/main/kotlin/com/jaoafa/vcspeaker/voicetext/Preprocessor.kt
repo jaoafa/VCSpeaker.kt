@@ -32,7 +32,8 @@ object Preprocessor {
             ::replaceChannelMention,
             ::replaceRoleMention,
             ::replaceUserMention,
-            ::replaceMessageMention
+            ::replaceMessageMention,
+            ::replaceGuildEmoji
         ).replaceEmojiToName()
 
         return replacedText.let { if (it.length > 180) it.substring(0, 180) else it }
@@ -56,8 +57,8 @@ object Preprocessor {
             speed = parameterMap["speed"]?.toIntOrNull()
         )
 
-        val newText = parameters.fold(text) { partText, parameterText ->
-            partText.replace(parameterText, "")
+        val newText = parameters.fold(text) { replacedText, parameterText ->
+            replacedText.replace(parameterText, "")
         }.trim()
 
         return newText to newVoice
@@ -114,6 +115,23 @@ object Preprocessor {
             displayName ?: "不明なユーザー"
         }
 
+    private suspend fun replaceMentionable(
+        text: String,
+        regex: Regex,
+        nameSupplier: suspend (Kord, Snowflake) -> String
+    ): String {
+        val matches = regex.findAll(text)
+
+        val replacedText = matches.fold(text) { replacedText, match ->
+            val id = Snowflake(match.groupValues[1]) // 0 is for whole match
+            val name = nameSupplier(VCSpeaker.kord, id)
+
+            replacedText.replace(match.value, name)
+        }
+
+        return replacedText
+    }
+
     private suspend fun replaceMessageMention(text: String, guildId: Snowflake): String {
         val matches = Regex("https://(\\w+\\.)*discord.com/channels/(\\d+)/(\\d+)/(\\d+)").findAll(text)
 
@@ -121,7 +139,7 @@ object Preprocessor {
             val channelId = Snowflake(match.groupValues[3])
             val messageId = Snowflake(match.groupValues[4])
 
-            val channel = VCSpeaker.instance.kordRef.getChannelOf<TextChannel>(channelId)
+            val channel = VCSpeaker.kord.getChannelOf<TextChannel>(channelId)
             val message = channel?.getMessageOrNull(messageId) ?: return@fold replacedText
 
             val read = "${message.author?.username ?: "システム"} が ${channel.name} で送信したメッセージへのリンク"
@@ -132,18 +150,13 @@ object Preprocessor {
         return replacedText
     }
 
-    private suspend fun replaceMentionable(
-        text: String,
-        regex: Regex,
-        nameSupplier: suspend (Kord, Snowflake) -> String
-    ): String {
-        val matches = regex.findAll(text)
+    private fun replaceGuildEmoji(text: String, guildId: Snowflake): String {
+        val matches = Regex("<a?:(\\w+):(\\d+)>").findAll(text)
 
         val replacedText = matches.fold(text) { replacedText, match ->
-            val id = Snowflake(match.groupValues[1]) // 0 is for whole match
-            val name = nameSupplier(VCSpeaker.instance.kordRef, id)
+            val emojiName = match.groupValues[1]
 
-            replacedText.replace(match.value, name)
+            replacedText.replace(match.value, emojiName)
         }
 
         return replacedText
