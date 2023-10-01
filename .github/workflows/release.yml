@@ -74,6 +74,7 @@ jobs:
           platforms: linux/${{ matrix.architecture }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
 
   merge-latest:
     name: 📥 Merge latest
