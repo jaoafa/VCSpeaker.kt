@@ -11,15 +11,13 @@
     ```yaml
     token:
       discord: <Discord Bot Token>
-      discord_dev: <Discord Bot Token for development>
       voicetext: <VoiceText API Token>
-      voicetext_dev: <VoiceText API Token for development>
     env:
       dev: <The id of the guild for development. null to disable development mode.>
       cache_policy: 3
       command_prefix: '$'
     ```
-5. Run the jar file with `java -jar vcspeaker-kt-<version>.jar`
+5. Run the jar file with `java -jar vcspeaker-kt.jar`
 6. Invite the bot to your server.
 7. Run `/vcspeaker settings channel:<TextChannel>` to set the text channel to be read aloud.
 8. Now, when you send a message in the text channel, the bot will read it aloud in the voice channel.
