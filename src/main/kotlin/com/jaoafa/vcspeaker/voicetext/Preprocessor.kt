@@ -27,13 +27,13 @@ object Preprocessor {
 
         val replacedText = replace(
             ::replaceEmoji,
+            ::replaceGuildEmoji,
             ::replaceRegex,
             ::replaceAlias,
             ::replaceChannelMention,
             ::replaceRoleMention,
             ::replaceUserMention,
-            ::replaceMessageMention,
-            ::replaceGuildEmoji
+            ::replaceMessageMention
         ).replaceEmojiToName()
 
         return replacedText.let { if (it.length > 180) it.substring(0, 180) else it }
