@@ -15,7 +15,7 @@ import dev.kord.core.entity.channel.TextChannel
 
 // ignore -> emoji -> regex -> text
 
-object Preprocessor {
+object TextProcessor {
 
     suspend fun processText(guildId: Snowflake, text: String): String? {
         if (shouldIgnore(text, guildId)) return null

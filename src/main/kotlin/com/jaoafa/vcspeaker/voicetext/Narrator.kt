@@ -2,6 +2,9 @@ package com.jaoafa.vcspeaker.voicetext
 
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
+import com.jaoafa.vcspeaker.voicetext.MessageProcessor.processMessage
+import com.jaoafa.vcspeaker.voicetext.TextProcessor.extractInlineVoice
+import com.jaoafa.vcspeaker.voicetext.TextProcessor.processText
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
@@ -16,21 +19,23 @@ class Narrator @OptIn(KordVoice::class) constructor(
 ) {
     private val scheduler = NarratorScheduler(guildId, player)
 
-    private suspend fun queue(text: String, voice: Voice, message: Message? = null) {
-        val replacedText = Preprocessor.processText(guildId, text) ?: return
+    private suspend fun queue(message: Message? = null, text: String? = null, voice: Voice) {
+        val content = processMessage(message) ?: text ?: return
 
-        val (processedText, inlineVoice) = Preprocessor.extractInlineVoice(replacedText, voice)
+        val (extractedText, inlineVoice) = extractInlineVoice(content, voice)
 
-        if (processedText.isBlank()) return
+        val replacedText = processText(guildId, extractedText) ?: return
 
-        scheduler.queue(SpeakInfo(processedText, inlineVoice, message))
+        if (replacedText.isBlank()) return
+
+        scheduler.queue(SpeakInfo(replacedText, inlineVoice, message))
     }
 
     suspend fun queueSelf(text: String) =
-        queue(text, GuildStore.getOrDefault(guildId).voice)
+        queue(text = text, voice = GuildStore.getOrDefault(guildId).voice)
 
-    suspend fun queueUser(text: String, userId: Snowflake, message: Message) =
-        queue(text, VoiceStore.byIdOrDefault(userId), message)
+    suspend fun queueUser(message: Message) =
+        queue(message = message, voice = VoiceStore.byIdOrDefault(message.author!!.id))
 
 
     suspend fun skip() = scheduler.skip()

@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.events
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.VCSpeaker.join
 import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.tools.Discord.autoJoinEnabled
 import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -24,9 +25,10 @@ class NewMessageEvent : Extension() {
 
             action {
                 if (!GuildStore.getTextChannels().contains(event.message.channelId)) return@action
+                if (event.message.content.startsWith(VCSpeaker.prefix)) return@action
 
                 val narratorActive = VCSpeaker.narrators.contains(event.guildId)
-                val autoJoin = GuildStore.getOrDefault(event.guildId!!).autoJoin
+                val autoJoin = event.getGuildOrNull()!!.autoJoinEnabled() // checked
 
                 if (!narratorActive && autoJoin) {
                     val targetChannel =
@@ -43,7 +45,7 @@ class NewMessageEvent : Extension() {
 
                 val narrator = VCSpeaker.narrators[event.guildId]!! // checked in check
 
-                narrator.queueUser(message.content, message.author!!.id, message) // Not bot
+                narrator.queueUser(message) // Not bot
 
                 message.deleteOwnReaction("👀")
             }

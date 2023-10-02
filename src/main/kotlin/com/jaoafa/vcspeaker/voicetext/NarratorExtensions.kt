@@ -66,7 +66,7 @@ object NarratorExtensions {
         val file = if (!CacheStore.exists(text, voice)) {
             val audio = VCSpeaker.voicetext.generateSpeech(text, voice)
             CacheStore.create(text, voice, audio)
-        } else CacheStore.read(text)
+        } else CacheStore.read(text, voice)
 
         val track = suspendCoroutine {
             VCSpeaker.lavaplayer.loadItemOrdered(

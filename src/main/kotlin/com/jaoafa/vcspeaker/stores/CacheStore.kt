@@ -23,17 +23,17 @@ object CacheStore : StoreStruct<CacheData>(
     CacheData.serializer(),
     { Json.decodeFromString(this) }
 ) {
-    private fun hash(text: String) = MessageDigest
+    private fun hash(text: String, voice: Voice) = MessageDigest
         .getInstance("MD5")
-        .digest(text.toByteArray())
+        .digest((text + voice.toJson()).toByteArray())
         .fold("") { str, it -> str + "%02x".format(it) }
 
     private fun cacheFile(hash: String) = VCSpeaker.cacheFolder.resolve(File("audio-${hash}.wav"))
 
-    fun exists(text: String, voice: Voice) = data.find { it.hash == hash(text) && it.voice == voice } != null
+    fun exists(text: String, voice: Voice) = data.find { it.hash == hash(text, voice) && it.voice == voice } != null
 
     fun create(text: String, voice: Voice, byteArray: ByteArray): File {
-        val hash = hash(text)
+        val hash = hash(text, voice)
         val file = cacheFile(hash).apply { writeBytes(byteArray) }
 
         data += CacheData(hash, voice, System.currentTimeMillis())
@@ -43,9 +43,9 @@ object CacheStore : StoreStruct<CacheData>(
         return file
     }
 
-    fun read(text: String): File? {
-        val hash = hash(text)
-        val cache = data.find { it.hash == hash } ?: return null
+    fun read(text: String, voice: Voice): File? {
+        val hash = hash(text, voice)
+        val cache = data.find { it.hash == hash && it.voice == voice } ?: return null
 
         // update lastUsed
         data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
