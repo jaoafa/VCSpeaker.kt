@@ -7,6 +7,9 @@ import dev.kord.core.behavior.channel.edit
 import dev.kord.core.behavior.getChannelOf
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.channel.VoiceChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object Title {
 
@@ -26,7 +29,9 @@ object Title {
             TitleStore.create(newData)
         }
 
-        edit { name = title }
+        CoroutineScope(Dispatchers.Default).launch {
+            edit { name = title }
+        }
 
         return latestData
     }
@@ -42,7 +47,9 @@ object Title {
 
             TitleStore.replace(data, newData)
 
-            edit { name = newData.original }
+            CoroutineScope(Dispatchers.Default).launch {
+                edit { name = newData.original }
+            }
 
             data to newData
         } else null to null
@@ -60,7 +67,9 @@ object Title {
 
             TitleStore.replace(data, newData)
 
-            edit { name = newData.original }
+            CoroutineScope(Dispatchers.Default).launch {
+                edit { name = newData.original }
+            }
 
             data to newData
         } else null to null
@@ -78,7 +87,9 @@ object Title {
 
             TitleStore.replace(data, newData)
 
-            getChannelOf<VoiceChannel>(data.channelId).edit { name = newData.original }
+            CoroutineScope(Dispatchers.Default).launch {
+                getChannelOf<VoiceChannel>(data.channelId).edit { name = newData.original }
+            }
 
             newData
         }
