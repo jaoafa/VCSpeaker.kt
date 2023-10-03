@@ -147,4 +147,4 @@ jobs:
           generate_release_notes: true
           tag_name: ${{ needs.bump-version.outputs.new_version }}
           files: |
-            project/build/libs/vcspeaker-kt.jar
+            build/libs/vcspeaker-kt.jar
