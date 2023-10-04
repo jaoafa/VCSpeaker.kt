@@ -48,7 +48,7 @@ object VCSpeaker {
 
         val player = lavaplayer.createPlayer()
 
-        val connection = (this as VoiceChannelBehavior).connect {
+        val connection = connect {
             audioProvider {
                 AudioFrame.fromData(player.provide()?.data ?: ByteArray(0))
             }

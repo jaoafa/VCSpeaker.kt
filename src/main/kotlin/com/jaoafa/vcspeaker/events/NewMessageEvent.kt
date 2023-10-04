@@ -32,7 +32,7 @@ class NewMessageEvent : Extension() {
 
                 if (!narratorActive && autoJoin) {
                     val targetChannel =
-                        event.member!!.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel? ?: return@action
+                        event.member!!.getVoiceStateOrNull()?.getChannelOrNull() ?: return@action
 
                     targetChannel.join(message = event.message)
                 } else if (!narratorActive) return@action
