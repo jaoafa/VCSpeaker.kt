@@ -25,4 +25,9 @@ object EnvSpec : ConfigSpec() {
      * The command prefix. The default value is `$`.
      */
     val commandPrefix by optional<String>("$")
+
+    /**
+     * The Sentry environment.
+     */
+    val sentryEnv by optional<String?>(null)
 }
