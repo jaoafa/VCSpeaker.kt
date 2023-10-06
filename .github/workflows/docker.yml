@@ -1,6 +1,8 @@
 name: 🏗️ Build
 
-on: pull_request
+on:
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -69,7 +71,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: true
+          push: false
           platforms: linux/${{ matrix.architecture }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
