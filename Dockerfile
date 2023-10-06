@@ -1,7 +1,7 @@
 FROM azul/zulu-openjdk-alpine:17-latest as builder
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache git wget unzip
+RUN apk add --no-cache git wget unzip libstdc++
 
 WORKDIR /build
 
