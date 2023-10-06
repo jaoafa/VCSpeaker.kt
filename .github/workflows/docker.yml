@@ -1,10 +1,6 @@
 name: 🏗️ Build
 
-on:
-  pull_request:
-    types:
-      - opened
-  workflow_dispatch:
+on: pull_request
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -89,7 +85,7 @@ jobs:
             - **Tag:** ${{ steps.meta.outputs.tags }}
             - **Labels:** ${{ steps.meta.outputs.labels }}
             - **Changelog:** ${{ needs.bump-version.outputs.changelog }}
-            
+
       - name: 📣 Comment Result on pull request (failure)
         if: steps.build.outcome == 'failure'
         uses: thollander/actions-comment-pull-request@v2
