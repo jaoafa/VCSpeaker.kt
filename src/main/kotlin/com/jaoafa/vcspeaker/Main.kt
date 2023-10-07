@@ -84,7 +84,7 @@ class Main : CliktCommand() {
                 prefix
             )
 
-            VCSpeaker.instance = ExtensibleBot(discordToken) {
+            val instance = ExtensibleBot(discordToken) {
                 applicationCommands {
                     enabled = true
                 }
@@ -119,17 +119,20 @@ class Main : CliktCommand() {
                 }
             }
 
-            VCSpeaker.kord = VCSpeaker.instance.kordRef
+            VCSpeaker.instance = instance
+
+            VCSpeaker.kord = instance.kordRef
 
             if (finalCachePolicy != 0)
                 CacheStore.initiateAuditJob(finalCachePolicy)
 
-            VCSpeaker.instance.getKoin().get<SentryAdapter>().init {
-                dsn = config[TokenSpec.sentry]
-                environment = config[EnvSpec.sentryEnv]
-            }
+            if (config[TokenSpec.sentry] != null)
+                instance.getKoin().get<SentryAdapter>().init {
+                    dsn = config[TokenSpec.sentry]
+                    environment = config[EnvSpec.sentryEnv]
+                }
 
-            VCSpeaker.instance.start()
+            instance.start()
         }
     }
 }
