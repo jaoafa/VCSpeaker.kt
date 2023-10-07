@@ -1,7 +1,7 @@
 FROM azul/zulu-openjdk-alpine:17-latest as builder
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache git wget unzip libstdc++
+RUN apk add --no-cache git wget unzip
 
 WORKDIR /build
 
@@ -15,6 +15,9 @@ RUN chmod a+x gradlew && \
 FROM azul/zulu-openjdk-alpine:17-latest as runner
 
 WORKDIR /app
+
+# hadolint ignore=DL3018
+RUN apk add --no-cache libstdc++
 
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
 
