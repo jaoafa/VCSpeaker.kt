@@ -45,7 +45,7 @@ object NarrationScripts {
         userStartGoLive(member.displayName)
 
     private fun userStartGoLive(name: String) =
-        "$name でGoLiveを開始しました。"
+        "$name がGoLiveを開始しました。"
 
     suspend fun userStartGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
         userStartGoLiveOtherChannel(member.displayName, channel.name())
@@ -57,7 +57,7 @@ object NarrationScripts {
         userEndGoLive(member.displayName)
 
     private fun userEndGoLive(name: String) =
-        "$name でGoLiveを終了しました。"
+        "$name がGoLiveを終了しました。"
 
     suspend fun userEndGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
         userEndGoLiveOtherChannel(member.displayName, channel.name())
