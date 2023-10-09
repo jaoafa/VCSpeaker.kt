@@ -9,7 +9,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.entity.channel.TextChannel
-import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 
@@ -28,7 +27,7 @@ class TitleEvent : Extension() {
             action {
                 val user = event.state.getMember()
 
-                val (oldData, newData) = (event.old!!.getChannelOrNull() as VoiceChannel).resetTitle(user)
+                val (oldData, newData) = event.old!!.getChannelOrNull()!!.resetTitle(user) // checked
 
                 if (newData == null) return@action
 

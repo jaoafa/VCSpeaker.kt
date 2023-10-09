@@ -3,14 +3,18 @@ package com.jaoafa.vcspeaker.features
 import com.jaoafa.vcspeaker.stores.TitleData
 import com.jaoafa.vcspeaker.stores.TitleStore
 import dev.kord.core.behavior.UserBehavior
+import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.edit
-import dev.kord.core.behavior.getChannelOf
 import dev.kord.core.entity.Guild
+import dev.kord.core.entity.channel.StageChannel
 import dev.kord.core.entity.channel.VoiceChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object Title {
 
-    suspend fun VoiceChannel.setTitle(title: String, user: UserBehavior): TitleData {
+    suspend fun BaseVoiceChannelBehavior.setTitle(title: String, user: UserBehavior): TitleData {
         val data = getTitleData()
 
         val latestData = if (data != null) { // update
@@ -21,17 +25,22 @@ object Title {
 
             TitleStore.replace(data, updatedData)
         } else { // create
-            val newData = TitleData(guild.id, id, user.id, title, name)
+            val newData = TitleData(guild.id, id, user.id, title, this.asChannel().name)
 
             TitleStore.create(newData)
         }
 
-        edit { name = title }
+        CoroutineScope(Dispatchers.Default).launch {
+            when (this@setTitle) {
+                is VoiceChannel -> edit { name = title }
+                is StageChannel -> edit { name = title }
+            }
+        }
 
         return latestData
     }
 
-    suspend fun VoiceChannel.resetTitle(user: UserBehavior): Pair<TitleData?, TitleData?> {
+    suspend fun BaseVoiceChannelBehavior.resetTitle(user: UserBehavior): Pair<TitleData?, TitleData?> {
         val data = getTitleData()
 
         return if (data?.title != null) {
@@ -42,13 +51,18 @@ object Title {
 
             TitleStore.replace(data, newData)
 
-            edit { name = newData.original }
+            CoroutineScope(Dispatchers.Default).launch {
+                when (this@resetTitle) {
+                    is VoiceChannel -> edit { name = newData.original }
+                    is StageChannel -> edit { name = newData.original }
+                }
+            }
 
             data to newData
         } else null to null
     }
 
-    suspend fun VoiceChannel.saveTitle(user: UserBehavior): Pair<TitleData?, TitleData?> {
+    suspend fun BaseVoiceChannelBehavior.saveTitle(user: UserBehavior): Pair<TitleData?, TitleData?> {
         val data = getTitleData()
 
         return if (data?.title != null) {
@@ -60,7 +74,12 @@ object Title {
 
             TitleStore.replace(data, newData)
 
-            edit { name = newData.original }
+            CoroutineScope(Dispatchers.Default).launch {
+                when (this@saveTitle) {
+                    is VoiceChannel -> edit { name = newData.original }
+                    is StageChannel -> edit { name = newData.original }
+                }
+            }
 
             data to newData
         } else null to null
@@ -78,11 +97,16 @@ object Title {
 
             TitleStore.replace(data, newData)
 
-            getChannelOf<VoiceChannel>(data.channelId).edit { name = newData.original }
+            CoroutineScope(Dispatchers.Default).launch {
+                when (val channel = getChannel(data.channelId)) {
+                    is VoiceChannel -> channel.edit { name = newData.original }
+                    is StageChannel -> channel.edit { name = newData.original }
+                }
+            }
 
             newData
         }
     }
 
-    fun VoiceChannel.getTitleData() = TitleStore.find(id)
+    fun BaseVoiceChannelBehavior.getTitleData() = TitleStore.find(id)
 }

@@ -230,9 +230,11 @@ object Discord {
     suspend inline fun <reified T : Channel> Snowflake.asChannelOf() = VCSpeaker.kord.getChannelOf<T>(this)
 
     suspend infix fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) =
-        this ?: member.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel?
+        this ?: member.getVoiceStateOrNull()?.getChannelOrNull()
 
     suspend fun GuildBehavior.selfVoiceChannel() = selfMember().getVoiceStateOrNull()?.getChannelOrNull()
 
     suspend fun ChatCommandContext<out Arguments>.respond(content: String) = message.respond(content)
+
+    suspend fun BaseVoiceChannelBehavior.name() = this.asChannel().name
 }

@@ -24,7 +24,7 @@ dependencies {
     implementation("io.github.qbosst:kordex-hybrid-commands:1.0.3-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("ch.qos.logback:logback-classic:1.3.7")
-    implementation("com.sedmelluq:lavaplayer:1.3.77")
+    implementation("dev.arbjerg:lavaplayer:2.0.2")
     implementation("com.github.aikaterna:lavaplayer-natives:original-SNAPSHOT")
     implementation("com.uchuhimo:konf:1.1.2")
     implementation("com.github.ajalt.clikt:clikt:4.0.0")
@@ -32,6 +32,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:2.2.4")
     implementation("io.ktor:ktor-client-cio:2.2.4")
     implementation("io.ktor:ktor-client-cio-jvm:2.2.4")
+    implementation("io.sentry:sentry:6.30.0")
 }
 
 tasks.test {

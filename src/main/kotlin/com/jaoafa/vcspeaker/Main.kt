@@ -13,6 +13,7 @@ import com.jaoafa.vcspeaker.events.*
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.voicetext.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
+import com.kotlindiscord.kord.extensions.sentry.SentryAdapter
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import dev.kord.common.entity.Snowflake
@@ -83,7 +84,7 @@ class Main : CliktCommand() {
                 prefix
             )
 
-            VCSpeaker.instance = ExtensibleBot(discordToken) {
+            val instance = ExtensibleBot(discordToken) {
                 applicationCommands {
                     enabled = true
                 }
@@ -118,12 +119,20 @@ class Main : CliktCommand() {
                 }
             }
 
-            VCSpeaker.kord = VCSpeaker.instance.kordRef
+            VCSpeaker.instance = instance
+
+            VCSpeaker.kord = instance.kordRef
 
             if (finalCachePolicy != 0)
                 CacheStore.initiateAuditJob(finalCachePolicy)
 
-            VCSpeaker.instance.start()
+            if (config[TokenSpec.sentry] != null)
+                instance.getKoin().get<SentryAdapter>().init {
+                    dsn = config[TokenSpec.sentry]
+                    environment = config[EnvSpec.sentryEnv]
+                }
+
+            instance.start()
         }
     }
 }

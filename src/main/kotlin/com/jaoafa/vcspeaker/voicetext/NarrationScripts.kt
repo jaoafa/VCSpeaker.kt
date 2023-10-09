@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.voicetext
 
+import com.jaoafa.vcspeaker.tools.Discord.name
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.entity.Member
 import dev.kord.core.entity.channel.VoiceChannel
@@ -16,13 +17,13 @@ object NarrationScripts {
 
     private fun userLeft(name: String) = "$name が退出しました。"
 
-    fun userJoinedOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
-        userJoinedOtherChannel(member.displayName, (channel as VoiceChannel).name)
+    suspend fun userJoinedOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
+        userJoinedOtherChannel(member.displayName, channel.name())
 
     private fun userJoinedOtherChannel(name: String, channel: String) = "$name が $channel に参加しました。"
 
-    fun userLeftOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
-        userLeftOtherChannel(member.displayName, (channel as VoiceChannel).name)
+    suspend fun userLeftOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
+        userLeftOtherChannel(member.displayName, channel.name())
 
     private fun userLeftOtherChannel(name: String, channel: String) = "$name が $channel から退出しました。"
 
@@ -34,8 +35,8 @@ object NarrationScripts {
 
     private fun userAfkReturned(name: String) = "$name が AFK から戻りました。"
 
-    fun userAfkReturnedOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
-        userAfkReturnedOtherChannel(member.displayName, (channel as VoiceChannel).name)
+    suspend fun userAfkReturnedOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
+        userAfkReturnedOtherChannel(member.displayName, channel.name())
 
     private fun userAfkReturnedOtherChannel(name: String, channel: String) =
         "$name が AFK から $channel へ戻りました。"
@@ -46,8 +47,8 @@ object NarrationScripts {
     private fun userStartGoLive(name: String) =
         "$name がGoLiveを開始しました。"
 
-    fun userStartGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
-        userStartGoLiveOtherChannel(member.displayName, (channel as VoiceChannel).name)
+    suspend fun userStartGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
+        userStartGoLiveOtherChannel(member.displayName, channel.name())
 
     private fun userStartGoLiveOtherChannel(name: String, channel: String) =
         "$name が $channel でGoLiveを開始しました。"
@@ -58,8 +59,8 @@ object NarrationScripts {
     private fun userEndGoLive(name: String) =
         "$name がGoLiveを終了しました。"
 
-    fun userEndGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
-        userEndGoLiveOtherChannel(member.displayName, (channel as VoiceChannel).name)
+    suspend fun userEndGoLiveOtherChannel(member: Member, channel: BaseVoiceChannelBehavior) =
+        userEndGoLiveOtherChannel(member.displayName, channel.name())
 
     private fun userEndGoLiveOtherChannel(name: String, channel: String) =
         "$name が $channel でGoLiveを終了しました。"
