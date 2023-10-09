@@ -28,6 +28,7 @@ jobs:
           github_token: ${{ github.token }}
           default_bump: "minor"
           custom_release_rules: "breaking:major:💣 Breaking Changes,feat:minor:✨ Features,fix:patch:💣 Bug Fixes,docs:patch:📰 Docs,chore:patch:🎨 Chore,pref:patch:🎈 Performance improvements,refactor:patch:🧹 Refactoring,build:patch:🔍 Build,ci:patch:🔍 CI,revert:patch:⏪ Revert,style:patch:🧹 Style,test:patch:👀 Test"
+          dry_run: true
 
   build-docker:
     name: 🏗️ Build Docker (${{ matrix.architecture }})
