@@ -11,6 +11,9 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.voice.VoiceConnection
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
@@ -41,10 +44,13 @@ class Narrator @OptIn(KordVoice::class) constructor(
     suspend fun skip() = scheduler.skip()
 
     suspend fun clear() {
-        listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
-            it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
-            it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
+        CoroutineScope(Dispatchers.Default).launch {
+            listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
+                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
+                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
+            }
         }
+
         scheduler.queue.clear()
         scheduler.now = null
         player.stopTrack()
