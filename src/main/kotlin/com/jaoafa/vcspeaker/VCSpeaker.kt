@@ -50,10 +50,7 @@ object VCSpeaker {
 
         val connection = connect {
             audioProvider {
-                val data = player.provide(1, TimeUnit.SECONDS)?.data
-                if (data != null)
-                    AudioFrame.fromData(data)
-                else AudioFrame.SILENCE
+                AudioFrame.fromData(player.provide(1, TimeUnit.SECONDS)?.data)
             }
         }
 
