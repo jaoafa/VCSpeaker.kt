@@ -13,11 +13,11 @@ import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
-import dev.kord.core.behavior.channel.VoiceChannelBehavior
 import dev.kord.core.behavior.channel.connect
 import dev.kord.core.entity.Message
 import dev.kord.voice.AudioFrame
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 object VCSpeaker {
     lateinit var instance: ExtensibleBot
@@ -48,9 +48,12 @@ object VCSpeaker {
 
         val player = lavaplayer.createPlayer()
 
-        val connection = (this as VoiceChannelBehavior).connect {
+        val connection = connect {
             audioProvider {
-                AudioFrame.fromData(player.provide()?.data ?: ByteArray(0))
+                val data = player.provide(1, TimeUnit.SECONDS)?.data
+                if (data != null)
+                    AudioFrame.fromData(data)
+                else AudioFrame.SILENCE
             }
         }
 

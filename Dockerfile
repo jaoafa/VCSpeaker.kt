@@ -16,6 +16,9 @@ FROM azul/zulu-openjdk-alpine:17-latest as runner
 
 WORKDIR /app
 
+# hadolint ignore=DL3018
+RUN apk add --no-cache libstdc++
+
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
 
 ENV VCSKT_CONFIG /data/config.yml

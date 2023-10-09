@@ -18,7 +18,9 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      new_version: ${{ steps.version.outputs.new_version }}
+      version: ${{ steps.version.outputs.new_version }}
+      tag: ${{ steps.version.outputs.new_tag }}
+      changelog: ${{ steps.version.outputs.changelog }}
 
     steps:
       - name: 🔼 Bump release version
@@ -62,7 +64,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ needs.bump-version.outputs.new_version }}-${{ matrix.architecture }}
+            type=raw,value=${{ needs.bump-version.outputs.version }}-${{ matrix.architecture }}
             type=raw,value=latest-${{ matrix.architecture }}
 
       - name: 🚀 Build Docker image
@@ -101,8 +103,8 @@ jobs:
       - name: Create and push manifest images (version)
         uses: Noelware/docker-manifest-action@0.4.0
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}-arm64
-          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.new_version }}
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-arm64
+          inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}
           push: true
 
   create-release:
@@ -144,7 +146,7 @@ jobs:
       - name: 🗃️ Publish Release on main
         uses: softprops/action-gh-release@v1
         with:
-          generate_release_notes: true
-          tag_name: ${{ needs.bump-version.outputs.new_version }}
+          body: ${{ needs.bump-version.outputs.changelog }}
+          tag_name: ${{ needs.bump-version.outputs.tag }}
           files: |
             build/libs/vcspeaker-kt.jar

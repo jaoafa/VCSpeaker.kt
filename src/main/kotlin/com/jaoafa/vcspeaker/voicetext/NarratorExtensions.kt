@@ -64,7 +64,27 @@ object NarratorExtensions {
         val voice = info.voice
 
         val file = if (!CacheStore.exists(text, voice)) {
-            val audio = VCSpeaker.voicetext.generateSpeech(text, voice)
+            val audio = try {
+                VCSpeaker.voicetext.generateSpeech(text, voice)
+            } catch (_: Exception) {
+                info.message?.reply {
+                    embed {
+                        title = ":interrobang: Error!"
+
+                        description = """
+                            音声の生成に失敗しました。
+                            「${info.message.content}」はよくわからない文字列ではありませんか？
+                        """.trimIndent()
+
+                        errorColor()
+                    }
+                }
+
+                VCSpeaker.narrators[info.message?.getGuildOrNull()?.id]?.skip()
+
+                return
+            }
+
             CacheStore.create(text, voice, audio)
         } else CacheStore.read(text, voice)
 

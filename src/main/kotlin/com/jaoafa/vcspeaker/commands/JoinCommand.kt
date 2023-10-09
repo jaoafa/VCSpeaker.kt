@@ -49,10 +49,11 @@ class JoinCommand : Extension() {
             aliases += "summon"
 
             action {
-                val targetChannel = (member!!.getVoiceStateOrNull()?.getChannelOrNull() as VoiceChannel?) ?: run {
+                val targetChannel = member!!.getVoiceStateOrNull()?.getChannelOrNull() ?: run {
                     respond("**:question: VC に参加してください。**")
                     return@action
                 }
+
                 val selfChannel = guild!!.selfVoiceChannel()
 
                 if (selfChannel != null) targetChannel.move(message = message)

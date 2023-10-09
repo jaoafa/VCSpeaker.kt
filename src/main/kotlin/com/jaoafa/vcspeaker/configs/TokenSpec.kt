@@ -13,4 +13,9 @@ object TokenSpec : ConfigSpec() {
      * The VoiceText API token.
      */
     val voicetext by required<String>()
+
+    /**
+     * The Sentry DSN.
+     */
+    val sentry by optional<String?>(null)
 }

@@ -84,7 +84,7 @@ class VoiceMoveEvent : Extension() {
 
                 guild.announce(
                     voice = if (channelJoined == selfChannel) NarrationScripts.userJoined(member)
-                    else NarrationScripts.userJoinedOtherChannel(member, channelJoined as VoiceChannel),
+                    else NarrationScripts.userJoinedOtherChannel(member, channelJoined),
                     text = ":arrow_right: `@${member.username}` が ${channelLeft.mention} から ${channelJoined.mention} へ移動しました。"
                 )
             }
