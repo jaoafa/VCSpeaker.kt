@@ -36,7 +36,7 @@ class SaveTitleCommand : Extension() {
 
             publicSubCommand("all", "全てのチャンネルのタイトルを保存します。") {
                 action {
-                    val titles = (guild as Guild).saveTitleAll(user)
+                    val titles = guild!!.saveTitleAll(user)
 
                     if (titles.size == 1) {
                         val first = titles.entries.first()

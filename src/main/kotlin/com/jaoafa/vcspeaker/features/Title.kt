@@ -2,10 +2,10 @@ package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.stores.TitleData
 import com.jaoafa.vcspeaker.stores.TitleStore
+import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.edit
-import dev.kord.core.entity.Guild
 import dev.kord.core.entity.channel.StageChannel
 import dev.kord.core.entity.channel.VoiceChannel
 import kotlinx.coroutines.CoroutineScope
@@ -85,7 +85,7 @@ object Title {
         } else null to null
     }
 
-    suspend fun Guild.saveTitleAll(user: UserBehavior): Map<TitleData, TitleData> {
+    suspend fun GuildBehavior.saveTitleAll(user: UserBehavior): Map<TitleData, TitleData> {
         val guildTitles = TitleStore.filterGuild(id)
 
         return guildTitles.filter { it.title != null }.associateWith { data ->

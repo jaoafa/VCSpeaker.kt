@@ -110,8 +110,8 @@ class Main : CliktCommand() {
 
                     // events
                     add(::NewMessageEvent)
-                    add(::StartGoLiveEvent)
-                    add(::EndGoLiveEvent)
+                    add(::GoLiveStartEvent)
+                    add(::GoLiveEndEvent)
                     add(::VoiceJoinEvent)
                     add(::VoiceLeaveEvent)
                     add(::VoiceMoveEvent)

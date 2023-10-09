@@ -60,38 +60,10 @@ object NarratorExtensions {
     }
 
     suspend fun AudioPlayer.speak(info: SpeakInfo) {
-        val text = info.text
-        val voice = info.voice
-
-        val file = if (!CacheStore.exists(text, voice)) {
-            val audio = try {
-                VCSpeaker.voicetext.generateSpeech(text, voice)
-            } catch (_: Exception) {
-                info.message?.reply {
-                    embed {
-                        title = ":interrobang: Error!"
-
-                        description = """
-                            音声の生成に失敗しました。
-                            「${info.message.content}」はよくわからない文字列ではありませんか？
-                        """.trimIndent()
-
-                        errorColor()
-                    }
-                }
-
-                VCSpeaker.narrators[info.message?.getGuildOrNull()?.id]?.skip()
-
-                return
-            }
-
-            CacheStore.create(text, voice, audio)
-        } else CacheStore.read(text, voice)
-
         val track = suspendCoroutine {
             VCSpeaker.lavaplayer.loadItemOrdered(
                 this,
-                file!!.path, // already checked
+                info.file.path, // already checked
                 object : AudioLoadResultHandler {
                     override fun trackLoaded(track: AudioTrack) {
                         track.userData = info
@@ -102,30 +74,27 @@ object NarratorExtensions {
                         throw UnexpectedException("This code should not be reached.")
                     }
 
-                    override fun noMatches() {
-                        return
-                    }
+                    override fun noMatches() { return }
 
-                    override fun loadFailed(exception: FriendlyException?) {
-                        runBlocking {
-                            info.message?.reply {
-                                embed {
-                                    title = ":interrobang: Error!"
+                    override fun loadFailed(exception: FriendlyException?): Unit = runBlocking {
+                        info.message?.reply {
+                            embed {
+                                title = ":interrobang: Error!"
 
-                                    description = """
+                                description = """
                                         音声の読み込みに失敗しました。
                                         VCSpeaker の不具合と思われる場合は、[GitHub Issues](https://github.com/jaoafa/VCSpeaker.kt/issues) か、サーバー既定のチャンネルへの報告をお願いします。
                                     """.trimIndent()
 
-                                    field("Exception") {
-                                        "```\n${exception?.message ?: "不明"}\n```"
-                                    }
-
-                                    errorColor()
+                                field("Exception") {
+                                    "```\n${exception?.message ?: "不明"}\n```"
                                 }
+
+                                errorColor()
                             }
                         }
                     }
+
                 })
         }
 

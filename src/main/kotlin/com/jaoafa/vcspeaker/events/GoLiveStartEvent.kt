@@ -8,7 +8,7 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 
-class StartGoLiveEvent : Extension() {
+class GoLiveStartEvent : Extension() {
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {
