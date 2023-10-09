@@ -46,6 +46,12 @@ object Emoji {
         return emojis.filter { startsWith(it.unicode) }.maxByOrNull { it.unicode.length }!!
     }
 
+    fun String.removeEmojis(): String {
+        return emojis.fold(this) { replaced, emoji ->
+            replaced.replace(emoji.unicode, "")
+        }
+    }
+
     fun String.replaceEmojiToName(): String {
         return emojis.fold(this) { replaced, emoji ->
             replaced.replace(emoji.unicode, emoji.name)

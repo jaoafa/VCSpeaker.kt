@@ -7,6 +7,9 @@ import com.jaoafa.vcspeaker.stores.AliasType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 
+/**
+ * テキストを置換する基底クラス
+ */
 interface BaseReplacer {
     suspend fun replace(text: String, guildId: Snowflake): String
 

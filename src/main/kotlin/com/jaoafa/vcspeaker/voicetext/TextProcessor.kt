@@ -8,10 +8,7 @@ import com.jaoafa.vcspeaker.voicetext.textreplacers.*
 import com.kotlindiscord.kord.extensions.utils.capitalizeWords
 import dev.kord.common.entity.Snowflake
 
-// ignore -> emoji -> regex -> text
-
 object TextProcessor {
-
     suspend fun processText(guildId: Snowflake, text: String): String? {
         if (shouldIgnore(text, guildId)) return null
 
@@ -23,13 +20,12 @@ object TextProcessor {
             ChannelMentionReplacer,
             RoleMentionReplacer,
             UserMentionReplacer,
-            MessageMentionReplacer,
+            UrlReplacer,
         )
 
         val replacedText = replacers.fold(text) { replacedText, replacer ->
             replacer.replace(replacedText, guildId)
         }.replaceEmojiToName()
-
 
         return replacedText.let { if (it.length > 180) it.substring(0, 180) else it }
     }
