@@ -24,7 +24,7 @@ object Twitter {
     }
 
     suspend fun getTweet(screenName: String, tweetId: String): Tweet? {
-        val tweetUrl = "https://twitter.com/${screenName}/status/${tweetId}"
+        val tweetUrl = "https://twitter.com/$screenName/status/$tweetId"
         val response = client.get(baseURL) {
             parameter("url", tweetUrl)
         }
