@@ -395,7 +395,7 @@ object UrlReplacer : BaseReplacer {
                 0,
                 70.coerceAtMost(tweet.plainText.length)
             ) + if (tweet.plainText.length > 70) " 以下略" else ""
-            val replaceTo = "${tweet.authorName.removeEmojis()}のツイート「${tweetContent}」へのリンク"
+            val replaceTo = "${tweet.authorName.removeEmojis()}のツイート「$tweetContent」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
