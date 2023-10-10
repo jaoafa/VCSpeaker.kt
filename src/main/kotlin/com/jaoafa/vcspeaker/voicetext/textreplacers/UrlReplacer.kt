@@ -243,7 +243,7 @@ object UrlReplacer : BaseReplacer {
             val replaceTo = if (thread != null) {
                 "$channelType「${thread.name}」のスレッド「${thread.parent.asChannel().name}」で送信したメッセージのリンク"
             } else {
-                "${channelType}「${channel.name}」で送信したメッセージのリンク"
+                "$channelType「${channel.name}」で送信したメッセージのリンク"
             }
 
             replacedText.replace(matchResult.value, replaceTo)
