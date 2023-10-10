@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.stores.TitleData
 import com.jaoafa.vcspeaker.stores.TitleStore
+import com.jaoafa.vcspeaker.tools.Discord.name
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
@@ -65,9 +66,9 @@ object Title {
     suspend fun BaseVoiceChannelBehavior.saveTitle(user: UserBehavior): Pair<TitleData?, TitleData?> {
         val data = getTitleData()
 
-        return if (data?.title != null) {
+        return if (data != null) {
             val newData = data.copy(
-                original = data.title,
+                original = name(),
                 title = null,
                 userId = user.id
             )
@@ -88,9 +89,9 @@ object Title {
     suspend fun GuildBehavior.saveTitleAll(user: UserBehavior): Map<TitleData, TitleData> {
         val guildTitles = TitleStore.filterGuild(id)
 
-        return guildTitles.filter { it.title != null }.associateWith { data ->
+        return guildTitles.associateWith { data ->
             val newData = data.copy(
-                original = data.title!!,
+                original = getChannel(data.channelId).name,
                 title = null,
                 userId = user.id
             )

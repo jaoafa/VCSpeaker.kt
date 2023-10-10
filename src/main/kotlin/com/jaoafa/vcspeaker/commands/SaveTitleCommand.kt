@@ -15,7 +15,6 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChanne
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.behavior.channel.asChannelOf
-import dev.kord.core.entity.Guild
 import dev.kord.core.entity.channel.VoiceChannel
 
 class SaveTitleCommand : Extension() {
@@ -44,7 +43,7 @@ class SaveTitleCommand : Extension() {
                         respondEmbed(
                             ":inbox_tray: Title Saved",
                             """
-                                <#${first.key.channelId}> のタイトル「${first.key.title}」を保存しました。
+                                <#${first.value.channelId}> のタイトル「${first.value.original}」を保存しました。
                                 レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
                             """.trimIndent()
                         ) {
@@ -52,8 +51,9 @@ class SaveTitleCommand : Extension() {
                             successColor()
                         }
                     } else if (titles.size >= 2) {
-                        val diffString =
-                            titles.entries.joinToString("\n") { "<#${it.key.channelId}> :「${it.key.title}」" }
+                        val diffString = titles.entries.joinToString("\n") {
+                            "<#${it.value.channelId}> :「${it.value.original}」"
+                        }
 
                         respondEmbed(
                             ":inbox_tray: All Titles Saved",
@@ -92,7 +92,7 @@ class SaveTitleCommand : Extension() {
                         respondEmbed(
                             ":inbox_tray: Title Saved",
                             """
-                                ${channel.mention} のタイトル「${old.title}」を保存しました。
+                                ${channel.mention} のタイトル「${new.original}」を保存しました。
                                 レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
                             """.trimIndent()
                         ) {
