@@ -208,15 +208,13 @@ object UrlReplacer : BaseReplacer {
         }
     }
 
-    private fun getExtension(url: String): String? {
-        return try {
-            val urlObj = URL(url)
-            val path = urlObj.path
-            val lastDot = path.lastIndexOf('.')
-            if (lastDot == -1) null else path.substring(lastDot + 1)
-        } catch (e: MalformedURLException) {
-            null
-        }
+    private fun getExtension(url: String) = try {
+        val urlObj = URL(url)
+        val path = urlObj.path
+        val lastDot = path.lastIndexOf('.')
+        if (lastDot == -1) null else path.substring(lastDot + 1)
+    } catch (e: MalformedURLException) {
+        null
     }
 
     /**
