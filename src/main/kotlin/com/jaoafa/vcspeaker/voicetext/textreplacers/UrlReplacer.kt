@@ -388,7 +388,7 @@ object UrlReplacer : BaseReplacer {
 
             val tweet = Twitter.getTweet(userName, tweetId) ?: return@fold replacedText.replace(
                 matchResult.value,
-                "ユーザー「${userName}」のツイートへのリンク"
+                "ユーザー「$userName」のツイートへのリンク"
             )
 
             val tweetContent = tweet.plainText.substring(
