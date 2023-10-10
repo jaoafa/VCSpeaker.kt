@@ -156,7 +156,7 @@ object UrlReplacer : BaseReplacer {
      * 招待リンクをもとに、招待の情報を取得します。
      */
     private suspend fun getInvite(inviteId: String, eventId: Snowflake? = null): DiscordInvite? {
-        val url = "https://discord.com/api/invites/${inviteId}"
+        val url = "https://discord.com/api/invites/$inviteId"
         val response = client.get((url)) {
             parameter("with_counts", true)
             parameter("with_expiration", true)
