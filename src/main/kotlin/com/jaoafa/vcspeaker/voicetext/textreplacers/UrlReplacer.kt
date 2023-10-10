@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.voicetext.textreplacers
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
+import com.jaoafa.vcspeaker.tools.Discord
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Twitter
 import dev.kord.common.entity.ChannelType
@@ -37,25 +38,34 @@ object UrlReplacer : BaseReplacer {
         }
     }
 
-    private val messageUrlRegex =
-        Regex("^https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)/(\\d+)\\??(.*)$", RegexOption.IGNORE_CASE)
-    private val channelUrlRegex =
-        Regex("^https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)\\??(.*)$", RegexOption.IGNORE_CASE)
-    private val eventDirectUrlRegex =
-        Regex("^(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)$", RegexOption.IGNORE_CASE)
+    private val messageUrlRegex = Regex(
+        "^https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)/(\\d+)\\??(.*)$",
+        RegexOption.IGNORE_CASE
+    )
+    private val channelUrlRegex = Regex(
+        "^https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)\\??(.*)$",
+        RegexOption.IGNORE_CASE
+    )
+    private val eventDirectUrlRegex = Regex(
+        "^(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)$",
+        RegexOption.IGNORE_CASE
+    )
     private val eventInviteUrlRegex = Regex(
         "^(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\?event=(\\d+)$",
         RegexOption.IGNORE_CASE
     )
     private val inviteUrlRegex = Regex(
-        "^(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)$", RegexOption.IGNORE_CASE
+        "^(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)$",
+        RegexOption.IGNORE_CASE
     )
-    private val tweetUrlRegex =
-        Regex("^https://(?:x|twitter)\\.com/(\\w){1,15}/status/(\\d+)\\??(.*)$", RegexOption.IGNORE_CASE)
+    private val tweetUrlRegex = Regex(
+        "^https://(?:x|twitter)\\.com/(\\w){1,15}/status/(\\d+)\\??(.*)$",
+        RegexOption.IGNORE_CASE
+    )
     private val titleRegex = Regex("<title>([^<]+)</title>", RegexOption.IGNORE_CASE)
     private val urlRegex = Regex("https?://\\S+", RegexOption.IGNORE_CASE)
 
-    private val extNameMap = mapOf<String, String>(
+    private val extensionNameMap = mapOf(
         "jpg" to "JPEGファイル",
         "apng" to "アニメーションPNGファイル",
         "txt" to "テキストファイル",
@@ -125,14 +135,10 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getChannel(guild: Guild, channelId: Snowflake): GuildChannel? {
         val channel = guild.getChannelOrNull(channelId) ?: return null
 
-        val isThread =
-            channel.type == ChannelType.PrivateThread || channel.type == ChannelType.PublicGuildThread || channel.type == ChannelType.PublicNewsThread
-        if (isThread) {
+        return if (Discord.isThread(channel)) {
             val thread = channel.asChannelOf<ThreadChannel>()
-            return thread.parent.asChannel()
-        }
-
-        return channel
+            thread.parent.asChannel()
+        } else channel
     }
 
     /**
@@ -141,13 +147,9 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getThread(guild: Guild, channelId: Snowflake): ThreadChannel? {
         val channel = guild.getChannelOrNull(channelId) ?: return null
 
-        val isThread =
-            channel.type == ChannelType.PrivateThread || channel.type == ChannelType.PublicGuildThread || channel.type == ChannelType.PublicNewsThread
-        if (isThread) {
-            return channel.asChannelOf<ThreadChannel>()
-        }
-
-        return null
+        return if (Discord.isThread(channel)) {
+            channel.asChannelOf<ThreadChannel>()
+        } else null
     }
 
     /**
@@ -439,10 +441,10 @@ object UrlReplacer : BaseReplacer {
                 "Webページのリンク"
             )
 
-            if (extNameMap.containsKey(extension)) {
+            if (extensionNameMap.containsKey(extension)) {
                 return@fold replacedText.replace(
                     matchResult.value,
-                    "${extNameMap[extension]}へのリンク"
+                    "${extensionNameMap[extension]}へのリンク"
                 )
             }
 
