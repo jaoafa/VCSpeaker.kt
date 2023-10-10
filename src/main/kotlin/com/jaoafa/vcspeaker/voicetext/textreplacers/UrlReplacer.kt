@@ -276,7 +276,7 @@ object UrlReplacer : BaseReplacer {
             val thread = getThread(guild, urlChannelId)
 
             val replaceTo = if (thread != null) {
-                "${channelType}「${thread.parent.asChannel().name}」のスレッド「${thread.name}」へのリンク"
+                "$channelType「${thread.parent.asChannel().name}」のスレッド「${thread.name}」へのリンク"
             } else {
                 "$channelType「${channel.name}」へのリンク"
             }
