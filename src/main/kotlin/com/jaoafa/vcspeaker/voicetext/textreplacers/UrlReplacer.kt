@@ -280,7 +280,7 @@ object UrlReplacer : BaseReplacer {
             val replaceTo = if (thread != null) {
                 "${channelType}「${thread.parent.asChannel().name}」のスレッド「${thread.name}」へのリンク"
             } else {
-                "${channelType}「${channel.name}」へのリンク"
+                "$channelType「${channel.name}」へのリンク"
             }
 
             replacedText.replace(matchResult.value, replaceTo)
