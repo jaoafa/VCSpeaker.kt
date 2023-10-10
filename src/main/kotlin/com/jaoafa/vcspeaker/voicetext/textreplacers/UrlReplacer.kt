@@ -180,8 +180,8 @@ object UrlReplacer : BaseReplacer {
                     channel.name,
                     Snowflake(inviter.id),
                     inviter.username,
-                    event.let { it?.id?.let { itId -> Snowflake(itId) } },
-                    event.let { it?.name },
+                    event?.id?.let { Snowflake(it) },
+                    event?.name
                 )
             }
 
