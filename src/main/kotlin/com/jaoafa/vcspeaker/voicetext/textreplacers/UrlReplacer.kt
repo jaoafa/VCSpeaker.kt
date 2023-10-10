@@ -418,7 +418,7 @@ object UrlReplacer : BaseReplacer {
                 30.coerceAtMost(title.length)
             ) + if (title.length > 30) " 以下略" else ""
 
-            val replaceTo = "Webページ「${shortTitle}」へのリンク"
+            val replaceTo = "Webページ「$shortTitle」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
