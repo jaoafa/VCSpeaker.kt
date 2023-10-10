@@ -160,9 +160,8 @@ object UrlReplacer : BaseReplacer {
         val response = client.get((url)) {
             parameter("with_counts", true)
             parameter("with_expiration", true)
-            if (eventId != null) {
+            if (eventId != null)
                 parameter("guild_scheduled_event_id", eventId.value)
-            }
         }
 
         return when (response.status) {
