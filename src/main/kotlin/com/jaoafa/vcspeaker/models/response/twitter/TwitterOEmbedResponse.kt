@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class TwitterOembedResponse(
+data class TwitterOEmbedResponse(
     val url: String,
     @SerialName("author_name")
     val authorName: String,

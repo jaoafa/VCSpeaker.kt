@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.tools
 
 import com.jaoafa.vcspeaker.models.original.Tweet
-import com.jaoafa.vcspeaker.models.response.twitter.TwitterOembedResponse
+import com.jaoafa.vcspeaker.models.response.twitter.TwitterOEmbedResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -31,7 +31,7 @@ object Twitter {
 
         return when (response.status) {
             HttpStatusCode.OK -> {
-                val json: TwitterOembedResponse = response.body()
+                val json: TwitterOEmbedResponse = response.body()
                 Tweet(
                     json.authorName,
                     json.html,
