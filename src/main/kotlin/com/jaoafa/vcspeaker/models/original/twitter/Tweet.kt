@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.models.original
+package com.jaoafa.vcspeaker.models.original.twitter
 
 data class Tweet(
     var authorName: String,

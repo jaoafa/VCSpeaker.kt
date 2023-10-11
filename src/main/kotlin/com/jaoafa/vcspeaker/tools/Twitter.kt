@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tools
 
-import com.jaoafa.vcspeaker.models.original.Tweet
+import com.jaoafa.vcspeaker.models.original.twitter.Tweet
 import com.jaoafa.vcspeaker.models.response.twitter.TwitterOEmbedResponse
 import io.ktor.client.*
 import io.ktor.client.call.*

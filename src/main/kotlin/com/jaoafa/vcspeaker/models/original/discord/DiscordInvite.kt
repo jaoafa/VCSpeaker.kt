@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.models.original
+package com.jaoafa.vcspeaker.models.original.discord
 
 import dev.kord.common.entity.Snowflake
 

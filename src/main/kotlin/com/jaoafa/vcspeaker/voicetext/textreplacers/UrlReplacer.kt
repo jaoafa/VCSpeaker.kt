@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.voicetext.textreplacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.models.original.DiscordInvite
+import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
 import com.jaoafa.vcspeaker.tools.Discord
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
