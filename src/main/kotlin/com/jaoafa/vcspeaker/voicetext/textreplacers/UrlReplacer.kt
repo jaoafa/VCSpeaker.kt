@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.voicetext.textreplacers
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
-import com.jaoafa.vcspeaker.tools.Discord
+import com.jaoafa.vcspeaker.tools.Discord.isThread
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Twitter
 import dev.kord.common.entity.ChannelType
@@ -135,7 +135,7 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getChannel(guild: Guild, channelId: Snowflake): GuildChannel? {
         val channel = guild.getChannelOrNull(channelId) ?: return null
 
-        return if (Discord.isThread(channel)) {
+        return if (channel.isThread()) {
             val thread = channel.asChannelOf<ThreadChannel>()
             thread.parent.asChannel()
         } else channel
@@ -147,7 +147,7 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getThread(guild: Guild, channelId: Snowflake): ThreadChannel? {
         val channel = guild.getChannelOrNull(channelId) ?: return null
 
-        return if (Discord.isThread(channel)) {
+        return if (channel.isThread()) {
             channel.asChannelOf<ThreadChannel>()
         } else null
     }

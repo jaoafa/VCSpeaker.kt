@@ -239,10 +239,10 @@ object Discord {
 
     suspend fun BaseVoiceChannelBehavior.name() = this.asChannel().name
 
-    fun isThread(channel: Channel) =
+    fun Channel.isThread() =
         listOf(
             ChannelType.PrivateThread,
             ChannelType.PublicGuildThread,
             ChannelType.PublicNewsThread
-        ).contains(channel.type)
+        ).contains(type)
 }
