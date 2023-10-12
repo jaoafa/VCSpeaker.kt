@@ -18,7 +18,7 @@ jobs:
           python-version: '3.10'
 
       - name: 📄 Install Material for MkDocs
-        run: pip install mkdocs-material
+        run: pip install -r requirements.txt
         
       - name: 🏗️ Build MkDocs
         run: python -m mkdocs build --verbose --clean --strict
