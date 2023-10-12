@@ -5,8 +5,9 @@ on:
       - main
 
 jobs: 
-  deploy-pages:
+  build:
     runs-on: ubuntu-latest
+    
     steps:
       - name: 📥 Checkout ${{ github.repository }}
         uses: actions/checkout@v4
@@ -19,5 +20,20 @@ jobs:
       - name: 📄 Install Material for MkDocs
         run: pip install mkdocs-material
         
+      - name: 🏗️ Build MkDocs
+        run: python -m mkdocs build --verbose --clean --strict
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: 🚀 Deploy to GitHub Pages
-        run: mkdocs gh-deploy --force
+        id: deployment
+        uses: actions/deploy-pages@v2
