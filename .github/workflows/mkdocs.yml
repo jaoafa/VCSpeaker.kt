@@ -1,0 +1,44 @@
+name: 📚 Deploy MkDocs
+on:
+  push:
+    branches:
+      - main
+
+jobs: 
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout ${{ github.repository }}
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 📄 Install Material for MkDocs
+        run: pip install -r requirements.txt
+        
+      - name: 🏗️ Build MkDocs
+        run: python -m mkdocs build --verbose --clean --strict
+      
+      - name: 📤 Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: site
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
