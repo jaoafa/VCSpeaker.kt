@@ -16,6 +16,7 @@ import com.kotlindiscord.kord.extensions.types.respond
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.Color
+import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.MemberBehavior
@@ -237,4 +238,11 @@ object Discord {
     suspend fun ChatCommandContext<out Arguments>.respond(content: String) = message.respond(content)
 
     suspend fun BaseVoiceChannelBehavior.name() = this.asChannel().name
+
+    fun Channel.isThread() =
+        listOf(
+            ChannelType.PrivateThread,
+            ChannelType.PublicGuildThread,
+            ChannelType.PublicNewsThread
+        ).contains(type)
 }

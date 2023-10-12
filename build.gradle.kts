@@ -32,7 +32,9 @@ dependencies {
     implementation("io.ktor:ktor-client-core:2.2.4")
     implementation("io.ktor:ktor-client-cio:2.2.4")
     implementation("io.ktor:ktor-client-cio-jvm:2.2.4")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.5")
     implementation("io.sentry:sentry:6.30.0")
+    implementation("net.htmlparser.jericho:jericho-html:3.4")
 }
 
 tasks.test {
