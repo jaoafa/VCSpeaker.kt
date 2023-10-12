@@ -22,6 +22,11 @@ jobs:
         
       - name: 🏗️ Build MkDocs
         run: python -m mkdocs build --verbose --clean --strict
+      
+      - name: 📤 Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: site
 
   deploy:
     runs-on: ubuntu-latest
