@@ -77,25 +77,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
-
-      - name: 📣 Comment Result on pull request (success)
-        if: steps.build.outcome == 'success'
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: |
-            ## 🏗️ Docker build for ${{ matrix.architecture }} successful
-            - **Version:** ${{ needs.bump-version.outputs.version }}
-            - **Tag:** ${{ steps.meta.outputs.tags }}
-            - **Labels:** ${{ steps.meta.outputs.labels }}
-            - **Changelog:** ${{ needs.bump-version.outputs.changelog }}
-
-      - name: 📣 Comment Result on pull request (failure)
-        if: steps.build.outcome == 'failure'
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: |
-            ## 🏗️ Docker build for ${{ matrix.architecture }} failed
-            - **Version:** ${{ needs.bump-version.outputs.version }}
-            - **Tag:** ${{ steps.meta.outputs.tags }}
-            - **Labels:** ${{ steps.meta.outputs.labels }}
-            - **Changelog:** ${{ needs.bump-version.outputs.changelog }}
