@@ -15,6 +15,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * 読み上げを管理するクラスです。
+ *
+ * @param guildId サーバー ID
+ * @param player Lavaplayer の [AudioPlayer] インスタンス
+ * @param connection [VoiceConnection] インスタンス
+ */
 class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
     val player: AudioPlayer,
@@ -22,12 +29,29 @@ class Narrator @OptIn(KordVoice::class) constructor(
 ) {
     private val scheduler = NarratorScheduler(player)
 
+    /**
+     * システム音声として文章をキューに追加します。
+     *
+     * @param text 読み上げる文章
+     */
     suspend fun queueSelf(text: String) =
         queue(text = text, voice = GuildStore.getOrDefault(guildId).voice)
 
+    /**
+     * ユーザーの発言としてメッセージをキューに追加します。
+     *
+     * @param message 読み上げるメッセージ
+     */
     suspend fun queueUser(message: Message) =
         queue(message = message, voice = VoiceStore.byIdOrDefault(message.author!!.id))
 
+    /**
+     * 読み上げをキューに追加します。
+     *
+     * @param message 読み上げるメッセージ
+     * @param text 読み上げる文章
+     * @param voice 読み上げに使用する音声
+     */
     private suspend fun queue(message: Message? = null, text: String? = null, voice: Voice) {
         val content = processMessage(message) ?: text ?: return
 
@@ -42,8 +66,14 @@ class Narrator @OptIn(KordVoice::class) constructor(
         scheduler.queue(message, replacedText, inlineVoice)
     }
 
+    /**
+     * 読み上げ中のメッセージをスキップします。
+     */
     suspend fun skip() = scheduler.skip()
 
+    /**
+     * キューをクリアします。
+     */
     suspend fun clear() {
         CoroutineScope(Dispatchers.Default).launch {
             listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {

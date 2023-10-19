@@ -1,16 +1,16 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.VCSpeaker.join
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.Discord.autoJoinEnabled
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
+import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
-import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.core.event.message.MessageCreateEvent
 
 class NewMessageEvent : Extension() {
@@ -27,7 +27,9 @@ class NewMessageEvent : Extension() {
                 if (!GuildStore.getTextChannels().contains(event.message.channelId)) return@action
                 if (event.message.content.startsWith(VCSpeaker.prefix)) return@action
 
-                val narratorActive = VCSpeaker.narrators.contains(event.guildId)
+                val guild = event.getGuildOrNull() ?: return@action
+
+                val narratorActive = guild.narrator() != null
                 val autoJoin = event.getGuildOrNull()!!.autoJoinEnabled() // checked
 
                 if (!narratorActive && autoJoin) {
@@ -43,9 +45,7 @@ class NewMessageEvent : Extension() {
 
                 message.addReaction("👀")
 
-                val narrator = VCSpeaker.narrators[event.guildId]!! // checked in check
-
-                narrator.queueUser(message) // Not bot
+                guild.narrator()?.queueUser(message) // Not bot
 
                 message.deleteOwnReaction("👀")
             }

@@ -2,13 +2,13 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.features.Title.getTitleData
 import com.jaoafa.vcspeaker.features.Title.setTitle
-import com.jaoafa.vcspeaker.tools.Discord.authorOf
-import com.jaoafa.vcspeaker.tools.Discord.orMembersCurrent
-import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.Discord.respond
-import com.jaoafa.vcspeaker.tools.Discord.respondEmbed
-import com.jaoafa.vcspeaker.tools.Discord.successColor
-import com.jaoafa.vcspeaker.tools.Options
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
+import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.Options
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension

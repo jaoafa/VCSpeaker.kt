@@ -1,11 +1,11 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.stores.VoiceStore
-import com.jaoafa.vcspeaker.tools.Discord.authorOf
-import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.Discord.respondEmbed
-import com.jaoafa.vcspeaker.tools.Discord.successColor
-import com.jaoafa.vcspeaker.tools.Options
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
+import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.voicetext.api.Emotion
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice

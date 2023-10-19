@@ -1,9 +1,8 @@
 package com.jaoafa.vcspeaker.voicetext
 
-import com.jaoafa.vcspeaker.tools.Discord.name
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.entity.Member
-import dev.kord.core.entity.channel.VoiceChannel
 
 object NarrationScripts {
     const val SELF_JOIN = "接続しました。"

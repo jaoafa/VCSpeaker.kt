@@ -1,15 +1,14 @@
 package com.jaoafa.vcspeaker.events
 
-import com.jaoafa.vcspeaker.VCSpeaker.leave
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.Discord.autoJoinEnabled
-import com.jaoafa.vcspeaker.tools.Discord.isAfk
-import com.jaoafa.vcspeaker.tools.Discord.selfVoiceChannel
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts
 import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
-import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 

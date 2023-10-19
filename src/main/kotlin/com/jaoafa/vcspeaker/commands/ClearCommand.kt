@@ -1,11 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.Discord.respond
+import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
+import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.chatCommand
-import com.kotlindiscord.kord.extensions.utils.respond
 
 class ClearCommand : Extension() {
 
@@ -14,7 +13,7 @@ class ClearCommand : Extension() {
     override suspend fun setup() {
         publicSlashCommand("clear", "予定されているメッセージの読み上げを中止します。") {
             action {
-                val narrator = VCSpeaker.narrators[guild!!.id] ?: run {
+                val narrator = guild?.narrator() ?: run {
                     respond("**:question: VC に参加していません。**")
                     return@action
                 }
@@ -31,7 +30,7 @@ class ClearCommand : Extension() {
             description = "予定されているメッセージの読み上げを中止します。"
 
             action {
-                val narrator = VCSpeaker.narrators[guild!!.id] ?: run {
+                val narrator = guild?.narrator() ?: run {
                     respond("**:question: VC に参加していません。**")
                     return@action
                 }

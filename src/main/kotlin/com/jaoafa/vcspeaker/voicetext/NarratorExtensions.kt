@@ -1,11 +1,11 @@
 package com.jaoafa.vcspeaker.voicetext
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
-import com.jaoafa.vcspeaker.tools.Discord.errorColor
-import com.jaoafa.vcspeaker.tools.Discord.respond
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
+import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
@@ -45,8 +45,6 @@ object NarratorExtensions {
         interaction: PublicInteractionContext? = null,
         message: Message? = null
     ) {
-        val narrator = VCSpeaker.narrators[id]
-
         when {
             message != null -> message.respond(text)
             interaction != null -> interaction.respond(text)
@@ -56,7 +54,7 @@ object NarratorExtensions {
             }
         }
 
-        narrator?.queueSelf(voice)
+        narrator()?.queueSelf(voice)
     }
 
     suspend fun AudioPlayer.speak(info: SpeakInfo) {
@@ -74,7 +72,9 @@ object NarratorExtensions {
                         throw UnexpectedException("This code should not be reached.")
                     }
 
-                    override fun noMatches() { return }
+                    override fun noMatches() {
+                        return
+                    }
 
                     override fun loadFailed(exception: FriendlyException?): Unit = runBlocking {
                         info.message?.reply {

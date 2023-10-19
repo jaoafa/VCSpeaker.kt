@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.stores.TitleData
 import com.jaoafa.vcspeaker.stores.TitleStore
-import com.jaoafa.vcspeaker.tools.Discord.name
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior

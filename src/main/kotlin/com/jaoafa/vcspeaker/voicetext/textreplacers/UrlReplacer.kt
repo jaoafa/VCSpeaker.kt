@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.voicetext.textreplacers
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
-import com.jaoafa.vcspeaker.tools.Discord.isThread
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Twitter
 import dev.kord.common.entity.ChannelType

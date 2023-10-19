@@ -1,14 +1,14 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
-import com.jaoafa.vcspeaker.tools.Discord.authorOf
-import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.Discord.publicSubCommand
-import com.jaoafa.vcspeaker.tools.Discord.respond
-import com.jaoafa.vcspeaker.tools.Discord.respondEmbed
-import com.jaoafa.vcspeaker.tools.Discord.successColor
-import com.jaoafa.vcspeaker.tools.Options
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
+import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.voicetext.Voice
 import com.jaoafa.vcspeaker.voicetext.api.Emotion
 import com.jaoafa.vcspeaker.voicetext.api.Speaker

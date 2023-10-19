@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.voicetext
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.CacheStore
-import com.jaoafa.vcspeaker.tools.Discord.errorColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.speak
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer

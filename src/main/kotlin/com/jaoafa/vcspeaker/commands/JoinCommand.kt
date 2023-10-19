@@ -1,12 +1,12 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.VCSpeaker.join
-import com.jaoafa.vcspeaker.VCSpeaker.move
-import com.jaoafa.vcspeaker.tools.Discord.orMembersCurrent
-import com.jaoafa.vcspeaker.tools.Discord.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.Discord.respond
-import com.jaoafa.vcspeaker.tools.Discord.selfVoiceChannel
-import com.jaoafa.vcspeaker.tools.Options
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
+import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
+import com.jaoafa.vcspeaker.tools.discord.Options
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.chatCommand

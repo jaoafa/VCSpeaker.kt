@@ -2,9 +2,9 @@ package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.features.Title.resetTitle
 import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.Discord.asChannelOf
-import com.jaoafa.vcspeaker.tools.Discord.authorOf
-import com.jaoafa.vcspeaker.tools.Discord.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.behavior.channel.createEmbed
