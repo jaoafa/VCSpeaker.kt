@@ -64,17 +64,4 @@ object Emoji {
 
         return true
     }
-
-    @OptIn(ExperimentalStdlibApi::class)
-    fun String.hexCodePoints() = buildList {
-        repeat(codePointCount(0, length)) {
-            val i = offsetByCodePoints(0, it)
-            val codePoint = codePointAt(i)
-            var hexString = codePoint.toHexString(HexFormat.UpperCase)
-
-            while (hexString.startsWith("0")) hexString = hexString.removePrefix("0")
-
-            add(hexString)
-        }
-    }
 }

@@ -13,7 +13,9 @@ import kotlinx.serialization.json.Json
 import net.htmlparser.jericho.Source
 
 object Twitter {
+    
     private const val baseURL = "https://publish.twitter.com/oembed"
+
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json {

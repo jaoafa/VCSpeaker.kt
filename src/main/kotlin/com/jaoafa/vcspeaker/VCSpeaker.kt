@@ -10,8 +10,10 @@ import dev.kord.core.Kord
 import java.io.File
 
 object VCSpeaker {
+    
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
+    val lavaplayer = DefaultAudioPlayerManager()
 
     lateinit var voicetext: VoiceTextAPI
     lateinit var config: Config
@@ -22,13 +24,15 @@ object VCSpeaker {
     var cachePolicy: Int = 7
     lateinit var prefix: String
 
+    // 開発環境のコマンドを登録する Guild ID (null で開発環境を無効化)
     var devId: Snowflake? = null
+    // 開発環境かどうか
     fun isDev() = devId != null
 
-    val lavaplayer = DefaultAudioPlayerManager()
-
+    // Store ファイルパス
     object Files {
         private operator fun File.plus(file: File) = File(this, file.name)
+        
         val caches = storeFolder + File("caches.json")
         val guilds = storeFolder + File("guilds.json")
         val ignores = storeFolder + File("ignores.json")
@@ -37,6 +41,12 @@ object VCSpeaker {
         val titles = storeFolder + File("titles.json")
     }
 
+    /**
+     * VCSpeaker を初期化します。
+     *
+     * @param voicetext [VoiceTextAPI] インスタンス
+     * @param config [Config]
+     */
     fun init(
         voicetext: VoiceTextAPI,
         config: Config,

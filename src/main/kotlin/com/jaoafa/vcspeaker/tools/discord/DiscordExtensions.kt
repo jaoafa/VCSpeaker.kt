@@ -27,10 +27,20 @@ import dev.kord.rest.builder.message.create.embed
 typealias Options = Arguments
 
 object DiscordExtensions {
+
+    /**
+     * 自動入退室が有効化されているかどうか。
+     */
     fun Guild.autoJoinEnabled() = GuildStore.getOrDefault(this.id).autoJoin
 
+    /**
+     * AFK チャンネルかどうか。
+     */
     suspend fun BaseVoiceChannelBehavior.isAfk() = this.getGuild().afkChannel == this
 
+    /**
+     * Embed の Author を [user] に設定します。
+     */
     fun EmbedBuilder.authorOf(user: User) {
         author {
             name = user.username
@@ -38,6 +48,9 @@ object DiscordExtensions {
         }
     }
 
+    /**
+     * Embed の Author を [user] に設定します。
+     */
     suspend fun EmbedBuilder.authorOf(user: UserBehavior) = authorOf(user.asUser())
 
     object EmbedColors {
@@ -47,28 +60,46 @@ object DiscordExtensions {
         val info = Color(0xf5e0dc)
     }
 
+    /**
+     * Embed の色を [EmbedColors.success] に設定します。
+     */
     fun EmbedBuilder.successColor() {
         color = EmbedColors.success
     }
 
+    /**
+     * Embed の色を [EmbedColors.error] に設定します。
+     */
     fun EmbedBuilder.errorColor() {
         color = EmbedColors.error
     }
 
+    /**
+     * Embed の色を [EmbedColors.warning] に設定します。
+     */
     fun EmbedBuilder.warningColor() {
         color = EmbedColors.warning
     }
 
+    /**
+     * Embed の色を [EmbedColors.info] に設定します。
+     */
     fun EmbedBuilder.infoColor() {
         color = EmbedColors.info
     }
 
+    /**
+     * [content] を Interaction に返信します。
+     */
     suspend fun PublicInteractionContext.respond(
         content: String
     ) = this.respond {
         this.content = content
     }
 
+    /**
+     * Embed を Interaction に返信します。
+     */
     suspend fun PublicSlashCommandContext<*, *>.respondEmbed(
         title: String,
         description: String? = null,
@@ -87,9 +118,16 @@ object DiscordExtensions {
         apply { builder() }
     }
 
-
+    /**
+     * [Snowflake] に対応するチャンネルを [T] として取得します。
+     */
     suspend inline fun <reified T : Channel> Snowflake.asChannelOf() = VCSpeaker.kord.getChannelOf<T>(this)
 
+    /**
+     * [VoiceChannel] か、それが [null] の場合は [member] の現在いるチャンネル、それもない場合は [null] を返します。
+     * 
+     * @param member 対象のメンバー
+     */
     suspend infix fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) =
         this ?: member.getVoiceStateOrNull()?.getChannelOrNull()
 

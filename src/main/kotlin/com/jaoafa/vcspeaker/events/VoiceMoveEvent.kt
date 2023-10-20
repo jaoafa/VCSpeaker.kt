@@ -15,6 +15,7 @@ import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 
 class VoiceMoveEvent : Extension() {
+    
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {
