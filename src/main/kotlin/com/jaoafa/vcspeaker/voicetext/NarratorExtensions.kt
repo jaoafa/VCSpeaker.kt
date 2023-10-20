@@ -4,10 +4,7 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
-import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
-import com.kotlindiscord.kord.extensions.utils.respond
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
@@ -15,7 +12,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
-import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.coroutines.runBlocking
@@ -27,31 +23,23 @@ object NarratorExtensions {
     suspend fun Narrator.announce(
         voice: String,
         text: String,
-        interaction: PublicInteractionContext? = null,
-        message: Message? = null
+        replier: (suspend (String) -> Unit)? = null,
     ) {
         val guild = VCSpeaker.kord.getGuildOrNull(guildId)
 
-        when {
-            message != null -> guild?.announce(voice, text, message = message)
-            interaction != null -> guild?.announce(voice, text, interaction = interaction)
-            else -> guild?.announce(voice, text)
-        }
+        guild?.announce(voice, text, replier)
     }
 
     suspend fun Guild.announce(
         voice: String,
         text: String,
-        interaction: PublicInteractionContext? = null,
-        message: Message? = null
+        replier: (suspend (String) -> Unit)? = null
     ) {
-        when {
-            message != null -> message.respond(text)
-            interaction != null -> interaction.respond(text)
-            else -> {
-                val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
-                channel?.createMessage(text)
-            }
+        if (replier != null) {
+            replier(text)
+        } else {
+            val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
+            channel?.createMessage(text)
         }
 
         narrator()?.queueSelf(voice)

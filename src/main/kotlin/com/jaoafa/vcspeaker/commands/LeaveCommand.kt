@@ -1,11 +1,12 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.chatCommand
+import com.kotlindiscord.kord.extensions.utils.respond
 
 class LeaveCommand : Extension() {
 
@@ -19,7 +20,7 @@ class LeaveCommand : Extension() {
                     return@action
                 }
 
-                selfChannel.leave(interaction = this)
+                selfChannel.leave { respond(it) }
             }
         }
 
@@ -34,7 +35,7 @@ class LeaveCommand : Extension() {
                     return@action
                 }
 
-                selfChannel.leave(message = message)
+                selfChannel.leave { message.respond(it) }
             }
         }
     }

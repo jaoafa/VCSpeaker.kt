@@ -1,9 +1,9 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.checks.isNotBot
@@ -11,10 +11,11 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
+import com.kotlindiscord.kord.extensions.utils.respond
 import dev.kord.core.event.message.MessageCreateEvent
 
 class NewMessageEvent : Extension() {
-    
+
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {
@@ -37,7 +38,7 @@ class NewMessageEvent : Extension() {
                     val targetChannel =
                         event.member!!.getVoiceStateOrNull()?.getChannelOrNull() ?: return@action
 
-                    targetChannel.join(message = event.message)
+                    targetChannel.join { event.message.respond(it) }
                 } else if (!narratorActive) return@action
 
                 val message = event.message

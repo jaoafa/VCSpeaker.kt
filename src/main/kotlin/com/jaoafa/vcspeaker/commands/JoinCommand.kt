@@ -1,15 +1,16 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
 import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.tools.discord.Options
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.chatCommand
+import com.kotlindiscord.kord.extensions.utils.respond
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.entity.channel.VoiceChannel
@@ -37,9 +38,10 @@ class JoinCommand : Extension() {
                     }
 
                 val selfChannel = guild!!.selfVoiceChannel()
+                val replier: suspend (String) -> Unit = { respond(it) }
 
-                if (selfChannel != null) targetChannel.move(interaction = this)
-                else targetChannel.join(interaction = this)
+                if (selfChannel != null) targetChannel.move(replier)
+                else targetChannel.join(replier)
             }
         }
 
@@ -55,9 +57,10 @@ class JoinCommand : Extension() {
                 }
 
                 val selfChannel = guild!!.selfVoiceChannel()
+                val replier: suspend (String) -> Unit = { respond(it) }
 
-                if (selfChannel != null) targetChannel.move(message = message)
-                else targetChannel.join(message = message)
+                if (selfChannel != null) targetChannel.move(replier)
+                else targetChannel.join(replier)
             }
         }
     }

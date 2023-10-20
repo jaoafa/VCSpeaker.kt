@@ -26,6 +26,9 @@ import dev.kord.rest.builder.message.create.embed
 
 typealias Options = Arguments
 
+/**
+ * Discord 関連の拡張関数をまとめたオブジェクト。
+ */
 object DiscordExtensions {
 
     /**
@@ -89,7 +92,7 @@ object DiscordExtensions {
     }
 
     /**
-     * [content] を Interaction に返信します。
+     * Interaction に [content] を返信します。
      */
     suspend fun PublicInteractionContext.respond(
         content: String
@@ -99,6 +102,10 @@ object DiscordExtensions {
 
     /**
      * Embed を Interaction に返信します。
+     *
+     * @param title タイトル
+     * @param description 説明
+     * @param builder 適用する EmbedBuilder
      */
     suspend fun PublicSlashCommandContext<*, *>.respondEmbed(
         title: String,
@@ -108,6 +115,13 @@ object DiscordExtensions {
         embed(title, description, builder)
     }
 
+    /**
+     * Embed を作成します。
+     *
+     * @param title タイトル
+     * @param description 説明
+     * @param builder 適用する EmbedBuilder
+     */
     suspend fun FollowupMessageCreateBuilder.embed(
         title: String,
         description: String? = null,
@@ -124,19 +138,35 @@ object DiscordExtensions {
     suspend inline fun <reified T : Channel> Snowflake.asChannelOf() = VCSpeaker.kord.getChannelOf<T>(this)
 
     /**
-     * [VoiceChannel] か、それが [null] の場合は [member] の現在いるチャンネル、それもない場合は [null] を返します。
-     * 
+     * [VoiceChannel] か [member] が現在いるチャンネル、または null を、次の優先度に従って返します。
+     *
+     * 優先度 : [VoiceChannel] > [member] > null
+     *
      * @param member 対象のメンバー
      */
     suspend infix fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) =
         this ?: member.getVoiceStateOrNull()?.getChannelOrNull()
 
+    /**
+     * VCSpeaker が現在参加している [VoiceChannel] を取得します。
+     */
     suspend fun GuildBehavior.selfVoiceChannel() = selfMember().getVoiceStateOrNull()?.getChannelOrNull()
 
+    /**
+     * ChatCommand に [content] を返信します。
+     *
+     * @param content 返信する文章
+     */
     suspend fun ChatCommandContext<out Arguments>.respond(content: String) = message.respond(content)
 
+    /**
+     * [BaseVoiceChannelBehavior] のチャンネル名を取得します。
+     */
     suspend fun BaseVoiceChannelBehavior.name() = this.asChannel().name
 
+    /**
+     * [Channel] がスレッドかどうか。
+     */
     fun Channel.isThread() = listOf(
         ChannelType.PrivateThread,
         ChannelType.PublicGuildThread,
