@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options

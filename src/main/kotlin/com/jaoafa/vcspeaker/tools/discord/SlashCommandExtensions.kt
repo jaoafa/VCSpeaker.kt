@@ -1,7 +1,6 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tools.discord.Options
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommand
 import com.kotlindiscord.kord.extensions.commands.application.slash.SlashCommand
 import com.kotlindiscord.kord.extensions.commands.application.slash.publicSubCommand
@@ -9,7 +8,7 @@ import com.kotlindiscord.kord.extensions.components.forms.ModalForm
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 
-object CommandExtensions {
+object SlashCommandExtensions {
 
     private fun PublicSlashCommand<*, *>.devGuild() {
         val devGuildId = VCSpeaker.devId

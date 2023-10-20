@@ -1,10 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.ChatCommandExtensions.chatCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.chatCommand
 
 class ClearCommand : Extension() {
 
@@ -25,10 +25,7 @@ class ClearCommand : Extension() {
             }
         }
 
-        chatCommand {
-            name = "clear"
-            description = "予定されているメッセージの読み上げを中止します。"
-
+        chatCommand("clear", "予定されているメッセージの読み上げを中止します。") {
             action {
                 val narrator = guild?.narrator() ?: run {
                     respond("**:question: VC に参加していません。**")

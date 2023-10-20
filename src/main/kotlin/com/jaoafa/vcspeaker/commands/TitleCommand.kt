@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.features.Title.getTitleData
 import com.jaoafa.vcspeaker.features.Title.setTitle
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
-import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor

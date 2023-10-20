@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.voicetext.Narrators.narrator

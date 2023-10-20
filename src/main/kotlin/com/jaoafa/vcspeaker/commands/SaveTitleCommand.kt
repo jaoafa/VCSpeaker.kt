@@ -5,8 +5,8 @@ import com.jaoafa.vcspeaker.features.Title.saveTitleAll
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
-import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.discord.CommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
