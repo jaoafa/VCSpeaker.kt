@@ -16,7 +16,7 @@ import dev.kord.rest.builder.message.create.embed
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class NarratorScheduler(
+class Scheduler(
     private val player: AudioPlayer
 ) : AudioEventAdapter() {
     val queue = mutableListOf<SpeakInfo>()
@@ -46,7 +46,7 @@ class NarratorScheduler(
             CacheStore.create(text, voice, audio)
         } else CacheStore.read(text, voice)!!
 
-        val info = SpeakInfo(message, text, voice, file)
+        val info = SpeakInfo(message, voice, file)
 
         if (queue.isEmpty() && now == null) {
             now = info

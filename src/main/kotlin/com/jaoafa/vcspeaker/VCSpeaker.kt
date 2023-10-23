@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker
 
+import com.jaoafa.vcspeaker.tools.Emoji
 import com.jaoafa.vcspeaker.voicetext.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
@@ -10,7 +11,7 @@ import dev.kord.core.Kord
 import java.io.File
 
 object VCSpeaker {
-    
+
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
@@ -26,13 +27,14 @@ object VCSpeaker {
 
     // 開発環境のコマンドを登録する Guild ID (null で開発環境を無効化)
     var devId: Snowflake? = null
+
     // 開発環境かどうか
     fun isDev() = devId != null
 
     // Store ファイルパス
     object Files {
         private operator fun File.plus(file: File) = File(this, file.name)
-        
+
         val caches = storeFolder + File("caches.json")
         val guilds = storeFolder + File("guilds.json")
         val ignores = storeFolder + File("ignores.json")
@@ -56,6 +58,8 @@ object VCSpeaker {
         cachePolicy: Int?,
         prefix: String
     ) {
+        Emoji // init
+
         AudioSourceManagers.registerLocalSource(lavaplayer)
 
         if (!storeFolder.exists()) storeFolder.mkdir()

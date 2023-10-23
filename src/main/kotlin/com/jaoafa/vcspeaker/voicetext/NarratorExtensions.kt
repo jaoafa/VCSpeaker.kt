@@ -20,15 +20,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 object NarratorExtensions {
-    suspend fun Narrator.announce(
-        voice: String,
-        text: String,
-        replier: (suspend (String) -> Unit)? = null,
-    ) {
-        val guild = VCSpeaker.kord.getGuildOrNull(guildId)
-
-        guild?.announce(voice, text, replier)
-    }
 
     suspend fun Guild.announce(
         voice: String,

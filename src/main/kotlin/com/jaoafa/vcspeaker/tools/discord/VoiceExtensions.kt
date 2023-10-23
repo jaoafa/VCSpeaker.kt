@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker.tools.discord
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.voicetext.NarrationScripts
 import com.jaoafa.vcspeaker.voicetext.Narrator
-import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
 import com.jaoafa.vcspeaker.voicetext.Narrators
 import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import dev.kord.common.annotation.KordVoice

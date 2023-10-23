@@ -32,8 +32,11 @@ open class StoreStruct<T>(
     }
 
     fun replace(from: T, to: T): T {
-        remove(from)
-        create(to)
+        with(data) {
+            remove(from)
+            add(to)
+        }
+        write()
 
         return to
     }

@@ -5,7 +5,6 @@ import java.io.File
 
 data class SpeakInfo(
     val message: Message? = null,
-    val text: String,
     val voice: Voice,
     val file: File
 )

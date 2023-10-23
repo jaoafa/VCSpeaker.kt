@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.features.Title.saveTitle
 import com.jaoafa.vcspeaker.features.Title.saveTitleAll
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackOf
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
@@ -80,11 +80,9 @@ class SaveTitleCommand : Extension() {
 
             publicSubCommand("channel", "指定されたチャンネルのタイトルを保存します。", ::SaveOptions) {
                 action {
-                    val channel = (arguments.channel?.asChannelOf<VoiceChannel>() orMembersCurrent member!!)
-                        ?: run {
-                            respond("**:question: VC に参加、または指定してください。**")
-                            return@action
-                        }
+                    val channel = arguments.channel?.orFallbackOf(member!!) {
+                        respond(it)
+                    } ?: return@action
 
                     val (old, new) = channel.saveTitle(user)
 

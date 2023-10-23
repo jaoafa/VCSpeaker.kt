@@ -16,6 +16,7 @@ import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.MemberBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
+import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.User
 import dev.kord.core.entity.channel.Channel
@@ -143,9 +144,13 @@ object DiscordExtensions {
      * 優先度 : [VoiceChannel] > [member] > null
      *
      * @param member 対象のメンバー
+     * @param onFailure エラーメッセージの返信処理 (it にはエラーメッセージが入ります)
      */
-    suspend infix fun VoiceChannel?.orMembersCurrent(member: MemberBehavior) =
-        this ?: member.getVoiceStateOrNull()?.getChannelOrNull()
+    suspend fun Channel?.orFallbackOf(member: MemberBehavior, onFailure: suspend (String) -> Unit) =
+        this?.asChannelOf<VoiceChannel>() ?: member.getVoiceStateOrNull()?.getChannelOrNull() ?: run {
+            onFailure("**:question: VC に参加、または指定してください。**")
+            null
+        }
 
     /**
      * VCSpeaker が現在参加している [VoiceChannel] を取得します。

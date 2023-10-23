@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.features.Title.resetTitle
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackOf
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -31,11 +31,9 @@ class ResetTitleCommand : Extension() {
     override suspend fun setup() {
         publicSlashCommand("reset-title", "タイトルをリセットします。", ::TitleOptions) {
             action {
-                val channel = (arguments.channel?.asChannelOf<VoiceChannel>() orMembersCurrent member!!)
-                    ?: run {
-                        respond("**:question: VC に参加、または指定してください。**")
-                        return@action
-                    }
+                val channel = arguments.channel?.orFallbackOf(member!!) {
+                    respond(it)
+                } ?: return@action
 
                 val (oldData, newData) = channel.resetTitle(user)
 

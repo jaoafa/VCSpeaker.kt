@@ -3,18 +3,16 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.features.Title.getTitleData
 import com.jaoafa.vcspeaker.features.Title.setTitle
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orMembersCurrent
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
-import dev.kord.core.behavior.channel.asChannelOf
-import dev.kord.core.entity.channel.VoiceChannel
 
 class TitleCommand : Extension() {
 
@@ -39,11 +37,9 @@ class TitleCommand : Extension() {
         publicSlashCommand("title", "タイトルを設定します。", ::TitleOptions) {
             action {
                 val title = arguments.title
-                val channel = arguments.channel?.asChannelOf<VoiceChannel>().orMembersCurrent(member!!)
-                    ?: run {
-                        respond("**:question: VC に参加、または指定してください。**")
-                        return@action
-                    }
+                val channel = arguments.channel?.orFallbackOf(member!!) {
+                    respond(it)
+                } ?: return@action
 
                 val oldData = channel.getTitleData()
                 val newData = channel.setTitle(title, user)

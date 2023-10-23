@@ -1,8 +1,10 @@
 package com.jaoafa.vcspeaker.voicetext
 
+import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.voicetext.MessageProcessor.processMessage
+import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
 import com.jaoafa.vcspeaker.voicetext.TextProcessor.extractInlineVoice
 import com.jaoafa.vcspeaker.voicetext.TextProcessor.processText
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
@@ -27,7 +29,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
     val player: AudioPlayer,
     val connection: VoiceConnection
 ) {
-    private val scheduler = NarratorScheduler(player)
+    private val scheduler = Scheduler(player)
 
     /**
      * システム音声として文章をキューに追加します。
@@ -85,6 +87,16 @@ class Narrator @OptIn(KordVoice::class) constructor(
         scheduler.queue.clear()
         scheduler.now = null
         player.stopTrack()
+    }
+
+    suspend fun announce(
+        voice: String,
+        text: String,
+        replier: (suspend (String) -> Unit)? = null,
+    ) {
+        val guild = VCSpeaker.kord.getGuildOrNull(guildId)
+
+        guild?.announce(voice, text, replier)
     }
 
     init {
