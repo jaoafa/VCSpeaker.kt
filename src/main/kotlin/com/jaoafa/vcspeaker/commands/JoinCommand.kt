@@ -13,7 +13,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
 
 class JoinCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class JoinOptions : Options() {

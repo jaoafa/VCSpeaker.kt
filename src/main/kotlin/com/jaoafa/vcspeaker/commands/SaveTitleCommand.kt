@@ -18,7 +18,6 @@ import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.entity.channel.VoiceChannel
 
 class SaveTitleCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class SaveOptions : Options() {

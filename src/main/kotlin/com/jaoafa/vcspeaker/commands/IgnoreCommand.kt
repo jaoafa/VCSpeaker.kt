@@ -16,7 +16,6 @@ import com.kotlindiscord.kord.extensions.utils.FilterStrategy
 import com.kotlindiscord.kord.extensions.utils.suggestStringCollection
 
 class IgnoreCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class CreateOptions : Options() {

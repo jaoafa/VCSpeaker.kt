@@ -23,7 +23,6 @@ import dev.kord.core.entity.channel.TextChannel
 import kotlin.system.exitProcess
 
 class VCSpeakerCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class SettingsOptions : Options() {

@@ -20,7 +20,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.types.respondingPaginator
 
 class AliasCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class CreateOptions : Options() {

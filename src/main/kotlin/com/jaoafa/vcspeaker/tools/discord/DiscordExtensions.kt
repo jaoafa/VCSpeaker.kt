@@ -31,7 +31,6 @@ typealias Options = Arguments
  * Discord 関連の拡張関数をまとめたオブジェクト。
  */
 object DiscordExtensions {
-
     /**
      * 自動入退室が有効化されているかどうか。
      */

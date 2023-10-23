@@ -9,7 +9,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
 
 class LeaveCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {

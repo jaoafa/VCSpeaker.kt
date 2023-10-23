@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker.voicetext
 import dev.kord.core.entity.Message
 
 object MessageProcessor {
-
     fun processMessage(message: Message?): String? {
         if (message == null) return null
 

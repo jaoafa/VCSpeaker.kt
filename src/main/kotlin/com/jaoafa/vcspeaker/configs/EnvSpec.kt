@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker.configs
 import com.uchuhimo.konf.ConfigSpec
 
 object EnvSpec : ConfigSpec() {
-
     val cacheFolder by optional<String?>(null)
 
     val storeFolder by optional<String?>(null)

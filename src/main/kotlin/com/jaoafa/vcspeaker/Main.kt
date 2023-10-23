@@ -21,7 +21,6 @@ import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
 
 class Main : CliktCommand() {
-
     private val configPath by option(
         "-c", "--config",
         help = "The config file location.",

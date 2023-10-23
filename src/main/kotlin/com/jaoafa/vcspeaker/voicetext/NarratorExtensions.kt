@@ -20,7 +20,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 object NarratorExtensions {
-
     suspend fun Guild.announce(
         voice: String,
         text: String,

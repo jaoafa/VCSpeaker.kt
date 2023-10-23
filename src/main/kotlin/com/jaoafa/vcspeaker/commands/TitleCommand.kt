@@ -15,7 +15,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
 
 class TitleCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class TitleOptions : Options() {

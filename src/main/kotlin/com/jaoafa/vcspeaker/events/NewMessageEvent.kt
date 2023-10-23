@@ -15,7 +15,6 @@ import com.kotlindiscord.kord.extensions.utils.respond
 import dev.kord.core.event.message.MessageCreateEvent
 
 class NewMessageEvent : Extension() {
-
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {

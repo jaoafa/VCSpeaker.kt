@@ -13,8 +13,7 @@ import kotlinx.serialization.json.Json
 import net.htmlparser.jericho.Source
 
 object Twitter {
-    
-    private const val baseURL = "https://publish.twitter.com/oembed"
+    private const val BASE_URL = "https://publish.twitter.com/oembed"
 
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -27,7 +26,7 @@ object Twitter {
 
     suspend fun getTweet(screenName: String, tweetId: String): Tweet? {
         val tweetUrl = "https://twitter.com/$screenName/status/$tweetId"
-        val response = client.get(baseURL) {
+        val response = client.get(BASE_URL) {
             parameter("url", tweetUrl)
         }
 

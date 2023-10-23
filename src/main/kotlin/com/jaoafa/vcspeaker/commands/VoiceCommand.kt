@@ -13,7 +13,6 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.extensions.Extension
 
 class VoiceCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class VoiceOptions : Options() {

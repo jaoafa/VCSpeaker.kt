@@ -8,7 +8,6 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 
 class SpeakCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class SpeakOptions : Options() {

@@ -12,7 +12,6 @@ import dev.kord.voice.AudioFrame
 import java.util.concurrent.TimeUnit
 
 object VoiceExtensions {
-
     /**
      * VoiceChannel に接続します。
      *

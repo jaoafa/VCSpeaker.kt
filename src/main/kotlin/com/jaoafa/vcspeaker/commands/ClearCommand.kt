@@ -7,7 +7,6 @@ import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import com.kotlindiscord.kord.extensions.extensions.Extension
 
 class ClearCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {

@@ -16,7 +16,6 @@ import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.entity.channel.VoiceChannel
 
 class ResetTitleCommand : Extension() {
-
     override val name = this::class.simpleName!!
 
     inner class TitleOptions : Options() {

@@ -11,7 +11,6 @@ import dev.kord.core.Kord
 import java.io.File
 
 object VCSpeaker {
-
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()

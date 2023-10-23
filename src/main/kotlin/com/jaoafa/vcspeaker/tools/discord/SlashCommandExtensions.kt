@@ -9,7 +9,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 
 object SlashCommandExtensions {
-
     private fun PublicSlashCommand<*, *>.devGuild() {
         val devGuildId = VCSpeaker.devId
         if (devGuildId != null) guild(devGuildId)

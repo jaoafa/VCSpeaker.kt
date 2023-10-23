@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 object Title {
-
     suspend fun BaseVoiceChannelBehavior.setTitle(title: String, user: UserBehavior): TitleData {
         val data = getTitleData()
 

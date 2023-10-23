@@ -7,7 +7,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.chatCommand
 
 object ChatCommandExtensions {
-
     private fun ChatCommand<*>.devGuild() {
         val devGuildId = VCSpeaker.devId
         if (devGuildId != null) check { inGuild(devGuildId) }
