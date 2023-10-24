@@ -36,7 +36,7 @@ class TitleCommand : Extension() {
         publicSlashCommand("title", "タイトルを設定します。", ::TitleOptions) {
             action {
                 val title = arguments.title
-                val channel = arguments.channel?.orFallbackOf(member!!) {
+                val channel = arguments.channel.orFallbackOf(member!!) {
                     respond(it)
                 } ?: return@action
 

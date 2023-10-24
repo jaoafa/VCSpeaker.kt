@@ -79,7 +79,7 @@ class SaveTitleCommand : Extension() {
 
             publicSubCommand("channel", "指定されたチャンネルのタイトルを保存します。", ::SaveOptions) {
                 action {
-                    val channel = arguments.channel?.orFallbackOf(member!!) {
+                    val channel = arguments.channel.orFallbackOf(member!!) {
                         respond(it)
                     } ?: return@action
 

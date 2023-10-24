@@ -30,7 +30,7 @@ class ResetTitleCommand : Extension() {
     override suspend fun setup() {
         publicSlashCommand("reset-title", "タイトルをリセットします。", ::TitleOptions) {
             action {
-                val channel = arguments.channel?.orFallbackOf(member!!) {
+                val channel = arguments.channel.orFallbackOf(member!!) {
                     respond(it)
                 } ?: return@action
 

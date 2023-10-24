@@ -27,7 +27,7 @@ class JoinCommand : Extension() {
         publicSlashCommand("join", "VC に接続します。", ::JoinOptions) {
             action {
                 // option > member's voice channel > error
-                val channel = arguments.channel?.orFallbackOf(member!!) {
+                val channel = arguments.channel.orFallbackOf(member!!) {
                     respond(it)
                 } ?: return@action
 
