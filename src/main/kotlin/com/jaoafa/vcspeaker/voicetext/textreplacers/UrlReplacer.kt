@@ -3,9 +3,9 @@ package com.jaoafa.vcspeaker.voicetext.textreplacers
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Twitter
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.asChannelOf
@@ -17,7 +17,6 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.flow.firstOrNull
@@ -195,9 +194,11 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getPageTitle(url: String): String? {
         val response = client.get(url)
 
+        val bodyText = String(response.body<ByteArray>())
+
         return when (response.status) {
             HttpStatusCode.OK -> {
-                val matchResult = titleRegex.find(response.bodyAsText())
+                val matchResult = titleRegex.find(bodyText)
                 matchResult?.let {
                     val (title) = matchResult.destructured
                     title
