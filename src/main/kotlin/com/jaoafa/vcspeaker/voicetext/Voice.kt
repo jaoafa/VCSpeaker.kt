@@ -12,7 +12,7 @@ data class Voice(
     val emotion: Emotion? = null,
     @SerialName("emotion_level") val emotionLevel: Int = 2,
     val pitch: Int = 100,
-    val speed: Int = 100,
+    val speed: Int = 120,
     val volume: Int = 100
 ) {
     fun toJson() = Json.encodeToString(serializer(), this)
