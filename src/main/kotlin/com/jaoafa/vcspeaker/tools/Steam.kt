@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 
 object Steam {
     private const val appDetailBaseUrl = "https://store.steampowered.com/api/appdetails"
+
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json {
