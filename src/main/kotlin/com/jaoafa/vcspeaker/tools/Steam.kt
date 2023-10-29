@@ -29,7 +29,7 @@ object Steam {
     }
 
     suspend fun getAppDetail(appId: String): SteamAppDetail? {
-        val response = this.client.get(this.appDetailBaseUrl) {
+        val response = client.get(appDetailBaseUrl) {
             parameter("appids", appId)
             parameter("cc", "JP")
         }
