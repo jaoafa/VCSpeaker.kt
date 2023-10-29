@@ -26,7 +26,7 @@ class Scheduler(
         val file = if (!CacheStore.exists(text, voice)) {
             val audio = try {
                 VCSpeaker.voicetext.generateSpeech(text, voice)
-            } catch (_: Exception) {
+            } catch (exception: Exception) {
                 message?.reply {
                     embed {
                         title = ":interrobang: Error!"
@@ -39,6 +39,8 @@ class Scheduler(
                         errorColor()
                     }
                 }
+
+                exception.printStackTrace()
 
                 return
             }

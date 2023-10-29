@@ -115,6 +115,7 @@ class Main : CliktCommand() {
                     add(::VoiceLeaveEvent)
                     add(::VoiceMoveEvent)
                     add(::TitleEvent)
+                    add(::SelfVoiceJoinEvent)
                 }
             }
 
