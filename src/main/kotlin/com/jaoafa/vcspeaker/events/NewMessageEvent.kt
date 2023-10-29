@@ -44,11 +44,7 @@ class NewMessageEvent : Extension() {
 
                 if (message.content.startsWith(VCSpeaker.prefix)) return@action
 
-                message.addReaction("👀")
-
                 guild.narrator()?.queueUser(message) // Not bot
-
-                message.deleteOwnReaction("👀")
             }
         }
     }
