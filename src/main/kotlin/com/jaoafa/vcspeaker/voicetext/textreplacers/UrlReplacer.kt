@@ -4,6 +4,7 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
+import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
 import dev.kord.common.entity.ChannelType
@@ -61,6 +62,10 @@ object UrlReplacer : BaseReplacer {
         "^https://(?:x|twitter)\\.com/(\\w){1,15}/status/(\\d+)\\??(.*)$",
         RegexOption.IGNORE_CASE
     )
+    private val steamAppUrlRegex = Regex(
+        "^https://store\\.steampowered\\.com/app/(\\d+)(.*)$",
+        RegexOption.IGNORE_CASE
+    )
     private val titleRegex = Regex("<title>([^<]+)</title>", RegexOption.IGNORE_CASE)
     private val urlRegex = Regex("https?://\\S+", RegexOption.IGNORE_CASE)
 
@@ -110,6 +115,7 @@ object UrlReplacer : BaseReplacer {
             ::replaceEventInviteUrl,
             ::replaceTweetUrl,
             ::replaceInviteUrl,
+            ::replaceSteamAppUrl,
             ::replaceUrlToTitle,
             ::replaceUrl,
         )
@@ -395,6 +401,28 @@ object UrlReplacer : BaseReplacer {
                 70.coerceAtMost(tweet.plainText.length)
             ) + if (tweet.plainText.length > 70) " 以下略" else ""
             val replaceTo = "${tweet.authorName.removeEmojis()}のツイート「$tweetContent」へのリンク"
+
+            replacedText.replace(matchResult.value, replaceTo)
+        }
+
+        return replacedText
+    }
+
+    /**
+     * SteamアイテムへのURLを置換します。
+     */
+    private suspend fun replaceSteamAppUrl(text: String, guildId: Snowflake): String {
+        val matchResults = steamAppUrlRegex.findAll(text)
+
+        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+            val (appId) = matchResult.destructured
+
+            val item = Steam.getAppDetail(appId) ?: return@fold replacedText.replace(
+                matchResult.value,
+                "Steamアイテムへのリンク"
+            )
+
+            val replaceTo = "Steamアイテム「${item.data.name}」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
