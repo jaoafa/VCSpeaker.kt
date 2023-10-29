@@ -9,8 +9,6 @@ import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
-import com.kotlindiscord.kord.extensions.utils.addReaction
-import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
 import com.kotlindiscord.kord.extensions.utils.respond
 import dev.kord.core.event.message.MessageCreateEvent
 
