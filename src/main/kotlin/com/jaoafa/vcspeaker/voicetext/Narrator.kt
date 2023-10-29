@@ -7,6 +7,8 @@ import com.jaoafa.vcspeaker.voicetext.MessageProcessor.processMessage
 import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
 import com.jaoafa.vcspeaker.voicetext.TextProcessor.extractInlineVoice
 import com.jaoafa.vcspeaker.voicetext.TextProcessor.processText
+import com.kotlindiscord.kord.extensions.utils.addReaction
+import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
@@ -65,7 +67,11 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
         if (replacedText.isBlank()) return
 
+        message?.addReaction("👀")
+
         scheduler.queue(message, replacedText, inlineVoice)
+
+        message?.deleteOwnReaction("👀")
     }
 
     /**
