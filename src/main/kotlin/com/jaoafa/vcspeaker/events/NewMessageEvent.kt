@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.events
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
 import com.kotlindiscord.kord.extensions.checks.anyGuild
@@ -35,7 +36,8 @@ class NewMessageEvent : Extension() {
                     val targetChannel =
                         event.member!!.getVoiceStateOrNull()?.getChannelOrNull() ?: return@action
 
-                    targetChannel.join { event.message.respond(it) }
+                    if (!targetChannel.isAfk())
+                        targetChannel.join { event.message.respond(it) }
                 } else if (!narratorActive) return@action
 
                 val message = event.message
