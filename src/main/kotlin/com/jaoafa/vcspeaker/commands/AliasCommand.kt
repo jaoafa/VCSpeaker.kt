@@ -7,11 +7,11 @@ import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
@@ -196,12 +196,11 @@ class AliasCommand : Extension() {
                             page {
                                 authorOf(user)
 
-                                for (alias in chunkedAliases) {
-                                    val (_, _, type, from, to) = alias
+                                title = ":information_source: Aliases"
 
-                                    field("${type.emoji} ${type.displayName}", false) {
-                                        "${if (type == AliasType.Regex) "`$from`" else from} → $to"
-                                    }
+                                description = chunkedAliases.joinToString("\n") { (_, userId, type, from, to) ->
+                                    val fromDisplay = if (type == AliasType.Regex) "`$from`" else from
+                                    "${type.emoji} ${type.displayName} | 「$fromDisplay → $to」 | <@${userId}>"
                                 }
 
                                 successColor()
