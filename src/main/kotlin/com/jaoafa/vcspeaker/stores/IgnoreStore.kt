@@ -7,9 +7,19 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Serializable
+enum class IgnoreType(
+    val displayName: String,
+    val emoji: String
+) {
+    Exact("完全一致", ":asterisk:"),
+    Contains("部分一致", ":record_button:")
+}
+
+@Serializable
 data class IgnoreData(
     val guildId: Snowflake,
     val userId: Snowflake,
+    val type: IgnoreType,
     val text: String
 )
 

@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.voicetext
 
 import com.jaoafa.vcspeaker.stores.IgnoreStore
+import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.Emoji.replaceEmojiToName
 import com.jaoafa.vcspeaker.voicetext.api.Emotion
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
@@ -57,6 +58,9 @@ object TextProcessor {
 
     private fun shouldIgnore(text: String, guildId: Snowflake) =
         IgnoreStore.filter(guildId).any {
-            text.contains(it.text)
+            when (it.type) {
+                IgnoreType.Exact -> text == it.text
+                IgnoreType.Contains -> text.contains(it.text)
+            }
         }
 }

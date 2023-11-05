@@ -2,13 +2,15 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.stores.IgnoreData
 import com.jaoafa.vcspeaker.stores.IgnoreStore
+import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.types.respondingPaginator
@@ -19,6 +21,13 @@ class IgnoreCommand : Extension() {
     override val name = this::class.simpleName!!
 
     inner class CreateOptions : Options() {
+        val type by stringChoice {
+            name = "type"
+            description = "無視判定の種類"
+            for (ignoreType in IgnoreType.entries)
+                choice(ignoreType.displayName, ignoreType.name)
+        }
+
         val text by string {
             name = "text"
             description = "無視する文字列"
@@ -45,15 +54,18 @@ class IgnoreCommand : Extension() {
         publicSlashCommand("ignore", "無視機能を設定します。") {
             publicSubCommand("create", "無視する文字列を作成します。", ::CreateOptions) {
                 action {
+                    val type = IgnoreType.valueOf(arguments.type)
                     val text = arguments.text
                     val duplicateExists = IgnoreStore.find(guild!!.id, text) != null
 
                     if (!duplicateExists)
-                        IgnoreStore.create(IgnoreData(guild!!.id, user.id, text))
+                        IgnoreStore.create(IgnoreData(guild!!.id, user.id, type, text))
+
+                    val typeText = if (type == IgnoreType.Contains) "を含む" else "と一致する"
 
                     respondEmbed(
                         ":face_with_symbols_over_mouth: Ignore Created",
-                        "今後「$text」を含むメッセージは読み上げられません。"
+                        "今後「$text」${typeText}メッセージは読み上げられません。"
                     ) {
                         authorOf(user)
                         successColor()
@@ -69,9 +81,11 @@ class IgnoreCommand : Extension() {
                     if (target != null) {
                         IgnoreStore.remove(target)
 
+                        val typeText = if (target.type == IgnoreType.Contains) "が含まれて" else "と一致して"
+
                         respondEmbed(
                             ":wastebasket: Ignore Deleted",
-                            "「$text」が含まれていても読み上げます。"
+                            "「$text」${typeText}いても読み上げます。"
                         ) {
                             authorOf(user)
                             successColor()
@@ -79,7 +93,10 @@ class IgnoreCommand : Extension() {
                     } else {
                         respondEmbed(
                             ":question: Ignore Not Found",
-                            "「$text」を含むメッセージは無視されていません。"
+                            """
+                            「$text」に一致する設定が見つかりませんでした。
+                            `/ignore list` で一覧を確認できます。    
+                            """.trimIndent()
                         )
                     }
                 }
@@ -92,7 +109,7 @@ class IgnoreCommand : Extension() {
                     if (ignores.isEmpty()) {
                         respondEmbed(
                             ":grey_question: Ignores Not Found",
-                            "無視機能が設定されていないようです。`/ignore create` で作成してみましょう！"
+                            "設定されていないようです。`/ignore create` で作成してみましょう！"
                         ) {
                             authorOf(user)
                             errorColor()
@@ -105,8 +122,10 @@ class IgnoreCommand : Extension() {
                             page {
                                 authorOf(user)
 
-                                description = chunkedIgnores.joinToString("\n") {
-                                    "「${it.text}」<@${it.userId}>"
+                                title = ":information_source: Ignores"
+
+                                description = chunkedIgnores.joinToString("\n") { (_, userId, type, text) ->
+                                    "${type.emoji} ${type.displayName} | 「$text」 | <@${userId}>"
                                 }
 
                                 successColor()
