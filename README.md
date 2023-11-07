@@ -4,9 +4,10 @@
 
 ## Getting Started
 
+### Run VCSpeaker locally
 1. Download the latest release from [Releases](https://github.com/jaoafa/VCSpeaker.kt/releases).
 2. Put the jar file in the new folder (e.g. `vcspeaker`)
-3. Create a `config.yml` file in the same folder as the jar file.
+3. Create `config.yml` in the same folder as the jar file.
 4. Write the following in `config.yml`:
     ```yaml
     token:
