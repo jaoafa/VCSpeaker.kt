@@ -19,29 +19,32 @@ class GoLiveEndEvent : Extension() {
                 // 読み上げチャンネルが設定されていること
                 val settings = GuildStore.getOrDefault(event.state.guildId)
                 failIf(settings.channelId == null)
-                // VCに参加したときではないこと
-                failIf(event.old?.isSelfStreaming == null)
-                // GoLiveのステータスが変わったときのみ
-                failIf(event.old?.isSelfStreaming == event.state.isSelfStreaming)
-                // GoLiveを終了したときのみ
-                failIf(event.state.isSelfStreaming)
+
+                val oldStreaming = event.old?.isSelfStreaming ?: false
+                val newStreaming = event.state.isSelfStreaming
+                val userLeft = event.old?.getChannelOrNull() != null && event.state.getChannelOrNull() == null
+
+                // GoLive を終了 or GoLive をしたまま VC から退出
+                if ((oldStreaming && !newStreaming) || (oldStreaming && userLeft)) {
+                    pass()
+                } else fail()
             }
 
             action {
                 val guild = event.state.getGuildOrNull() ?: return@action // checked
                 val member = event.state.getMember()
-                val channelGoLiveStarted = event.state.getChannelOrNull() ?: return@action // checked
+                val channelGoLiveEnded = event.old?.getChannelOrNull() ?: return@action // checked
 
                 val selfChannel = guild.selfVoiceChannel()
 
-                val voice = if (channelGoLiveStarted == selfChannel) {
+                val voice = if (channelGoLiveEnded == selfChannel) {
                     NarrationScripts.userEndGoLive(member)
                 } else {
-                    NarrationScripts.userEndGoLiveOtherChannel(member, channelGoLiveStarted)
+                    NarrationScripts.userEndGoLiveOtherChannel(member, channelGoLiveEnded)
                 }
                 guild.announce(
                     voice = voice,
-                    text = ":satellite: `@${member.username}` が ${channelGoLiveStarted.mention} で GoLive を終了しました。"
+                    text = ":satellite: `@${member.username}` が ${channelGoLiveEnded.mention} で GoLive を終了しました。"
                 )
             }
         }
