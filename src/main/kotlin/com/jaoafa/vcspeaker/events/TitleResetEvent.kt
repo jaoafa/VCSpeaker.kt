@@ -4,6 +4,7 @@ import com.jaoafa.vcspeaker.features.Title.resetTitle
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
@@ -12,14 +13,15 @@ import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 
-class TitleEvent : Extension() {
+class TitleResetEvent : Extension() {
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {
         event<VoiceStateUpdateEvent> {
             check {
                 failIf(event.state.getMember().isBot)
-                failIf(event.old?.getChannelOrNull() == null || event.state.getChannelOrNull() != null)
+                val currentChannel = event.state.getChannelOrNull()
+                failIf(event.old?.getChannelOrNull() == null || (currentChannel != null && !currentChannel.isAfk()))
                 failIf(event.old?.getChannelOrNull()?.voiceStates?.count { !it.getMember().isBot } != 0)
             }
 
