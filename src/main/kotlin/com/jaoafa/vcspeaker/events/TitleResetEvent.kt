@@ -20,7 +20,6 @@ class TitleResetEvent : Extension() {
         event<VoiceStateUpdateEvent> {
             check {
                 failIf(event.state.getMember().isBot)
-                val currentChannel = event.state.getChannelOrNull()
                 failIf(event.old?.getChannelOrNull() == null)
                 failIf(event.old?.getChannelOrNull()?.voiceStates?.count { !it.getMember().isBot } != 0)
             }
