@@ -2,10 +2,11 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.voicetext.api.Emotion
 import com.jaoafa.vcspeaker.voicetext.api.Speaker
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
@@ -27,6 +28,8 @@ class VoiceCommand : Extension() {
         val emotion by optionalStringChoice {
             name = "emotion"
             description = "感情"
+
+            choice("普通", "normal")
 
             for (value in Emotion.entries)
                 choice(value.emotionName, value.name)
@@ -66,63 +69,80 @@ class VoiceCommand : Extension() {
     }
 
     override suspend fun setup() {
-        publicSlashCommand("voice", "自分の声を設定します。", ::VoiceOptions) {
-            action {
-                val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
+        publicSlashCommand("voice", "自分の声を設定します。") {
+            publicSubCommand("set", "自分の声を設定します。", ::VoiceOptions) {
+                action {
+                    val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
 
-                val newVoice = oldVoice.overwrite(
-                    speaker = arguments.speaker?.let { Speaker.valueOf(it) },
-                    emotion = arguments.emotion?.let { Emotion.valueOf(it) },
-                    emotionLevel = arguments.emotionLevel,
-                    pitch = arguments.pitch,
-                    speed = arguments.speed,
-                    volume = arguments.volume
-                )
-
-                VoiceStore[event.interaction.user.id] = newVoice
-
-                val emotionEmoji = newVoice.emotion?.emoji ?: ":neutral_face:"
-
-                val viewOnly = oldVoice == newVoice
-
-                respondEmbed(
-                    if (viewOnly) ":loudspeaker: Current Voice"
-                    else ":arrows_counterclockwise: Voice Updated"
-                ) {
-                    authorOf(user)
-
-                    field {
-                        name = ":grinning: 話者"
-                        value = newVoice.speaker.speakerName
-                        inline = true
-                    }
-                    field {
-                        name = "$emotionEmoji 感情"
-                        value = newVoice.emotion?.emotionName ?: "未設定"
-                        inline = true
-                    }
-                    field {
-                        name = ":signal_strength: 感情レベル"
-                        value = newVoice.emotionLevel.let { "`Level $it`" }
-                        inline = true
-                    }
-                    field {
-                        name = ":arrow_up_down: ピッチ"
-                        value = newVoice.pitch.let { "`$it%`" }
-                        inline = true
-                    }
-                    field {
-                        name = ":fast_forward: 速度"
-                        value = newVoice.speed.let { "`$it%`" }
-                        inline = true
-                    }
-                    field {
-                        name = ":loud_sound: 音量"
-                        value = newVoice.volume.let { "`$it%`" }
-                        inline = true
+                    val emotion = arguments.emotion?.let {
+                        if (it == "normal") null else Emotion.valueOf(it)
                     }
 
-                    successColor()
+                    val newVoice = oldVoice.overwrite(
+                        speaker = arguments.speaker?.let { Speaker.valueOf(it) },
+                        emotion = emotion,
+                        emotionLevel = arguments.emotionLevel,
+                        pitch = arguments.pitch,
+                        speed = arguments.speed,
+                        volume = arguments.volume
+                    )
+
+                    VoiceStore[event.interaction.user.id] = newVoice
+
+                    val emotionEmoji = newVoice.emotion?.emoji ?: ":neutral_face:"
+
+                    val viewOnly = oldVoice == newVoice
+
+                    respondEmbed(
+                        if (viewOnly) ":loudspeaker: Current Voice"
+                        else ":arrows_counterclockwise: Voice Updated"
+                    ) {
+                        authorOf(user)
+
+                        field {
+                            name = ":grinning: 話者"
+                            value = newVoice.speaker.speakerName
+                            inline = true
+                        }
+                        field {
+                            name = "$emotionEmoji 感情"
+                            value = newVoice.emotion?.emotionName ?: "未設定"
+                            inline = true
+                        }
+                        field {
+                            name = ":signal_strength: 感情レベル"
+                            value = newVoice.emotionLevel.let { "`Level $it`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":arrow_up_down: ピッチ"
+                            value = newVoice.pitch.let { "`$it%`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":fast_forward: 速度"
+                            value = newVoice.speed.let { "`$it%`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":loud_sound: 音量"
+                            value = newVoice.volume.let { "`$it%`" }
+                            inline = true
+                        }
+
+                        successColor()
+                    }
+                }
+            }
+
+            publicSubCommand("reset", "自分の声を初期化します。") {
+                action {
+                    VoiceStore.remove(user.id)
+
+                    respondEmbed(":broom: Voice Reset", "声を初期化しました。") {
+                        authorOf(user)
+                        successColor()
+                    }
                 }
             }
         }

@@ -28,4 +28,9 @@ object VoiceStore : StoreStruct<VoiceData>(
         data.add(VoiceData(userId, voice))
         write()
     }
+
+    fun remove(userId: Snowflake) {
+        data.removeIf { it.userId == userId }
+        write()
+    }
 }
