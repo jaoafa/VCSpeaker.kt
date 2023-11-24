@@ -1,10 +1,10 @@
-package com.jaoafa.vcspeaker.voicetext
+package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.Narrators.narrator
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
@@ -13,7 +13,8 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.channel.TextChannel
-import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.EmbedBuilder
+import dev.kord.rest.builder.message.embed
 import kotlinx.coroutines.runBlocking
 import java.rmi.UnexpectedException
 import kotlin.coroutines.resume

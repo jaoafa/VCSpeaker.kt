@@ -1,11 +1,12 @@
-package com.jaoafa.vcspeaker.voicetext
+package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.Emoji.replaceEmojiToName
-import com.jaoafa.vcspeaker.voicetext.api.Emotion
-import com.jaoafa.vcspeaker.voicetext.api.Speaker
-import com.jaoafa.vcspeaker.voicetext.textreplacers.*
+import com.jaoafa.vcspeaker.tools.getObjectsIn
+import com.jaoafa.vcspeaker.tts.api.Emotion
+import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.replacers.BaseReplacer
 import com.kotlindiscord.kord.extensions.utils.capitalizeWords
 import dev.kord.common.entity.Snowflake
 
@@ -13,16 +14,7 @@ object TextProcessor {
     suspend fun processText(guildId: Snowflake, text: String): String? {
         if (shouldIgnore(text, guildId)) return null
 
-        val replacers = listOf(
-            EmojiReplacer,
-            GuildEmojiReplacer,
-            RegexReplacer,
-            AliasReplacer,
-            ChannelMentionReplacer,
-            RoleMentionReplacer,
-            UserMentionReplacer,
-            UrlReplacer,
-        )
+        val replacers = getObjectsIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers").filterNotNull()
 
         val replacedText = replacers.fold(text) { replacedText, replacer ->
             replacer.replace(replacedText, guildId)

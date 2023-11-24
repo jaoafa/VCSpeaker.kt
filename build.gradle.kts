@@ -12,16 +12,19 @@ repositories {
     maven("https://jitpack.io/")
     maven("https://maven.yuua.dev/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
     maven("https://m2.dv8tion.net/releases")
 }
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation(kotlin("reflect"))
+    implementation("org.reflections:reflections:0.10.2")
     implementation("junit:junit:4.13.1")
 
-    implementation("dev.kord:kord-voice:0.9.0")
-    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.5.6")
-    implementation("io.github.qbosst:kordex-hybrid-commands:1.0.3-SNAPSHOT")
+    implementation("dev.kord:kord-core:0.12.0")
+    implementation("dev.kord:kord-voice:0.12.0")
+    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("ch.qos.logback:logback-classic:1.3.7")
     implementation("dev.arbjerg:lavaplayer:2.0.2")

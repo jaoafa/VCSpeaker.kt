@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.writeAs
-import com.jaoafa.vcspeaker.voicetext.Voice
+import com.jaoafa.vcspeaker.tts.Voice
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.decodeFromString

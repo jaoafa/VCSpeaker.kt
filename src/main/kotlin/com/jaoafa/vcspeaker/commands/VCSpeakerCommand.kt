@@ -9,9 +9,9 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
-import com.jaoafa.vcspeaker.voicetext.Voice
-import com.jaoafa.vcspeaker.voicetext.api.Emotion
-import com.jaoafa.vcspeaker.voicetext.api.Speaker
+import com.jaoafa.vcspeaker.tts.Voice
+import com.jaoafa.vcspeaker.tts.api.Emotion
+import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalBoolean
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel

@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.voicetext.textreplacers
+package com.jaoafa.vcspeaker.tts.replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite

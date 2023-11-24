@@ -1,12 +1,12 @@
-package com.jaoafa.vcspeaker.voicetext
+package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
-import com.jaoafa.vcspeaker.voicetext.MessageProcessor.processMessage
-import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
-import com.jaoafa.vcspeaker.voicetext.TextProcessor.extractInlineVoice
-import com.jaoafa.vcspeaker.voicetext.TextProcessor.processText
+import com.jaoafa.vcspeaker.tts.MessageProcessor.processMessage
+import com.jaoafa.vcspeaker.tts.NarratorExtensions.announce
+import com.jaoafa.vcspeaker.tts.TextProcessor.extractInlineVoice
+import com.jaoafa.vcspeaker.tts.TextProcessor.processText
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer

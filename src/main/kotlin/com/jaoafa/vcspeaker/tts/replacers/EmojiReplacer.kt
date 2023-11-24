@@ -1,14 +1,14 @@
-package com.jaoafa.vcspeaker.voicetext.textreplacers
+package com.jaoafa.vcspeaker.tts.replacers
 
 import com.jaoafa.vcspeaker.stores.AliasType
 import dev.kord.common.entity.Snowflake
 
 /**
- * エイリアスを置換するクラス
+ * 絵文字エイリアスを置換するクラス
  */
-object AliasReplacer : BaseReplacer {
+object EmojiReplacer : BaseReplacer {
     override suspend fun replace(text: String, guildId: Snowflake) =
-        replaceText(text, guildId, AliasType.Text) { alias, replacedText ->
+        replaceText(text, guildId, AliasType.Emoji) { alias, replacedText ->
             replacedText.replace(alias.from, alias.to)
         }
 }

@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.voicetext.textreplacers
+package com.jaoafa.vcspeaker.tts.replacers
 
 import dev.kord.common.entity.Snowflake
 

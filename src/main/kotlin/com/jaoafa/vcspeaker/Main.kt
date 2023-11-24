@@ -11,7 +11,7 @@ import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.events.*
 import com.jaoafa.vcspeaker.stores.CacheStore
-import com.jaoafa.vcspeaker.voicetext.api.VoiceTextAPI
+import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kord.extensions.sentry.SentryAdapter
 import com.uchuhimo.konf.Config

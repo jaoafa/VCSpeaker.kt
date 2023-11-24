@@ -7,8 +7,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.jaoafa.vcspeaker.voicetext.api.Emotion
-import com.jaoafa.vcspeaker.voicetext.api.Speaker
+import com.jaoafa.vcspeaker.tts.api.Emotion
+import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.extensions.Extension

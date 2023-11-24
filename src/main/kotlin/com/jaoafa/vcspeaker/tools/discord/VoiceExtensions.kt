@@ -1,10 +1,10 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.voicetext.NarrationScripts
-import com.jaoafa.vcspeaker.voicetext.Narrator
-import com.jaoafa.vcspeaker.voicetext.Narrators
-import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.NarrationScripts
+import com.jaoafa.vcspeaker.tts.Narrator
+import com.jaoafa.vcspeaker.tts.Narrators
+import com.jaoafa.vcspeaker.tts.Narrators.narrator
 import dev.kord.common.annotation.KordVoice
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.connect

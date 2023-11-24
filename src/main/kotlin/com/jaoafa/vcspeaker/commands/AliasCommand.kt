@@ -12,12 +12,12 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.kotlindiscord.kord.extensions.annotations.AlwaysPublicResponse
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.types.respondingPaginator
 
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
@@ -71,6 +71,7 @@ class AliasCommand : Extension() {
         }
     }
 
+    @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("alias", "エイリアスを設定します。") {
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {

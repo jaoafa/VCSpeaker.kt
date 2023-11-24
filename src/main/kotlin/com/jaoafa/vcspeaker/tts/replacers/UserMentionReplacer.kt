@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.voicetext.textreplacers
+package com.jaoafa.vcspeaker.tts.replacers
 
 import dev.kord.common.entity.Snowflake
 
@@ -8,7 +8,7 @@ import dev.kord.common.entity.Snowflake
 object UserMentionReplacer : BaseReplacer {
     override suspend fun replace(text: String, guildId: Snowflake) =
         replaceMentionable(text, Regex("<@!?(\\d+)>")) { kord, id ->
-            val displayName = kord.getGuildOrNull(guildId)?.getMember(id)?.displayName
-            displayName ?: "不明なユーザー"
+            val effectiveName = kord.getGuildOrNull(guildId)?.getMember(id)?.effectiveName
+            effectiveName ?: "不明なユーザー"
         }
 }

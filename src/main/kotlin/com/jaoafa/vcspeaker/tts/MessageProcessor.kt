@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.voicetext
+package com.jaoafa.vcspeaker.tts
 
 import dev.kord.core.entity.Message
 
