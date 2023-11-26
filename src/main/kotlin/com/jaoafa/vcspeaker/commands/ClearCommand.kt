@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.tools.discord.ChatCommandExtensions.chatCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.jaoafa.vcspeaker.tts.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.kotlindiscord.kord.extensions.extensions.Extension
 
 class ClearCommand : Extension() {

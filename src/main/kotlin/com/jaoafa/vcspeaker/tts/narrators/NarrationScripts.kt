@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.tts
+package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior

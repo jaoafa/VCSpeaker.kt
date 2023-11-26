@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.tts
+package com.jaoafa.vcspeaker.tts.narrators
 
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior

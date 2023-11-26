@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.tts
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tts.NarratorExtensions.speak
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
