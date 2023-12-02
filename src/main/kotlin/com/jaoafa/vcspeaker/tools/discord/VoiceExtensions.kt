@@ -1,15 +1,28 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.voicetext.NarrationScripts
-import com.jaoafa.vcspeaker.voicetext.Narrator
-import com.jaoafa.vcspeaker.voicetext.Narrators
-import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
+import com.jaoafa.vcspeaker.tts.SpeakInfo
+import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
+import com.jaoafa.vcspeaker.tts.narrators.Narrator
+import com.jaoafa.vcspeaker.tts.narrators.Narrators
+import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.kord.common.annotation.KordVoice
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.connect
+import dev.kord.core.behavior.reply
+import dev.kord.rest.builder.message.embed
 import dev.kord.voice.AudioFrame
+import kotlinx.coroutines.runBlocking
+import java.rmi.UnexpectedException
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 object VoiceExtensions {
     /**
@@ -94,5 +107,49 @@ object VoiceExtensions {
             "**:wave: $mention から退出しました。**",
             replier
         )
+    }
+
+    suspend fun AudioPlayer.speak(info: SpeakInfo) {
+        val track = suspendCoroutine {
+            VCSpeaker.lavaplayer.loadItemOrdered(
+                this,
+                info.file.path, // already checked
+                object : AudioLoadResultHandler {
+                    override fun trackLoaded(track: AudioTrack) {
+                        track.userData = info
+                        it.resume(track)
+                    }
+
+                    override fun playlistLoaded(playlist: AudioPlaylist?) {
+                        throw UnexpectedException("This code should not be reached.")
+                    }
+
+                    override fun noMatches() {
+                        return
+                    }
+
+                    override fun loadFailed(exception: FriendlyException?): Unit = runBlocking {
+                        info.message?.reply {
+                            embed {
+                                title = ":interrobang: Error!"
+
+                                description = """
+                                        音声の読み込みに失敗しました。
+                                        VCSpeaker の不具合と思われる場合は、[GitHub Issues](https://github.com/jaoafa/VCSpeaker.kt/issues) か、サーバー既定のチャンネルへの報告をお願いします。
+                                    """.trimIndent()
+
+                                field("Exception") {
+                                    "```\n${exception?.message ?: "不明"}\n```"
+                                }
+
+                                errorColor()
+                            }
+                        }
+                    }
+
+                })
+        }
+
+        this.playTrack(track)
     }
 }

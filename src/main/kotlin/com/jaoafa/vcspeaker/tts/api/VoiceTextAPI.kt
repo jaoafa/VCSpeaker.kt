@@ -1,6 +1,6 @@
-package com.jaoafa.vcspeaker.voicetext.api
+package com.jaoafa.vcspeaker.tts.api
 
-import com.jaoafa.vcspeaker.voicetext.Voice
+import com.jaoafa.vcspeaker.tts.Voice
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*

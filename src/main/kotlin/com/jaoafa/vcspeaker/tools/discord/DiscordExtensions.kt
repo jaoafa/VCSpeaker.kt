@@ -6,7 +6,6 @@ import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
 import com.kotlindiscord.kord.extensions.commands.chat.ChatCommandContext
 import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
-import com.kotlindiscord.kord.extensions.types.respond
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.Color
@@ -23,7 +22,7 @@ import dev.kord.core.entity.channel.Channel
 import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
-import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 
 typealias Options = Arguments
 
@@ -32,6 +31,7 @@ typealias Options = Arguments
  */
 object DiscordExtensions {
     fun Guild.getSettings() = GuildStore.getOrDefault(this.id)
+
     /**
      * 自動入退室が有効化されているかどうか。
      */
@@ -48,7 +48,7 @@ object DiscordExtensions {
     fun EmbedBuilder.authorOf(user: User) {
         author {
             name = user.username
-            icon = user.avatar?.url
+            icon = user.avatar?.cdnUrl?.toUrl()
         }
     }
 

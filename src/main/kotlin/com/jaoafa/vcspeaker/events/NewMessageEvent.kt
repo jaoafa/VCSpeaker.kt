@@ -5,7 +5,7 @@ import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
-import com.jaoafa.vcspeaker.voicetext.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension

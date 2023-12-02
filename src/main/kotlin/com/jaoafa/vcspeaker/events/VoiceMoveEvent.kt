@@ -6,8 +6,8 @@ import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
-import com.jaoafa.vcspeaker.voicetext.NarrationScripts
-import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
+import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
+import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import com.kotlindiscord.kord.extensions.utils.selfMember

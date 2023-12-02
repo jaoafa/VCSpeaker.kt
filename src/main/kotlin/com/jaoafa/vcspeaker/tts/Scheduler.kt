@@ -1,9 +1,9 @@
-package com.jaoafa.vcspeaker.voicetext
+package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.speak
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
@@ -12,7 +12,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
-import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 

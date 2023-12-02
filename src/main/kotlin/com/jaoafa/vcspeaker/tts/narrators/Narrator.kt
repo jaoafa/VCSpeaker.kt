@@ -1,19 +1,24 @@
-package com.jaoafa.vcspeaker.voicetext
+package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
-import com.jaoafa.vcspeaker.voicetext.MessageProcessor.processMessage
-import com.jaoafa.vcspeaker.voicetext.NarratorExtensions.announce
-import com.jaoafa.vcspeaker.voicetext.TextProcessor.extractInlineVoice
-import com.jaoafa.vcspeaker.voicetext.TextProcessor.processText
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
+import com.jaoafa.vcspeaker.tts.MessageProcessor.processMessage
+import com.jaoafa.vcspeaker.tts.Scheduler
+import com.jaoafa.vcspeaker.tts.TextProcessor.extractInlineVoice
+import com.jaoafa.vcspeaker.tts.TextProcessor.processText
+import com.jaoafa.vcspeaker.tts.Voice
+import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
+import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
+import dev.kord.core.entity.channel.TextChannel
 import dev.kord.voice.VoiceConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +36,23 @@ class Narrator @OptIn(KordVoice::class) constructor(
     val player: AudioPlayer,
     val connection: VoiceConnection
 ) {
+    companion object {
+        suspend fun Guild.announce(
+            voice: String,
+            text: String,
+            replier: (suspend (String) -> Unit)? = null
+        ) {
+            if (replier != null) {
+                replier(text)
+            } else {
+                val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
+                channel?.createMessage(text)
+            }
+
+            narrator()?.queueSelf(voice)
+        }
+    }
+    
     private val scheduler = Scheduler(player)
 
     /**
