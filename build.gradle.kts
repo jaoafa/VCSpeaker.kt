@@ -22,7 +22,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.3.7")
     implementation("com.github.aikaterna:lavaplayer-natives:original-SNAPSHOT")
     implementation("com.github.ajalt.clikt:clikt:4.0.0")
-    implementation("com.github.ajalt.clikt:clikt:4.0.0")
     implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0-SNAPSHOT")
     implementation("com.uchuhimo:konf:1.1.2")
     implementation("dev.arbjerg:lavaplayer:2.0.2")
