@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker
 import com.jaoafa.vcspeaker.tools.Emoji
 import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
+import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration.ResamplingQuality
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.uchuhimo.konf.Config
@@ -55,7 +56,9 @@ object VCSpeaker {
         cacheFolder: File,
         devId: Snowflake?,
         cachePolicy: Int?,
-        prefix: String
+        prefix: String,
+        resamplingQuality: ResamplingQuality,
+        encodingQuality: Int
     ) {
         Emoji // init
 
@@ -72,6 +75,11 @@ object VCSpeaker {
             this.devId = devId
             this.cachePolicy = cachePolicy ?: 7
             this.prefix = prefix
+        }
+
+        lavaplayer.configuration.let {
+            it.resamplingQuality = resamplingQuality
+            it.opusEncodingQuality = encodingQuality
         }
     }
 }
