@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.*
 import com.jaoafa.vcspeaker.commands.*
 import com.jaoafa.vcspeaker.configs.EnvSpec
@@ -51,13 +50,15 @@ class Main : CliktCommand() {
 
     private val resamplingQuality by option(
         "--resampling-quality",
-        help = "The Lavaplayer resampling quality."
-    ).enum<AudioConfiguration.ResamplingQuality>().required()
+        help = "The Lavaplayer resampling quality.",
+        envvar = "VCSKT_RESAMPLING_QUALITY"
+    ).enum<AudioConfiguration.ResamplingQuality>()
 
     private val encodingQuality by option(
         "--encoding-quality",
-        help = "The Lavaplayer opus encoding quality."
-    ).int().restrictTo(1..10).required()
+        help = "The Lavaplayer opus encoding quality.",
+        envvar = "VCSKT_ENCODING_QUALITY"
+    ).int().restrictTo(1..10)
 
     override fun run() {
         // Options > Config > Default
@@ -91,8 +92,8 @@ class Main : CliktCommand() {
                 devId,
                 finalCachePolicy,
                 prefix,
-                resamplingQuality,
-                encodingQuality
+                config[EnvSpec.resamplingQuality] ?: resamplingQuality ?: AudioConfiguration.ResamplingQuality.HIGH,
+                config[EnvSpec.encodingQuality] ?: encodingQuality ?: 10
             )
 
             val instance = ExtensibleBot(discordToken) {
