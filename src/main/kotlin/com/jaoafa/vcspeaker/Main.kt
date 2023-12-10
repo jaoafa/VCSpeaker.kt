@@ -3,9 +3,8 @@ package com.jaoafa.vcspeaker
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.int
-import com.github.ajalt.clikt.parameters.types.long
-import com.github.ajalt.clikt.parameters.types.path
+import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.*
 import com.jaoafa.vcspeaker.commands.*
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
@@ -14,6 +13,7 @@ import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kord.extensions.sentry.SentryAdapter
+import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import dev.kord.common.entity.Snowflake
@@ -49,6 +49,16 @@ class Main : CliktCommand() {
         help = "The guild id for development."
     ).long()
 
+    private val resamplingQuality by option(
+        "--resampling-quality",
+        help = "The Lavaplayer resampling quality."
+    ).enum<AudioConfiguration.ResamplingQuality>().required()
+
+    private val encodingQuality by option(
+        "--encoding-quality",
+        help = "The Lavaplayer opus encoding quality."
+    ).int().restrictTo(1..10).required()
+
     override fun run() {
         // Options > Config > Default
 
@@ -80,7 +90,9 @@ class Main : CliktCommand() {
                 cacheFolder,
                 devId,
                 finalCachePolicy,
-                prefix
+                prefix,
+                resamplingQuality,
+                encodingQuality
             )
 
             val instance = ExtensibleBot(discordToken) {
