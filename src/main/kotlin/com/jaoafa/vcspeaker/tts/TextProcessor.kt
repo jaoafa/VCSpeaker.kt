@@ -14,7 +14,10 @@ object TextProcessor {
     suspend fun processText(guildId: Snowflake, text: String): String? {
         if (shouldIgnore(text, guildId)) return null
 
-        val replacers = getObjectsIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers").filterNotNull()
+        val replacers =
+            getObjectsIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers")
+                .filterNotNull()
+                .sortedByDescending { it.priority.level }
 
         val replacedText = replacers.fold(text) { replacedText, replacer ->
             replacer.replace(replacedText, guildId)

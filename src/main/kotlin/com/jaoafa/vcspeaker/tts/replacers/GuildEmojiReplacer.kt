@@ -6,6 +6,8 @@ import dev.kord.common.entity.Snowflake
  * Guildの絵文字を置換するクラス
  */
 object GuildEmojiReplacer : BaseReplacer {
+    override val priority = ReplacerPriority.High
+
     override suspend fun replace(text: String, guildId: Snowflake): String {
         val matches = Regex("<a?:(\\w+):(\\d+)>").findAll(text)
 
