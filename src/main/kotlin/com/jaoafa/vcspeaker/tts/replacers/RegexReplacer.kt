@@ -7,6 +7,8 @@ import dev.kord.common.entity.Snowflake
  * 正規表現エイリアスを置換するクラス
  */
 object RegexReplacer : BaseReplacer {
+    override val priority = ReplacerPriority.Normal
+
     override suspend fun replace(text: String, guildId: Snowflake) =
         replaceText(text, guildId, AliasType.Regex) { alias, replacedText ->
             replacedText.replace(Regex(alias.from), alias.to)

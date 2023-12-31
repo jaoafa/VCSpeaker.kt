@@ -11,6 +11,8 @@ import dev.kord.core.Kord
  * テキストを置換する基底クラス
  */
 interface BaseReplacer {
+    val priority: ReplacerPriority
+
     suspend fun replace(text: String, guildId: Snowflake): String
 
     fun replaceText(

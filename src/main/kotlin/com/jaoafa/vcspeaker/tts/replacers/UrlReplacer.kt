@@ -29,6 +29,8 @@ import java.net.URL
  * URLを置換するクラス
  */
 object UrlReplacer : BaseReplacer {
+    override val priority = ReplacerPriority.High
+
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json {
