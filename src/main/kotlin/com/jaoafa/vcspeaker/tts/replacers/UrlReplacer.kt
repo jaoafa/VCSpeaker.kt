@@ -20,10 +20,12 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 import java.net.MalformedURLException
-import java.net.URL
+import kotlin.text.String
 
 /**
  * URLを置換するクラス
@@ -102,7 +104,6 @@ object UrlReplacer : BaseReplacer {
         "config" to "設定ファイル",
         "md" to "Markdownファイル",
     )
-
 
     override suspend fun replace(text: String, guildId: Snowflake): String {
         suspend fun replaceUrl(vararg replacers: suspend (String, Snowflake) -> String) =
@@ -200,28 +201,34 @@ object UrlReplacer : BaseReplacer {
      * URLをもとに、ページタイトルを取得します。titleタグがない場合はnullを返します。
      */
     private suspend fun getPageTitle(url: String): String? {
-        val response = client.get(url)
+        var byteArray = ByteArray(0)
 
-        val bodyText = String(response.body<ByteArray>())
+        client.prepareGet(url).execute {
+            val channel: ByteReadChannel = it.body()
+            if (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(1024 * 2)
 
-        return when (response.status) {
-            HttpStatusCode.OK -> {
-                val matchResult = titleRegex.find(bodyText)
-                matchResult?.let {
-                    val (title) = matchResult.destructured
-                    title
+                while (!packet.isEmpty) {
+                    val bytes = packet.readBytes()
+                    byteArray += bytes
                 }
             }
+        }
 
-            else -> null
+        val bodyText = String(byteArray)
+
+        val matchResult = titleRegex.find(bodyText)
+
+        return matchResult?.let {
+            val (title) = matchResult.destructured
+            title
         }
     }
 
     private fun getExtension(url: String) = try {
-        val urlObj = URL(url)
-        val path = urlObj.path
-        val lastDot = path.lastIndexOf('.')
-        if (lastDot == -1) null else path.substring(lastDot + 1)
+        val path = Url(url).pathSegments.last()
+        val dotPath = path.split(".")
+        if (dotPath.size > 1) dotPath.last() else null
     } catch (e: MalformedURLException) {
         null
     }
