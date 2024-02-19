@@ -6,7 +6,6 @@
     [
       "@semantic-release/commit-analyzer",
       {
-        "preset": "conventionalcommits",
         "releaseRules": [
           {
             "type": "breaking",
@@ -62,7 +61,6 @@
     [
       "@semantic-release/release-notes-generator",
       {
-        "preset": "conventionalcommits",
         "presetConfig": {
           "types": [
             {
