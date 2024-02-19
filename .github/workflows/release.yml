@@ -25,11 +25,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: 🔼 Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            conventional-changelog-conventionalcommits
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
   build-docker:
     name: 🏗️ Build Docker (${{ matrix.architecture }})
     runs-on: ubuntu-latest
@@ -127,10 +132,10 @@ jobs:
           gradle-version: release-candidate
 
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: ⌛ Restore caches
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
