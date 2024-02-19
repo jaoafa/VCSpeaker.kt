@@ -28,16 +28,6 @@ jobs:
       - name: 🔼 Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
-        with:
-          extra_plugins: |
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/github
-            @semantic-release/git
-          branches: |
-            [
-              "main"
-            ]
         env:
           GITHUB_TOKEN: ${{ github.token }}
   build-docker:
