@@ -33,6 +33,25 @@ import kotlin.text.String
 object UrlReplacer : BaseReplacer {
     override val priority = ReplacerPriority.High
 
+    override suspend fun replace(text: String, guildId: Snowflake): String {
+        suspend fun replaceUrl(vararg replacers: suspend (String, Snowflake) -> String) =
+            replacers.fold(text) { replacedText, replacer ->
+                replacer(replacedText, guildId)
+            }
+
+        return replaceUrl(
+            ::replaceMessageUrl,
+            ::replaceChannelUrl,
+            ::replaceEventDirectUrl,
+            ::replaceEventInviteUrl,
+            ::replaceTweetUrl,
+            ::replaceInviteUrl,
+            ::replaceSteamAppUrl,
+            ::replaceUrlToTitle,
+            ::replaceUrl,
+        )
+    }
+
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json {
@@ -105,36 +124,15 @@ object UrlReplacer : BaseReplacer {
         "md" to "Markdownファイル",
     )
 
-    override suspend fun replace(text: String, guildId: Snowflake): String {
-        suspend fun replaceUrl(vararg replacers: suspend (String, Snowflake) -> String) =
-            replacers.fold(text) { replacedText, replacer ->
-                replacer(replacedText, guildId)
-            }
-
-        return replaceUrl(
-            ::replaceMessageUrl,
-            ::replaceChannelUrl,
-            ::replaceEventDirectUrl,
-            ::replaceEventInviteUrl,
-            ::replaceTweetUrl,
-            ::replaceInviteUrl,
-            ::replaceSteamAppUrl,
-            ::replaceUrlToTitle,
-            ::replaceUrl,
-        )
-    }
-
     /**
      * チャンネルタイプに応じて、読み上げるチャンネル種別テキストを返します。
      */
-    private fun getChannelTypeText(channel: GuildChannel): String {
-        return when (channel.type) {
-            is ChannelType.GuildText -> "テキストチャンネル"
-            is ChannelType.GuildVoice -> "ボイスチャンネル"
-            is ChannelType.GuildCategory -> "カテゴリ"
-            is ChannelType.GuildNews -> "ニュースチャンネル"
-            else -> channel.type.toString() + "チャンネル"
-        }
+    private fun getChannelTypeText(channel: GuildChannel) = when (channel.type) {
+        is ChannelType.GuildText -> "テキストチャンネル"
+        is ChannelType.GuildVoice -> "ボイスチャンネル"
+        is ChannelType.GuildCategory -> "カテゴリ"
+        is ChannelType.GuildNews -> "ニュースチャンネル"
+        else -> channel.type.toString() + "チャンネル"
     }
 
     /**
@@ -236,23 +234,22 @@ object UrlReplacer : BaseReplacer {
     /**
      * メッセージURLを置換します。
      */
-    private suspend fun replaceMessageUrl(text: String, guildId: Snowflake): String {
-        val matchResults = messageUrlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceMessageUrl(text: String, guildId: Snowflake) =
+        messageUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (urlGuildIdRaw, urlChannelIdRaw) = matchResult.destructured
             val urlGuildId = Snowflake(urlGuildIdRaw)
             val urlChannelId = Snowflake(urlChannelIdRaw)
 
             // URLに含まれているIDをもとに、エンティティを取得する
-            val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId) ?: return@fold replacedText.replace(
-                matchResult.value,
-                "どこかのチャンネルで送信したメッセージのリンク"
-            )
-            val channel = getChannel(guild, urlChannelId) ?: return@fold replacedText.replace(
-                matchResult.value,
-                "どこかのチャンネルで送信したメッセージのリンク"
-            )
+            val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId)
+            val channel = guild?.let { getChannel(it, urlChannelId) }
+
+            if (guild == null || channel == null)
+                return@replaceAll replacedText.replace(
+                    matchResult.value,
+                    "どこかのチャンネルで送信したメッセージのリンク"
+                )
+
             val channelType = getChannelTypeText(channel)
             val thread = getThread(guild, urlChannelId)
 
@@ -265,29 +262,22 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
     /**
      * チャンネルURLを置換します。
      */
-    private suspend fun replaceChannelUrl(text: String, guildId: Snowflake): String {
-        val matchResults = channelUrlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceChannelUrl(text: String, guildId: Snowflake) =
+        channelUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (urlGuildIdRaw, urlChannelIdRaw) = matchResult.destructured
             val urlGuildId = Snowflake(urlGuildIdRaw)
             val urlChannelId = Snowflake(urlChannelIdRaw)
 
             // URLに含まれているIDをもとに、エンティティを取得する
-            val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId) ?: return@fold replacedText.replace(
-                matchResult.value,
-                "どこかのチャンネルで送信したメッセージのリンク"
-            )
-            val channel = getChannel(guild, urlChannelId) ?: return@fold replacedText.replace(
-                matchResult.value,
-                "どこかのチャンネルで送信したメッセージのリンク"
-            )
+            val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId)
+            val channel = guild?.let { getChannel(it, urlChannelId) }
+
+            if (guild == null || channel == null)
+                return@replaceAll replacedText.replace(matchResult.value, "どこかのチャンネルへのリンク")
+
             val channelType = getChannelTypeText(channel)
             val thread = getThread(guild, urlChannelId)
 
@@ -300,28 +290,23 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
     /**
      * イベントへの直接URLを置換します。
      */
-    private suspend fun replaceEventDirectUrl(text: String, guildId: Snowflake): String {
-        val matchResults = eventDirectUrlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceEventDirectUrl(text: String, guildId: Snowflake) =
+        eventDirectUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (urlGuildIdRaw, urlEventIdRaw) = matchResult.destructured
             val urlGuildId = Snowflake(urlGuildIdRaw)
             val urlEventId = Snowflake(urlEventIdRaw)
 
             // URLに含まれているIDをもとに、エンティティを取得する
-            val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId) ?: return@fold replacedText.replace(
+            val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
                 "どこかのサーバのイベントへのリンク"
             )
 
             val event = guild.scheduledEvents.firstOrNull { it.id == urlEventId }
-                ?: return@fold replacedText.replace(
+                ?: return@replaceAll replacedText.replace(
                     matchResult.value,
                     "サーバ「${guild.name}」のイベントへのリンク"
                 )
@@ -335,21 +320,16 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
     /**
      * イベントへの招待URLを置換します。
      */
-    private suspend fun replaceEventInviteUrl(text: String, guildId: Snowflake): String {
-        val matchResults = eventInviteUrlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceEventInviteUrl(text: String, guildId: Snowflake) =
+        eventInviteUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (inviteCode, urlEventIdRaw) = matchResult.destructured
             val urlEventId = Snowflake(urlEventIdRaw)
 
             val invite = getInvite(inviteCode, urlEventId)
-                ?: return@fold replacedText.replace(
+                ?: return@replaceAll replacedText.replace(
                     matchResult.value,
                     "どこかのサーバのイベントへのリンク"
                 )
@@ -363,18 +343,13 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
-    private suspend fun replaceInviteUrl(text: String, guildId: Snowflake): String {
-        val matchResults = inviteUrlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceInviteUrl(text: String, guildId: Snowflake) =
+        inviteUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (inviteCode) = matchResult.destructured
 
             // URLに含まれているIDをもとに、エンティティを取得する
             val invite = getInvite(inviteCode)
-                ?: return@fold replacedText.replace(
+                ?: return@replaceAll replacedText.replace(
                     matchResult.value,
                     "どこかのサーバへの招待リンク"
                 )
@@ -388,19 +363,14 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
     /**
      * ツイートURLを置換します。
      */
-    private suspend fun replaceTweetUrl(text: String, guildId: Snowflake): String {
-        val matchResults = tweetUrlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceTweetUrl(text: String, guildId: Snowflake) =
+        tweetUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (userName, tweetId) = matchResult.destructured
 
-            val tweet = Twitter.getTweet(userName, tweetId) ?: return@fold replacedText.replace(
+            val tweet = Twitter.getTweet(userName, tweetId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
                 "ユーザー「$userName」のツイートへのリンク"
             )
@@ -414,19 +384,14 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
     /**
      * SteamアイテムへのURLを置換します。
      */
-    private suspend fun replaceSteamAppUrl(text: String, guildId: Snowflake): String {
-        val matchResults = steamAppUrlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceSteamAppUrl(text: String, guildId: Snowflake) =
+        steamAppUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (appId) = matchResult.destructured
 
-            val item = Steam.getAppDetail(appId) ?: return@fold replacedText.replace(
+            val item = Steam.getAppDetail(appId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
                 "Steamアイテムへのリンク"
             )
@@ -436,48 +401,34 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
     /**
      * URLをページのタイトルに置換します。
      */
-    private suspend fun replaceUrlToTitle(text: String, guildId: Snowflake): String {
-        val matchResults = urlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceUrlToTitle(text: String, guildId: Snowflake) =
+        urlRegex.replaceAll(text) { replacedText, matchResult ->
             val url = matchResult.value
 
-            val title = getPageTitle(url) ?: return@fold replacedText
-            val shortTitle = title.substring(
-                0,
-                30.coerceAtMost(title.length)
-            ) + if (title.length > 30) " 以下略" else ""
+            val title = getPageTitle(url)?.shorten(30) ?: return@replaceAll replacedText
 
-            val replaceTo = "Webページ「$shortTitle」へのリンク"
+            val replaceTo = "Webページ「$title」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
-    }
-
     /**
      * URLをもとに、拡張子を取得し置き換えます。拡張子がない場合は、「Webページのリンク」と置き換えます。
      */
-    private fun replaceUrl(text: String, guildId: Snowflake): String {
-        val matchResults = urlRegex.findAll(text)
-
-        val replacedText = matchResults.fold(text) { replacedText, matchResult ->
+    private suspend fun replaceUrl(text: String, guildId: Snowflake) =
+        urlRegex.replaceAll(text) { replacedText, matchResult ->
             val url = matchResult.value
 
-            val extension = getExtension(url) ?: return@fold replacedText.replace(
+            val extension = getExtension(url) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
                 "Webページのリンク"
             )
 
             if (extensionNameMap.containsKey(extension)) {
-                return@fold replacedText.replace(
+                return@replaceAll replacedText.replace(
                     matchResult.value,
                     "${extensionNameMap[extension]}へのリンク"
                 )
@@ -487,6 +438,12 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
-        return replacedText
+    private suspend fun Regex.replaceAll(text: String, replacer: suspend (String, MatchResult) -> String): String {
+        val matchResults = this.findAll(text)
+        return matchResults.fold(text) { replacedText, matchResult ->
+            replacer(replacedText, matchResult)
+        }
     }
+
+    private fun String.shorten(length: Int) = if (this.length > length) substring(0, length) + " 以下略" else this
 }
