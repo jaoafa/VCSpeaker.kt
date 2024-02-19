@@ -3,8 +3,124 @@
     "main"
   ],
   "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          {
+            "type": "breaking",
+            "release": "major"
+          },
+          {
+            "type": "feat",
+            "release": "minor"
+          },
+          {
+            "type": "fix",
+            "release": "patch"
+          },
+          {
+            "type": "docs",
+            "release": "patch"
+          },
+          {
+            "type": "chore",
+            "release": "patch"
+          },
+          {
+            "type": "pref",
+            "release": "patch"
+          },
+          {
+            "type": "refactor",
+            "release": "patch"
+          },
+          {
+            "type": "build",
+            "release": "patch"
+          },
+          {
+            "type": "ci",
+            "release": "patch"
+          },
+          {
+            "type": "revert",
+            "release": "patch"
+          },
+          {
+            "type": "style",
+            "release": "patch"
+          },
+          {
+            "type": "test",
+            "release": "patch"
+          }
+        ],
+        "parserOpts": {
+          "noteKeywords": [
+            "BREAKING CHANGE",
+            "BREAKING CHANGES"
+          ]
+        }
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "types": [
+          {
+            "type": "breaking",
+            "section": "💣 Breaking Changes"
+          },
+          {
+            "type": "feat",
+            "section": "✨ Features"
+          },
+          {
+            "type": "fix",
+            "section": "🛠️ Bug Fixes"
+          },
+          {
+            "type": "docs",
+            "section": "📃 Docs"
+          },
+          {
+            "type": "chore",
+            "section": "🎨 Chore"
+          },
+          {
+            "type": "pref",
+            "section": "🎈 Performance improvements"
+          },
+          {
+            "type": "refactor",
+            "section": "🧹 Refactoring"
+          },
+          {
+            "type": "build",
+            "section": "🔍 Build"
+          },
+          {
+            "type": "ci",
+            "section": "🔍 CI"
+          },
+          {
+            "type": "revert",
+            "section": "⏪ Revert"
+          },
+          {
+            "type": "style",
+            "section": "🧹 Style"
+          },
+          {
+            "type": "test",
+            "section": "👀 Test"
+          }
+        ]
+      }
+    ],
     "@semantic-release/github",
     "@semantic-release/git"
   ],
