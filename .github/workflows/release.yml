@@ -23,6 +23,8 @@ jobs:
       changelog: ${{ steps.semantic.outputs.new_release_notes }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: 🔼 Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
