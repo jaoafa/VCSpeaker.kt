@@ -56,69 +56,65 @@
             "type": "test",
             "release": "patch"
           }
-        ],
-        "parserOpts": {
-          "noteKeywords": [
-            "BREAKING CHANGE",
-            "BREAKING CHANGES"
-          ]
-        }
+        ]
       }
     ],
     [
       "@semantic-release/release-notes-generator",
       {
         "preset": "conventionalcommits",
-        "types": [
-          {
-            "type": "breaking",
-            "section": "💣 Breaking Changes"
-          },
-          {
-            "type": "feat",
-            "section": "✨ Features"
-          },
-          {
-            "type": "fix",
-            "section": "🛠️ Bug Fixes"
-          },
-          {
-            "type": "docs",
-            "section": "📃 Docs"
-          },
-          {
-            "type": "chore",
-            "section": "🎨 Chore"
-          },
-          {
-            "type": "pref",
-            "section": "🎈 Performance improvements"
-          },
-          {
-            "type": "refactor",
-            "section": "🧹 Refactoring"
-          },
-          {
-            "type": "build",
-            "section": "🔍 Build"
-          },
-          {
-            "type": "ci",
-            "section": "🔍 CI"
-          },
-          {
-            "type": "revert",
-            "section": "⏪ Revert"
-          },
-          {
-            "type": "style",
-            "section": "🧹 Style"
-          },
-          {
-            "type": "test",
-            "section": "👀 Test"
-          }
-        ]
+        "presetConfig": {
+          "types": [
+            {
+              "type": "breaking",
+              "section": "💣 Breaking Changes"
+            },
+            {
+              "type": "feat",
+              "section": "✨ Features"
+            },
+            {
+              "type": "fix",
+              "section": "🛠️ Bug Fixes"
+            },
+            {
+              "type": "docs",
+              "section": "📃 Docs"
+            },
+            {
+              "type": "chore",
+              "section": "🎨 Chore"
+            },
+            {
+              "type": "pref",
+              "section": "🎈 Performance improvements"
+            },
+            {
+              "type": "refactor",
+              "section": "🧹 Refactoring"
+            },
+            {
+              "type": "build",
+              "section": "🔍 Build"
+            },
+            {
+              "type": "ci",
+              "section": "🔍 CI"
+            },
+            {
+              "type": "revert",
+              "section": "⏪ Revert"
+            },
+            {
+              "type": "style",
+              "section": "🧹 Style"
+            },
+            {
+              "type": "test",
+              "section": "👀 Test"
+            }
+          ]
+        }
       }
     ],
     "@semantic-release/github",
