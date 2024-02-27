@@ -29,7 +29,7 @@
             "release": "patch"
           },
           {
-            "type": "pref",
+            "type": "perf",
             "release": "patch"
           },
           {
@@ -86,7 +86,7 @@
               "section": "🎨 Chore"
             },
             {
-              "type": "pref",
+              "type": "perf",
               "section": "🎈 Performance improvements"
             },
             {
