@@ -124,10 +124,14 @@ class VCSpeakerCommand : Extension() {
                                 currentVoice?.emotion
                             }
 
+                            val newEmotionLevel = if (emotion != null) {
+                                emotionLevel ?: currentVoice?.emotionLevel
+                            } else null
+
                             Voice(
                                 speaker = Speaker.valueOf(speaker ?: currentVoice?.speaker?.name ?: "Haruka"),
                                 emotion = newEmotion,
-                                emotionLevel = emotionLevel ?: currentVoice?.emotionLevel ?: 2,
+                                emotionLevel = newEmotionLevel ?: 2,
                                 pitch = pitch ?: currentVoice?.pitch ?: 100,
                                 speed = speed ?: currentVoice?.speed ?: 100,
                                 volume = volume ?: currentVoice?.volume ?: 100

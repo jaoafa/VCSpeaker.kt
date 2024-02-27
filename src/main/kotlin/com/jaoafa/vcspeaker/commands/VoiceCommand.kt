@@ -81,7 +81,7 @@ class VoiceCommand : Extension() {
                     val newVoice = oldVoice.overwrite(
                         speaker = arguments.speaker?.let { Speaker.valueOf(it) },
                         emotion = emotion,
-                        emotionLevel = arguments.emotionLevel,
+                        emotionLevel = if (emotion != null) arguments.emotionLevel else null,
                         pitch = arguments.pitch,
                         speed = arguments.speed,
                         volume = arguments.volume
