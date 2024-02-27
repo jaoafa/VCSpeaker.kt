@@ -52,7 +52,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             narrator()?.queueSelf(voice)
         }
     }
-    
+
     private val scheduler = Scheduler(player)
 
     /**
@@ -89,11 +89,15 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
         if (replacedText.isBlank()) return
 
-        message?.addReaction("👀")
+        CoroutineScope(Dispatchers.Default).launch {
+            message?.addReaction("👀")
+        }
 
         scheduler.queue(message, replacedText, inlineVoice)
 
-        message?.deleteOwnReaction("👀")
+        CoroutineScope(Dispatchers.Default).launch {
+            message?.deleteOwnReaction("👀")
+        }
     }
 
     /**
