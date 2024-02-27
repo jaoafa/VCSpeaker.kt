@@ -124,7 +124,7 @@ class VCSpeakerCommand : Extension() {
                                 currentVoice?.emotion
                             }
 
-                            val newEmotionLevel = if (emotion != null) {
+                            val newEmotionLevel = if (newEmotion != null) {
                                 emotionLevel ?: currentVoice?.emotionLevel
                             } else null
 
