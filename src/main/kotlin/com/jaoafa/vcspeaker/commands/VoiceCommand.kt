@@ -29,10 +29,10 @@ class VoiceCommand : Extension() {
             name = "emotion"
             description = "感情"
 
-            choice("普通", "normal")
-
             for (value in Emotion.entries)
                 choice(value.emotionName, value.name)
+
+            choice("なし", "none")
         }
 
         val emotionLevel by optionalInt {
@@ -75,13 +75,13 @@ class VoiceCommand : Extension() {
                     val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
 
                     val emotion = arguments.emotion?.let {
-                        if (it == "normal") null else Emotion.valueOf(it)
+                        if (it == "none") null else Emotion.valueOf(it)
                     }
 
                     val newVoice = oldVoice.overwrite(
                         speaker = arguments.speaker?.let { Speaker.valueOf(it) },
                         emotion = emotion,
-                        emotionLevel = arguments.emotionLevel,
+                        emotionLevel = if (emotion != null) arguments.emotionLevel else null,
                         pitch = arguments.pitch,
                         speed = arguments.speed,
                         volume = arguments.volume

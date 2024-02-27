@@ -51,6 +51,8 @@ class VCSpeakerCommand : Extension() {
 
             for (value in Emotion.entries)
                 choice(value.emotionName, value.name)
+
+            choice("なし", "none")
         }
 
         val emotionLevel by optionalInt {
@@ -114,10 +116,22 @@ class VCSpeakerCommand : Extension() {
                         channelId = arguments.channel?.id ?: oldGuildData?.channelId,
                         prefix = arguments.prefix ?: oldGuildData?.prefix,
                         voice = arguments.run {
+                            val newEmotion = if (emotion == "none") {
+                                null
+                            } else if (emotion != null) {
+                                Emotion.valueOf(emotion!!)
+                            } else {
+                                currentVoice?.emotion
+                            }
+
+                            val newEmotionLevel = if (newEmotion != null) {
+                                emotionLevel ?: currentVoice?.emotionLevel
+                            } else null
+
                             Voice(
                                 speaker = Speaker.valueOf(speaker ?: currentVoice?.speaker?.name ?: "Haruka"),
-                                emotion = if (emotion != null) Emotion.valueOf(emotion!!) else currentVoice?.emotion,
-                                emotionLevel = emotionLevel ?: currentVoice?.emotionLevel ?: 2,
+                                emotion = newEmotion,
+                                emotionLevel = newEmotionLevel ?: 2,
                                 pitch = pitch ?: currentVoice?.pitch ?: 100,
                                 speed = speed ?: currentVoice?.speed ?: 100,
                                 volume = volume ?: currentVoice?.volume ?: 100
