@@ -116,6 +116,7 @@ object VoiceExtensions {
                 info.file.path, // already checked
                 object : AudioLoadResultHandler {
                     override fun trackLoaded(track: AudioTrack) {
+                        println("Track Loaded: ${track.identifier}")
                         track.userData = info
                         it.resume(track)
                     }
@@ -146,10 +147,15 @@ object VoiceExtensions {
                             }
                         }
                     }
-
                 })
         }
 
-        this.playTrack(track)
+        try {
+            println("Playing Track: ${track.identifier}")
+            this.playTrack(track)
+        } catch (e: Exception) {
+            println("Failed to play track: ${track.identifier}")
+            e.printStackTrace()
+        }
     }
 }
