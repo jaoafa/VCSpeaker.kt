@@ -24,5 +24,6 @@ COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
 ENV VCSKT_CONFIG /data/config.yml
 ENV VCSKT_STORE /data/store/
 ENV VCSKT_CACHE /data/cache/
+ENV GOOGLE_APPLICATION_CREDENTIALS /data/google-credential.json
 
 CMD ["java", "-jar", "/app/vcspeaker-kt.jar"]
