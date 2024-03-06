@@ -6,15 +6,15 @@ import com.google.rpc.Status
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
 import com.sksamuel.scrimage.ImmutableImage
-import com.sksamuel.scrimage.canvas.drawables.Line
+import com.sksamuel.scrimage.canvas.drawables.FilledRect
 import com.sksamuel.scrimage.canvas.drawables.Text
 import kotlinx.serialization.Serializable
 import org.apache.commons.codec.digest.DigestUtils
-import java.awt.BasicStroke
 import java.awt.Color
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.net.URLConnection
+import kotlin.math.roundToInt
 
 @Serializable
 data class VisionVertex(
@@ -116,26 +116,24 @@ class VisionApi {
             val y1 = vertices[0].y
             val x2 = vertices[2].x
             val y2 = vertices[2].y
-            // 矩形を描画
-            canvas = canvas.draw(Line(x1, y1, x2, y1) {
-                it.color = Color.RED
-            })
-            canvas = canvas.draw(Line(x2, y1, x2, y2) {
-                it.color = Color.RED
-            })
-            canvas = canvas.draw(Line(x2, y2, x1, y2) {
-                it.color = Color.RED
-            })
-            canvas = canvas.draw(Line(x1, y2, x1, y1) {
-                it.color = Color.RED
-            })
 
-            // 文字列を描画
-            canvas = canvas.draw(Text(textAnnotation.description, x1, y1) {
-                it.stroke = BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-                it.color = Color.WHITE
-                it.drawOval(2, 2, 2, 2)
-            })
+            // フォントサイズは、矩形の高さの 1/2 とする。ただし、最小値は 10 とする。
+            var fontSize = (y2 - y1) / 2f
+            if (fontSize < 10) {
+                fontSize = 10f
+            }
+            canvas = canvas.draw(
+                // 矩形を描画
+                FilledRect(x1, y1, x2 - x1, y2 - y1) {
+                    // グレーの半透明の矩形を描画
+                    it.color = Color(0, 0, 0, 128)
+                },
+                // 文字列を描画
+                Text(textAnnotation.description, x1, (y1 + fontSize).roundToInt()) {
+                    it.color = Color.WHITE
+                    it.font = it.font.deriveFont(fontSize)
+                }
+            )
         }
 
         return canvas.image

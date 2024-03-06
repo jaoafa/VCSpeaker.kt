@@ -54,7 +54,8 @@ object MessageProcessor {
         val binaryArray = firstAttachment.download()
         try {
             val textAnnotations = VisionApi().getTextAnnotations(binaryArray)
-            val firstDescription = textAnnotations.firstOrNull()?.description ?: ""
+            // 改行は半角スペースに置換する
+            val firstDescription = textAnnotations.firstOrNull()?.description?.replace("\n", " ") ?: ""
             val shortDescription =
                 if (firstDescription.length > 20) firstDescription.substring(0, 20) + "..." else firstDescription
             val embedDescription =
