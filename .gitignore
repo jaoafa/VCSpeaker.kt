@@ -2,8 +2,8 @@
 .idea
 build
 
-store
-stores
-cache
+store/
+stores/
+cache/
 config.yml
 test.wav
