@@ -12,6 +12,7 @@ repositories {
     maven("https://jitpack.io/")
     maven("https://maven.yuua.dev/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
 
 dependencies {
@@ -25,9 +26,9 @@ dependencies {
     implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0-SNAPSHOT")
     implementation("com.uchuhimo:konf:1.1.2")
     implementation("dev.arbjerg:lavaplayer:2.0.2")
-    implementation("dev.kord:kord-core:0.12.0")
-    implementation("dev.kord:kord-core-voice:0.12.0")
-    implementation("dev.kord:kord-voice:0.12.0")
+    implementation("dev.kord:kord-core:unknown-d-field-fix-SNAPSHOT")
+    implementation("dev.kord:kord-core-voice:0.13.1")
+    implementation("dev.kord:kord-voice:0.13.1")
     implementation("io.ktor:ktor-client-cio-jvm:2.2.4")
     implementation("io.ktor:ktor-client-cio:2.2.4")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.5")
