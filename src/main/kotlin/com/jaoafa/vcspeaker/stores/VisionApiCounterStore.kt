@@ -16,24 +16,31 @@ data class VisionApiCounterData(
     val limitReachedAt: Long? = null
 )
 
-// 月当たり 1000 units だけど余裕をもって
-const val VISION_API_LIMIT = 950
-
 object VisionApiCounterStore : StoreStruct<VisionApiCounterData>(
     VCSpeaker.Files.visionApiCounter.path,
     VisionApiCounterData.serializer(),
     { Json.decodeFromString(this) }
 ) {
-    /** 年/月ごとのリクエスト数を取得する */
-    fun find(yearMonth: String) = data.find { it.yearMonth == yearMonth }
+    // 月当たり 1000 units だけど余裕をもって
+    const val VISION_API_LIMIT = 950
+
+    /**
+     * 今月のリクエスト数を取得する
+     */
+    fun get() = get(getNowYearMonth())
+
+    /**
+     * 年/月ごとのリクエスト数を取得する
+     */
+    fun get(yearMonth: String) = data.find { it.yearMonth == yearMonth }
 
     /** 今月のリクエスト数が上限に達しているか */
-    fun isLimitExceeded() = (find(getNowYearMonth())?.count ?: 0) >= VISION_API_LIMIT
+    fun isLimitExceeded() = (get()?.count ?: 0) >= VISION_API_LIMIT
 
     /** リクエスト数をインクリメントする */
     fun increment() {
         val yearMonth = getNowYearMonth()
-        val counter = find(yearMonth)
+        val counter = get(yearMonth)
 
         if (counter != null) {
             data[data.indexOf(counter)] = counter.copy(count = counter.count + 1)
@@ -43,7 +50,7 @@ object VisionApiCounterStore : StoreStruct<VisionApiCounterData>(
 
         // リクエスト数を超えていたらリミット到達日時を記録する
         if (isLimitExceeded()) {
-            data[data.indexOf(find(yearMonth)!!)] = find(yearMonth)!!.copy(limitReachedAt = System.currentTimeMillis())
+            data[data.indexOf(get(yearMonth)!!)] = get(yearMonth)!!.copy(limitReachedAt = System.currentTimeMillis())
         }
 
         write()

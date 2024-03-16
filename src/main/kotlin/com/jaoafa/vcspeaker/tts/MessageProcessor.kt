@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tts
 
+import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
 import com.jaoafa.vcspeaker.tools.VisionApi
 import com.kotlindiscord.kord.extensions.utils.download
 import com.sksamuel.scrimage.ImmutableImage
@@ -53,7 +54,8 @@ object MessageProcessor {
         // 画像解析を行う
         val binaryArray = firstAttachment.download()
         try {
-            val textAnnotations = VisionApi().getTextAnnotations(binaryArray)
+            val visionApi = VisionApi()
+            val textAnnotations = visionApi.getTextAnnotations(binaryArray)
             // 改行は半角スペースに置換する
             val firstDescription = textAnnotations.firstOrNull()?.description?.replace("\n", " ") ?: ""
             val shortDescription =
@@ -62,14 +64,23 @@ object MessageProcessor {
                 if (firstDescription.length > 1000) firstDescription.substring(0, 1000) + "..." else firstDescription
 
             // 画像解析結果を返信する
-            val editedImage = VisionApi().drawTextAnnotations(binaryArray)
+            val editedImage = visionApi.drawTextAnnotations(binaryArray)
             val filePath = editedImage.outputTempFile()
+            val visionApiCounterStore = VisionApiCounterStore.get()
+
+            val requestedCount = visionApiCounterStore?.count ?: 0
+            val requestLimit = VisionApiCounterStore.VISION_API_LIMIT
+            val remainingRequests = requestLimit - requestedCount
+
             message.reply {
                 embeds = mutableListOf(
                     EmbedBuilder().apply {
                         description = "```$embedDescription```"
                         thumbnail = EmbedBuilder.Thumbnail().apply {
                             url = "attachment://${filePath.fileName}"
+                        }
+                        footer {
+                            text = "リクエスト残り回数: $remainingRequests / $requestLimit"
                         }
                     }
                 )
