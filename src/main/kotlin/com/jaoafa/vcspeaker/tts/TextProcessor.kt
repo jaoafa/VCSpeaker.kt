@@ -6,24 +6,34 @@ import com.jaoafa.vcspeaker.tools.Emoji.replaceEmojiToName
 import com.jaoafa.vcspeaker.tools.getObjectsIn
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.markdown.toMarkdown
 import com.jaoafa.vcspeaker.tts.replacers.BaseReplacer
 import com.kotlindiscord.kord.extensions.utils.capitalizeWords
 import dev.kord.common.entity.Snowflake
 
 object TextProcessor {
-    suspend fun processText(guildId: Snowflake, text: String): String? {
-        if (shouldIgnore(text, guildId)) return null
+    val replacers = getObjectsIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers")
+        .filterNotNull()
+        .sortedByDescending { it.priority.level }
 
-        val replacers =
-            getObjectsIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers")
-                .filterNotNull()
-                .sortedByDescending { it.priority.level }
+    private fun String.shouldIgnoreOn(guildId: Snowflake) =
+        IgnoreStore.filter(guildId).any {
+            when (it.type) {
+                IgnoreType.Exact -> this == it.text
+                IgnoreType.Contains -> contains(it.text)
+            }
+        }
+
+    suspend fun processText(guildId: Snowflake, text: String): String? {
+        if (text.shouldIgnoreOn(guildId)) return null
 
         val replacedText = replacers.fold(text) { replacedText, replacer ->
             replacer.replace(replacedText, guildId)
         }.replaceEmojiToName()
 
-        return replacedText.let { if (it.length > 180) it.substring(0, 180) else it }
+        val markdown = replacedText.toMarkdown().joinToString("") { it.toReadable() }
+
+        return markdown.let { if (it.length > 180) it.substring(0, 180) else it }
     }
 
     fun extractInlineVoice(text: String, voice: Voice): Pair<String, Voice> {
@@ -50,12 +60,4 @@ object TextProcessor {
 
         return newText to newVoice
     }
-
-    private fun shouldIgnore(text: String, guildId: Snowflake) =
-        IgnoreStore.filter(guildId).any {
-            when (it.type) {
-                IgnoreType.Exact -> text == it.text
-                IgnoreType.Contains -> text.contains(it.text)
-            }
-        }
 }
