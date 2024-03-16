@@ -5,7 +5,7 @@ data class InlineMatch(val match: String, val text: String, val range: IntRange,
 data class Inline(val text: String, val effects: Set<InlineEffect>) {
     companion object {
         fun from(paragraph: String): List<Inline> {
-            var allInlines = InlineEffect.entries.flatMap { effect ->
+            val allInlines = InlineEffect.entries.flatMap { effect ->
                 effect.regex.findAll(paragraph).map { it to effect }
             }.map { (it, effect) ->
                 val match = try {
@@ -21,29 +21,30 @@ data class Inline(val text: String, val effects: Set<InlineEffect>) {
                 } catch (e: Exception) {
                     it.range
                 }
+
                 InlineMatch(match, text, range, effect)
-            }.sortedBy { it.range.first }
+            }.sortedBy { it.range.first }.toMutableList()
 
             val removedInlines = mutableListOf<InlineMatch>()
 
             // Remove non-effective inline effects
-            listOf(*allInlines.toTypedArray()).forEach { testerMatch -> // Clone all inlines
-                if (removedInlines.contains(testerMatch)) return@forEach
+            for (testerMatch in listOf(*allInlines.toTypedArray())) { // Clone all inlines to test
+                if (removedInlines.contains(testerMatch)) continue
 
                 val range = testerMatch.range
 
                 fun predicateRemove(match: InlineMatch) =
-                    (range.contains(match.range.first) && !range.contains(match.range.last))// Crossed each other
+                    (range.contains(match.range.first) && !range.contains(match.range.last)) // Crossed each other
                             || (match.range == (range.first + 1) until range.last && match.text == testerMatch.text) // Remove redundant match
 
                 removedInlines.addAll(allInlines.filter(::predicateRemove))
-                allInlines = allInlines.filterNot(::predicateRemove)
+                allInlines.removeIf(::predicateRemove)
             }
 
             // Split paragraph into inlines
             val inlines = mutableListOf(Inline(paragraph, mutableSetOf()))
 
-            allInlines.forEach { inline ->
+            for (inline in allInlines) {
                 val targetInline = inlines.first { it.text.contains(inline.match) }
                 val (beforeMatch, afterMatch) = targetInline.text.split(inline.match, limit = 2)
 

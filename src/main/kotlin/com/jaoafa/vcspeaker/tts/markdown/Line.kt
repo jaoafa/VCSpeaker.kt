@@ -5,12 +5,12 @@ data class Line(val inlines: List<Inline>, val effects: Set<LineEffect>) {
         fun from(paragraph: String): Line {
             val inlines = Inline.from(paragraph)
             val plainText = inlines.joinToString("") { it.text }
-            val effectPrefixCandidates = plainText.split(" ").filter { it.isNotEmpty() }
+            val prefixCandidates = plainText.split(" ").filter { it.isNotEmpty() }
 
             val effects = mutableSetOf<LineEffect>()
             var skipped = false
 
-            effectPrefixCandidates.forEach { prefixCandidate ->
+            for (prefixCandidate in prefixCandidates) {
                 // null if this is not a prefix
                 val prefix = LineEffect.entries.firstOrNull { it.regex.matches(prefixCandidate) }
 
