@@ -6,6 +6,7 @@ import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
+import com.jaoafa.vcspeaker.tools.YouTube
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
@@ -47,6 +48,8 @@ object UrlReplacer : BaseReplacer {
             ::replaceTweetUrl,
             ::replaceInviteUrl,
             ::replaceSteamAppUrl,
+            ::replaceYouTubeUrl,
+            ::replaceYouTubePlaylistUrl,
             ::replaceUrlToTitle,
             ::replaceUrl,
         )
@@ -87,6 +90,14 @@ object UrlReplacer : BaseReplacer {
     )
     private val steamAppUrlRegex = Regex(
         "^https://store\\.steampowered\\.com/app/(\\d+)(.*)$",
+        RegexOption.IGNORE_CASE
+    )
+    private val youtubeUrlRegex = Regex(
+        "^(?:https?:)?(?://)?(?:youtu\\.be/|(?:www\\.|m\\.)?(?:youtube\\.com|youtube-nocookie\\.com)/(watch|v|e|embed|shorts|live)(?:\\.php)?(?:\\?.*v=|/))([a-zA-Z0-9_-]{7,15})(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?$",
+        RegexOption.IGNORE_CASE
+    )
+    private val youtubePlaylistUrlRegex = Regex(
+        "^(?:https?:)?(?://)?(?:www\\.|m\\.)?youtube\\.com/playlist\\?list=([a-zA-Z0-9_-]+)(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?$",
         RegexOption.IGNORE_CASE
     )
     private val titleRegex = Regex("<title>([^<]+)</title>", RegexOption.IGNORE_CASE)
@@ -397,6 +408,51 @@ object UrlReplacer : BaseReplacer {
             )
 
             val replaceTo = "Steamアイテム「${item.data.name}」へのリンク"
+
+            replacedText.replace(matchResult.value, replaceTo)
+        }
+
+    /**
+     * YouTubeのURLを置換します。動画、ショート、ライブなどに対応しています。プレイリストは {@link #replaceYouTubePlaylistUrl} で置換します。
+     */
+    private suspend fun replaceYouTubeUrl(text: String, guildId: Snowflake) =
+        youtubeUrlRegex.replaceAll(text) { replacedText, matchResult ->
+            val (videoType, videoId) = matchResult.destructured
+            val video = YouTube.getVideo(videoId) ?: return@replaceAll replacedText.replace(
+                matchResult.value,
+                "YouTube動画へのリンク"
+            )
+
+            // 動画タイトルが20文字を超える場合は、20文字に短縮して「以下略」を付ける
+            val videoTitle = video.title.substring(0, 15.coerceAtMost(video.title.length)) +
+                    if (video.title.length > 15) " 以下略" else ""
+            // 投稿者名が15文字を超える場合は、15文字に短縮して「以下略」を付ける
+            val authorName = video.authorName.substring(0, 13.coerceAtMost(video.authorName.length)) +
+                    if (video.authorName.length > 15) " 以下略" else ""
+
+            // URLからアイテムの種別を断定できる場合は、それに応じたテンプレートを使用する
+            val replaceTo = when (videoType) {
+                "shorts" -> "YouTubeの「${authorName}」によるショート「${videoTitle}」へのリンク"
+                "live" -> "YouTubeの「${authorName}」による配信「${videoTitle}」へのリンク"
+                else -> "YouTubeの「${authorName}」による動画「${videoTitle}」へのリンク"
+            }
+
+            replacedText.replace(matchResult.value, replaceTo)
+        }
+
+    /**
+     * YouTubeのプレイリストURLを置換します。
+     */
+    private suspend fun replaceYouTubePlaylistUrl(text: String, guildId: Snowflake) =
+        youtubePlaylistUrlRegex.replaceAll(text) { replacedText, matchResult ->
+            val (playlistId) = matchResult.destructured
+
+            val playlist = YouTube.getPlaylist(playlistId) ?: return@replaceAll replacedText.replace(
+                matchResult.value,
+                "YouTubeプレイリストへのリンク"
+            )
+
+            val replaceTo = "YouTubeの「${playlist.authorName}」によるプレイリスト「${playlist.title}」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
