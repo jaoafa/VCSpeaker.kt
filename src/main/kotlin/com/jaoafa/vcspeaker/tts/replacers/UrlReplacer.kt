@@ -418,14 +418,6 @@ object UrlReplacer : BaseReplacer {
     private suspend fun replaceYouTubeUrl(text: String, guildId: Snowflake) =
         youtubeUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (videoType, videoId) = matchResult.destructured
-
-            // URLからアイテムの種別を断定できる場合は、それに応じたテンプレートを使用する
-            val contentTemplate = when (videoType) {
-                "shorts" -> "YouTubeの「{authorName}」によるショート「{itemTitle}」へのリンク"
-                "live" -> "YouTubeの「{authorName}」による配信「{itemTitle}」へのリンク"
-                else -> "YouTubeの「{authorName}」による動画「{itemTitle}」へのリンク"
-            }
-
             val video = YouTube.getVideo(videoId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
                 "YouTube動画へのリンク"
@@ -437,9 +429,13 @@ object UrlReplacer : BaseReplacer {
             // 投稿者名が15文字を超える場合は、15文字に短縮して「以下略」を付ける
             val authorName = video.authorName.substring(0, 13.coerceAtMost(video.authorName.length)) +
                     if (video.authorName.length > 15) " 以下略" else ""
-            val replaceTo = contentTemplate
-                .replace("{authorName}", authorName)
-                .replace("{itemTitle}", videoTitle)
+
+            // URLからアイテムの種別を断定できる場合は、それに応じたテンプレートを使用する
+            val replaceTo = when (videoType) {
+                "shorts" -> "YouTubeの「${authorName}」によるショート「${videoTitle}」へのリンク"
+                "live" -> "YouTubeの「${authorName}」による配信「${videoTitle}」へのリンク"
+                else -> "YouTubeの「${authorName}」による動画「${videoTitle}」へのリンク"
+            }
 
             replacedText.replace(matchResult.value, replaceTo)
         }
