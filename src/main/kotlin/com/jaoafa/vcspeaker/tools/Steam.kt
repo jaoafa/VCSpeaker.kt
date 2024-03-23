@@ -13,7 +13,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
 object Steam {
-    private const val appDetailBaseUrl = "https://store.steampowered.com/api/appdetails"
+    private const val BASE_URL = "https://store.steampowered.com/api/appdetails"
 
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -30,7 +30,7 @@ object Steam {
     }
 
     suspend fun getAppDetail(appId: String): SteamAppDetail? {
-        val response = client.get(appDetailBaseUrl) {
+        val response = client.get(BASE_URL) {
             parameter("appids", appId)
             parameter("cc", "JP")
         }
