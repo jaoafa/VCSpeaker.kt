@@ -6,18 +6,26 @@ RUN apk add --no-cache git wget unzip
 WORKDIR /build
 
 COPY gradle gradle
-COPY src src
+
 COPY gradlew build.gradle.kts gradle.properties settings.gradle.kts ./
 
-RUN chmod a+x gradlew && \
-  ./gradlew build
+RUN chmod a+x gradlew
+RUN ./gradlew build || return 0
+
+COPY src src
+
+RUN ./gradlew build
 
 FROM azul/zulu-openjdk-alpine:17-latest as runner
 
 WORKDIR /app
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache libstdc++ msttcorefonts-installer fontconfig && update-ms-fonts
+RUN apk add --no-cache libstdc++ msttcorefonts-installer fontconfig && \
+    update-ms-fonts && \
+    apk add --update --no-cache tzdata
+ENV TZ=Asia/Tokyo
+RUN apk del tzdata
 
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
 
