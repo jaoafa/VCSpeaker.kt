@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tools
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -12,8 +13,10 @@ data class EmojiData(
 )
 
 object Emoji {
+    private val logger = KotlinLogging.logger {}
+
     private var emojis = runBlocking {
-        println("Loading emoji data...")
+        logger.info { "Loading emojis..." }
 
         val client = HttpClient(CIO)
 
@@ -29,7 +32,7 @@ object Emoji {
             EmojiData(emoji, name)
         }
 
-        println("Loaded emoji data.")
+        logger.info { "Loading emojis complete." }
 
         emojiData
     }

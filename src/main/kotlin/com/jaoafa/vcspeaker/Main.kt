@@ -16,6 +16,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import dev.kord.common.entity.Snowflake
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
 
@@ -60,9 +61,12 @@ class Main : CliktCommand() {
         envvar = "VCSKT_ENCODING_QUALITY"
     ).int().restrictTo(1..10)
 
-    override fun run() {
-        // Options > Config > Default
+    private val logger = KotlinLogging.logger {}
 
+    override fun run() {
+        logger.info { "Starting VCSpeaker..." }
+
+        // Options > Config > Default
         val config = Config {
             addSpec(TokenSpec)
             addSpec(EnvSpec)
