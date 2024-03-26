@@ -3,8 +3,8 @@
 build
 
 store/
-stores/
 cache/
 data/
+logs/
+
 config.yml
-test.wav
