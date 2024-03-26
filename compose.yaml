@@ -3,4 +3,5 @@ services:
     build: .
     volumes:
       - ./data:/data
+      - ./logs:/app/logs
     init: true
