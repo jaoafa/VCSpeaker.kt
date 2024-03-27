@@ -133,6 +133,7 @@ class Main : CliktCommand() {
                     add(::VoiceMoveEvent)
                     add(::TitleResetEvent)
                     add(::SelfVoiceJoinEvent)
+                    add(::ReadyEvent)
                 }
             }
 
