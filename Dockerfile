@@ -24,6 +24,7 @@ WORKDIR /app
 RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig tzdata && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     echo "Asia/Tokyo" > /etc/timezone && \
+    apk del tzdata && \
     update-ms-fonts
 
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
