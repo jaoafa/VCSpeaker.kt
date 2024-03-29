@@ -34,6 +34,4 @@ ENV VCSKT_CACHE /data/cache/
 ENV GOOGLE_APPLICATION_CREDENTIALS /data/google-credential.json
 ENV TZ Asia/Tokyo
 
-RUN apk del tzdata
-
 CMD ["java", "-jar", "/app/vcspeaker-kt.jar"]
