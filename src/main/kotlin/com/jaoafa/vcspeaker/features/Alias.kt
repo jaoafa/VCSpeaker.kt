@@ -14,7 +14,7 @@ object Alias {
 
         suggestStringMap(
             AliasStore.data.filter { it.guildId == guildId }
-                .associate { "${it.type.displayName} / ${it.from} → ${it.to}" to it.from },
+                .associate { "${it.type.displayName} / ${it.search} → ${it.replace}" to it.search },
             FilterStrategy.Contains
         )
     }

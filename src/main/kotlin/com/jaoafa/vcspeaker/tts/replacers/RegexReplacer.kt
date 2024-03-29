@@ -11,6 +11,6 @@ object RegexReplacer : BaseReplacer {
 
     override suspend fun replace(text: String, guildId: Snowflake) =
         replaceText(text, guildId, AliasType.Regex) { alias, replacedText ->
-            replacedText.replace(Regex(alias.from), alias.to)
+            replacedText.replace(Regex(alias.search), alias.replace)
         }
 }

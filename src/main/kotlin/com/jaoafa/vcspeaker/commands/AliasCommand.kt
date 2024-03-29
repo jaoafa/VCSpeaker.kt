@@ -18,9 +18,12 @@ import com.kotlindiscord.kord.extensions.commands.application.slash.converters.i
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
+import com.kotlindiscord.kord.extensions.utils.capitalizeWords
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger { }
 
     inner class CreateOptions : Options() {
         val type by stringChoice {
@@ -30,13 +33,13 @@ class AliasCommand : Extension() {
                 choice(aliasType.displayName, aliasType.name)
         }
 
-        val from by string {
-            name = "from"
+        val search by string {
+            name = "search"
             description = "置き換える条件"
         }
 
-        val to by string {
-            name = "to"
+        val replace by string {
+            name = "replace"
             description = "置き換える文字列"
         }
     }
@@ -56,8 +59,8 @@ class AliasCommand : Extension() {
                 choice(aliasType.displayName, aliasType.name)
         }
 
-        val to by optionalString {
-            name = "to"
+        val replace by optionalString {
+            name = "replace"
             description = "置き換える文字列"
         }
     }
@@ -77,29 +80,39 @@ class AliasCommand : Extension() {
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
                     val type = AliasType.valueOf(arguments.type)
-                    val from = arguments.from
-                    val to = arguments.to
+                    val search = arguments.search
+                    val replace = arguments.replace
 
-                    val duplicate = AliasStore.find(guild!!.id, from)
-                    val oldTo = duplicate?.to
+                    val duplicate = AliasStore.find(guild!!.id, search)
+                    val isUpdate = duplicate != null
+                    val oldReplace = duplicate?.replace
 
                     if (duplicate != null) AliasStore.remove(duplicate)
 
-                    AliasStore.create(AliasData(guild!!.id, user.id, type, from, to))
+                    AliasStore.create(AliasData(guild!!.id, user.id, type, search, replace))
 
                     respondEmbed(
                         ":loudspeaker: Alias ${if (duplicate != null) "Updated" else "Created"}",
-                        "${type.displayName}のエイリアスを${if (duplicate != null) "更新" else "作成"}しました"
+                        "${type.displayName}のエイリアスを${if (isUpdate) "更新" else "作成"}しました"
                     ) {
                         authorOf(user)
 
-                        fieldAliasFrom(type, from)
+                        fieldAliasFrom(type, search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            if (duplicate != null) "$oldTo → **$to**" else to
+                            if (duplicate != null) "$oldReplace → **$replace**" else replace
                         }
 
                         successColor()
+                    }
+
+                    val username = user.asUser().username
+                    val verb = if (duplicate != null) "updated" else "created"
+                    val typeName = type.name.lowercase()
+
+                    logger.info {
+                        "Alias ${verb.capitalizeWords()}: @$username $verb $typeName alias that replaces \"$search\" to \"$replace\"" +
+                                if (isUpdate) " (updated from \"$oldReplace\")" else ""
                     }
                 }
             }
@@ -108,13 +121,19 @@ class AliasCommand : Extension() {
                 action {
                     val aliasData = AliasStore.find(guild!!.id, arguments.search)
                     if (aliasData != null) {
-                        val (_, _, type, from, to) = aliasData
+                        val (_, _, type, search, replace) = aliasData
 
                         val updatedType = arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: type
-                        val updatedTo = arguments.to ?: to
+                        val updatedReplace = arguments.replace ?: replace
 
                         AliasStore.remove(aliasData)
-                        AliasStore.create(aliasData.copy(userId = user.id, type = updatedType, to = updatedTo))
+                        AliasStore.create(
+                            aliasData.copy(
+                                userId = user.id,
+                                type = updatedType,
+                                replace = updatedReplace
+                            )
+                        )
 
                         respondEmbed(
                             ":repeat: Alias Updated",
@@ -122,13 +141,19 @@ class AliasCommand : Extension() {
                         ) {
                             authorOf(user)
 
-                            fieldAliasFrom(updatedType, from)
+                            fieldAliasFrom(updatedType, search)
 
                             field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                "$to → **${updatedTo}**"
+                                "$replace → **${updatedReplace}**"
                             }
 
                             successColor()
+                        }
+
+                        val username = user.asUser().username
+
+                        logger.info {
+                            "Alias Updated: @$username updated $type alias that replaces \"$search\" to \"$updatedReplace\" (updated from \"$replace\")"
                         }
                     } else {
                         respondEmbed(
@@ -137,6 +162,12 @@ class AliasCommand : Extension() {
                         ) {
                             authorOf(user)
                             errorColor()
+                        }
+
+                        val username = user.asUser().username
+
+                        logger.info {
+                            "Alias Not Found: @$username searched for alias contains \"${arguments.search}\" but not found"
                         }
                     }
                 }
@@ -149,7 +180,7 @@ class AliasCommand : Extension() {
                     if (aliasData != null) {
                         AliasStore.remove(aliasData)
 
-                        val (_, _, type, from, to) = aliasData
+                        val (_, _, type, search, replace) = aliasData
 
                         respondEmbed(
                             ":wastebasket: Alias Deleted",
@@ -157,13 +188,19 @@ class AliasCommand : Extension() {
                         ) {
                             authorOf(user)
 
-                            fieldAliasFrom(type, from)
+                            fieldAliasFrom(type, search)
 
                             field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                to
+                                replace
                             }
 
                             successColor()
+                        }
+
+                        val username = user.asUser().username
+
+                        logger.info {
+                            "Alias Deleted: @$username deleted $type alias that replaces \"$search\" to \"$replace\""
                         }
                     } else {
                         respondEmbed(
@@ -172,6 +209,12 @@ class AliasCommand : Extension() {
                         ) {
                             authorOf(user)
                             errorColor()
+                        }
+
+                        val username = user.asUser().username
+
+                        logger.info {
+                            "Alias Not Found: @$username searched for alias contains \"${arguments.search}\" but not found"
                         }
                     }
                 }

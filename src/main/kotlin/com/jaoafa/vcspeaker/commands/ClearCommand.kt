@@ -5,9 +5,11 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.kotlindiscord.kord.extensions.extensions.Extension
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ClearCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger { }
 
     override suspend fun setup() {
         publicSlashCommand("clear", "予定されているメッセージの読み上げを中止します。") {
@@ -21,6 +23,8 @@ class ClearCommand : Extension() {
                 narrator.queueSelf("読み上げを中止しました。")
 
                 respond("**:white_check_mark: 予定されていたメッセージの読み上げを中止しました。**")
+
+                logger.info { "All scheduled messages are cleared." }
             }
         }
 
@@ -35,6 +39,7 @@ class ClearCommand : Extension() {
                 narrator.queueSelf("読み上げを中止しました。")
 
                 respond("**:white_check_mark: 予定されていたメッセージの読み上げを中止しました。**")
+                logger.info { "All scheduled messages are cleared." }
             }
         }
     }

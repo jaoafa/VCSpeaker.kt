@@ -134,6 +134,7 @@ class Main : CliktCommand() {
                     add(::TitleResetEvent)
                     add(::SelfVoiceJoinEvent)
                     add(::ReadyEvent)
+                    add(::InteractionEvent)
                 }
             }
 
