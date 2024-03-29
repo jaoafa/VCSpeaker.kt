@@ -21,11 +21,9 @@ FROM azul/zulu-openjdk-alpine:17-latest as runner
 WORKDIR /app
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache libstdc++ msttcorefonts-installer fontconfig && \
-    update-ms-fonts && \
-    apk add --update --no-cache tzdata
-ENV TZ=Asia/Tokyo
-RUN apk del tzdata
+RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig tzdata && \
+    update-ms-fonts
+
 
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
 
@@ -33,5 +31,8 @@ ENV VCSKT_CONFIG /data/config.yml
 ENV VCSKT_STORE /data/store/
 ENV VCSKT_CACHE /data/cache/
 ENV GOOGLE_APPLICATION_CREDENTIALS /data/google-credential.json
+ENV TZ Asia/Tokyo
+
+RUN apk del tzdata
 
 CMD ["java", "-jar", "/app/vcspeaker-kt.jar"]
