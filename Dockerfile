@@ -22,8 +22,9 @@ WORKDIR /app
 
 # hadolint ignore=DL3018
 RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig tzdata && \
+    cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
+    echo "Asia/Tokyo" > /etc/timezone && \
     update-ms-fonts
-
 
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
 
