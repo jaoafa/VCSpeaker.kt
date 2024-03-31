@@ -92,7 +92,7 @@ class AliasCommand : Extension() {
                     AliasStore.create(AliasData(guild!!.id, user.id, type, search, replace))
 
                     respondEmbed(
-                        ":loudspeaker: Alias ${if (duplicate != null) "Updated" else "Created"}",
+                        ":loudspeaker: Alias ${if (isUpdate) "Updated" else "Created"}",
                         "${type.displayName}のエイリアスを${if (isUpdate) "更新" else "作成"}しました"
                     ) {
                         authorOf(user)
@@ -100,14 +100,14 @@ class AliasCommand : Extension() {
                         fieldAliasFrom(type, search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            if (duplicate != null) "$oldReplace → **$replace**" else replace
+                            if (isUpdate) "$oldReplace → **$replace**" else replace
                         }
 
                         successColor()
                     }
 
                     val username = user.asUser().username
-                    val verb = if (duplicate != null) "updated" else "created"
+                    val verb = if (isUpdate) "updated" else "created"
                     val typeName = type.name.lowercase()
 
                     logger.info {
