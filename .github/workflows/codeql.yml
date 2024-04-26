@@ -90,6 +90,5 @@ jobs:
       uses: github/codeql-action/analyze@v3
       env: 
         JAVA_OPTS: "-Xms128m -Xmx2G"  
-        
       with:
         category: "/language:${{matrix.language}}"
