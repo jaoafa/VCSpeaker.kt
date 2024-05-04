@@ -10,6 +10,7 @@ import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 
+@Suppress("unused")
 class SelfVoiceJoinEvent : Extension() {
     override val name = this::class.simpleName!!
 

@@ -1,10 +1,10 @@
 package com.jaoafa.vcspeaker.events
 
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -12,6 +12,7 @@ import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 
+@Suppress("unused")
 class VoiceLeaveEvent : Extension() {
     override val name = this::class.simpleName!!
 

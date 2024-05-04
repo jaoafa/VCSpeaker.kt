@@ -4,17 +4,20 @@ import com.jaoafa.vcspeaker.features.Title.resetTitle
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.count
 
+@Suppress("unused")
 class TitleResetEvent : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger {}
 
     override suspend fun setup() {
         event<VoiceStateUpdateEvent> {
@@ -33,10 +36,11 @@ class TitleResetEvent : Extension() {
 
                 val textChannel =
                     GuildStore[event.state.guildId]?.channelId?.asChannelOf<TextChannel>() ?: return@action
+                val voiceChannel = event.old?.getChannelOrNull()!!
 
                 textChannel.createEmbed {
                     title = ":broom: Title Reset"
-                    description = "${textChannel.mention} のタイトルはリセットされました。"
+                    description = "${voiceChannel.mention} のタイトルはリセットされました。"
 
                     authorOf(user)
 
@@ -50,6 +54,11 @@ class TitleResetEvent : Extension() {
 
                     successColor()
                 }
+
+                val guildName = event.state.getGuild().name
+                val voiceName = voiceChannel.name()
+
+                logger.info { "[$guildName] Title Reset: Title of $voiceName has been reset" }
             }
         }
     }

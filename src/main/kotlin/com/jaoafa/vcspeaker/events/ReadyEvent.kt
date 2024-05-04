@@ -5,6 +5,7 @@ import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.event.gateway.ReadyEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 
+@Suppress("unused")
 class ReadyEvent : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }

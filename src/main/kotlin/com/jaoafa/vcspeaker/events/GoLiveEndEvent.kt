@@ -7,9 +7,12 @@ import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.event.user.VoiceStateUpdateEvent
+import io.github.oshai.kotlinlogging.KotlinLogging
 
+@Suppress("unused")
 class GoLiveEndEvent : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger { }
 
     override suspend fun setup() {
         event<VoiceStateUpdateEvent> {
@@ -42,10 +45,13 @@ class GoLiveEndEvent : Extension() {
                 } else {
                     NarrationScripts.userEndGoLiveOtherChannel(member, channelGoLiveEnded)
                 }
+
                 guild.announce(
                     voice = voice,
                     text = ":satellite: `@${member.username}` が ${channelGoLiveEnded.mention} で GoLive を終了しました。"
                 )
+
+                logger.info { "[${guild.name}] GoLive Stopped: @${member.username} Stopped GoLive-ing" }
             }
         }
     }
