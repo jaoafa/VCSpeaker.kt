@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import com.jaoafa.vcspeaker.tts.SpeakInfo
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
@@ -18,6 +19,7 @@ import dev.kord.core.behavior.channel.connect
 import dev.kord.core.behavior.reply
 import dev.kord.rest.builder.message.embed
 import dev.kord.voice.AudioFrame
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import java.rmi.UnexpectedException
 import java.util.concurrent.TimeUnit
@@ -25,6 +27,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 object VoiceExtensions {
+    private val logger = KotlinLogging.logger { }
+
     /**
      * VoiceChannel に接続します。
      *
@@ -55,6 +59,13 @@ object VoiceExtensions {
             replier
         )
 
+        val name = name()
+        val guildName = guild.asGuild().name
+
+        logger.info {
+            "[$guildName] Joined: Joined to $name"
+        }
+
         return narrator
     }
 
@@ -78,6 +89,13 @@ object VoiceExtensions {
             "**:loudspeaker: $mention に移動しました。**",
             replier
         )
+
+        val name = name()
+        val guildName = guild.asGuild().name
+
+        logger.info {
+            "[$guildName] Moved: Moved to $name"
+        }
 
         return narrator
     }
@@ -107,6 +125,13 @@ object VoiceExtensions {
             "**:wave: $mention から退出しました。**",
             replier
         )
+
+        val name = name()
+        val guildName = guild.asGuild().name
+
+        logger.info {
+            "[$guildName] Left: Left from $name"
+        }
     }
 
     suspend fun AudioPlayer.speak(info: SpeakInfo) {

@@ -146,7 +146,7 @@ object DiscordExtensions {
      * @param member 対象のメンバー
      * @param onFailure エラーメッセージの返信処理 (it にはエラーメッセージが入ります)
      */
-    suspend fun Channel?.orFallbackOf(member: MemberBehavior, onFailure: suspend (String) -> Unit) =
+    suspend fun Channel?.orFallbackTo(member: MemberBehavior, onFailure: suspend (String) -> Unit) =
         this?.asChannelOf<VoiceChannel>() ?: member.getVoiceStateOrNull()?.getChannelOrNull() ?: run {
             onFailure("**:question: VC に参加、または指定してください。**")
             null
@@ -177,4 +177,6 @@ object DiscordExtensions {
         ChannelType.PublicGuildThread,
         ChannelType.PublicNewsThread
     ).contains(type)
+
+    suspend fun UserBehavior.getUsername() = this.asUser().username
 }

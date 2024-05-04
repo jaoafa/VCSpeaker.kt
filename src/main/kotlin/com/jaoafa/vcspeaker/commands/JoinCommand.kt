@@ -2,21 +2,26 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.tools.discord.ChatCommandExtensions.chatCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackTo
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
+import com.kotlindiscord.kord.extensions.checks.anyGuild
+import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
+import io.github.oshai.kotlinlogging.KotlinLogging
 
+@Suppress("unused")
 class JoinCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger { }
 
     inner class JoinOptions : Options() {
         val channel by optionalChannel {
@@ -33,6 +38,11 @@ class JoinCommand : Extension() {
     ) {
         if (channel.isAfk()) {
             replier("**:zzz: AFK チャンネルには接続できません。**")
+
+            logger.info {
+                "Join Failed: Join request to AFK channel rejected."
+            }
+
             return
         }
 
@@ -44,9 +54,10 @@ class JoinCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("join", "VC に接続します。", ::JoinOptions) {
+            check { anyGuild() }
             action {
                 // option > member's voice channel > error
-                val channel = arguments.channel.orFallbackOf(member!!) {
+                val channel = arguments.channel.orFallbackTo(member!!) {
                     respond(it)
                 } ?: return@action
 
@@ -59,6 +70,10 @@ class JoinCommand : Extension() {
         chatCommand("join", "VC に接続します。") {
             aliases += "summon"
 
+            check {
+                anyGuild()
+                isNotBot()
+            }
             action {
                 val channel = member!!.getVoiceStateOrNull()?.getChannelOrNull() ?: run {
                     respond("**:question: VC に参加してください。**")

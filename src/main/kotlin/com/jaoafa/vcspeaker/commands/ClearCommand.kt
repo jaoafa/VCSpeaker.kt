@@ -2,17 +2,22 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.tools.discord.ChatCommandExtensions.chatCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.kotlindiscord.kord.extensions.checks.anyGuild
+import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
 
+@Suppress("unused")
 class ClearCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
 
     override suspend fun setup() {
         publicSlashCommand("clear", "予定されているメッセージの読み上げを中止します。") {
+            check { anyGuild() }
             action {
                 val narrator = guild?.narrator() ?: run {
                     respond("**:question: VC に参加していません。**")
@@ -24,11 +29,15 @@ class ClearCommand : Extension() {
 
                 respond("**:white_check_mark: 予定されていたメッセージの読み上げを中止しました。**")
 
-                logger.info { "All scheduled messages are cleared." }
+                log(logger) { guild, user -> "[${guild.name}] All scheduled messages are cleared by @${user.username}." }
             }
         }
 
         chatCommand("clear", "予定されているメッセージの読み上げを中止します。") {
+            check {
+                anyGuild()
+                isNotBot()
+            }
             action {
                 val narrator = guild?.narrator() ?: run {
                     respond("**:question: VC に参加していません。**")
@@ -39,7 +48,8 @@ class ClearCommand : Extension() {
                 narrator.queueSelf("読み上げを中止しました。")
 
                 respond("**:white_check_mark: 予定されていたメッセージの読み上げを中止しました。**")
-                logger.info { "All scheduled messages are cleared." }
+
+                log(logger) { guild, user -> "[${guild.name}] All scheduled messages are cleared by @${user.username}." }
             }
         }
     }

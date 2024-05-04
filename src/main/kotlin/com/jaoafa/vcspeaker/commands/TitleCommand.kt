@@ -3,19 +3,24 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.features.Title.getTitleData
 import com.jaoafa.vcspeaker.features.Title.setTitle
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackTo
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
+import io.github.oshai.kotlinlogging.KotlinLogging
 
+@Suppress("unused")
 class TitleCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger {}
 
     inner class TitleOptions : Options() {
         val title by string {
@@ -34,9 +39,10 @@ class TitleCommand : Extension() {
     // todo emoji detection
     override suspend fun setup() {
         publicSlashCommand("title", "タイトルを設定します。", ::TitleOptions) {
+            check { anyGuild() }
             action {
                 val title = arguments.title
-                val channel = arguments.channel.orFallbackOf(member!!) {
+                val channel = arguments.channel.orFallbackTo(member!!) {
                     respond(it)
                 } ?: return@action
 
@@ -61,6 +67,12 @@ class TitleCommand : Extension() {
                     }
 
                     successColor()
+                }
+
+                val channelName = channel.asChannel().name
+
+                log(logger) { guild, user ->
+                    "[${guild.name}] Title Set: Title set by @${user.username} in $channelName to \"$title\""
                 }
             }
         }

@@ -9,10 +9,12 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.kotlindiscord.kord.extensions.annotations.AlwaysPublicResponse
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
@@ -21,6 +23,7 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.capitalizeWords
 import io.github.oshai.kotlinlogging.KotlinLogging
 
+@Suppress("unused")
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
@@ -77,6 +80,7 @@ class AliasCommand : Extension() {
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("alias", "エイリアスを設定します。") {
+            check { anyGuild() }
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
                     val type = AliasType.valueOf(arguments.type)
@@ -106,12 +110,11 @@ class AliasCommand : Extension() {
                         successColor()
                     }
 
-                    val username = user.asUser().username
                     val verb = if (isUpdate) "updated" else "created"
                     val typeName = type.name.lowercase()
 
-                    logger.info {
-                        "Alias ${verb.capitalizeWords()}: @$username $verb $typeName alias that replaces \"$search\" to \"$replace\"" +
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Alias ${verb.capitalizeWords()}: @${user.username} $verb $typeName alias that replaces \"$search\" to \"$replace\"" +
                                 if (isUpdate) " (updated from \"$oldReplace\")" else ""
                     }
                 }
@@ -150,10 +153,8 @@ class AliasCommand : Extension() {
                             successColor()
                         }
 
-                        val username = user.asUser().username
-
-                        logger.info {
-                            "Alias Updated: @$username updated $type alias that replaces \"$search\" to \"$updatedReplace\" (updated from \"$replace\")"
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Alias Updated: @${user.username} updated $type alias that replaces \"$search\" to \"$updatedReplace\" (updated from \"$replace\")"
                         }
                     } else {
                         respondEmbed(
@@ -164,10 +165,8 @@ class AliasCommand : Extension() {
                             errorColor()
                         }
 
-                        val username = user.asUser().username
-
-                        logger.info {
-                            "Alias Not Found: @$username searched for alias contains \"${arguments.search}\" but not found"
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Alias Not Found: @${user.username} searched for alias contains \"${arguments.search}\" but not found"
                         }
                     }
                 }
@@ -199,8 +198,8 @@ class AliasCommand : Extension() {
 
                         val username = user.asUser().username
 
-                        logger.info {
-                            "Alias Deleted: @$username deleted $type alias that replaces \"$search\" to \"$replace\""
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Alias Deleted: @${user.username} deleted $type alias that replaces \"$search\" to \"$replace\""
                         }
                     } else {
                         respondEmbed(
@@ -211,10 +210,8 @@ class AliasCommand : Extension() {
                             errorColor()
                         }
 
-                        val username = user.asUser().username
-
-                        logger.info {
-                            "Alias Not Found: @$username searched for alias contains \"${arguments.search}\" but not found"
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Alias Not Found: @${user.username} searched for alias contains \"${arguments.search}\" but not found"
                         }
                     }
                 }
