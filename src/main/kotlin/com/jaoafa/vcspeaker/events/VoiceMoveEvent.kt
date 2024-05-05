@@ -1,11 +1,12 @@
 package com.jaoafa.vcspeaker.events
 
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
-import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
+import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -23,12 +24,14 @@ class VoiceMoveEvent : Extension() {
             // target channel is set
             // user moved from one to another voice channel
             check {
-                failIf(event.state.getMember().isBot)
+                // Bot自身の場合は無視
+                failIf(event.state.getMember().id == VCSpeaker.kord.selfId)
 
+                // サーバー設定が存在しない場合は無視
                 val settings = GuildStore.getOrDefault(event.state.guildId)
-
                 failIf(settings.channelId == null)
 
+                // ボイスチャンネル移動時のみ
                 val channelJoined = event.state.getChannelOrNull()
                 val channelLeft = event.old?.getChannelOrNull()
 
@@ -39,6 +42,7 @@ class VoiceMoveEvent : Extension() {
             action {
                 val guild = event.state.getGuildOrNull() ?: return@action // checked
                 val member = event.state.getMember()
+                val isOnlyMessage = member.isBot
                 val channelJoined = event.state.getChannelOrNull() ?: return@action // checked
                 val channelLeft = event.old?.getChannelOrNull() ?: return@action // checked
 
@@ -56,7 +60,8 @@ class VoiceMoveEvent : Extension() {
 
                     guild.announce(
                         voice = NarrationScripts.userAfk(member),
-                        text = ":zzz: `@${member.username}` が AFK になりました。"
+                        text = ":zzz: `@${member.username}` が AFK になりました。",
+                        isOnlyMessage = isOnlyMessage
                     )
 
                     return@action
@@ -67,7 +72,8 @@ class VoiceMoveEvent : Extension() {
                     guild.announce(
                         voice = if (channelJoined == selfChannel) NarrationScripts.userAfkReturned(member)
                         else NarrationScripts.userAfkReturnedOtherChannel(member, channelJoined),
-                        text = ":arrow_right: `@${member.username}` が AFK から ${channelJoined.mention} へ戻りました。"
+                        text = ":arrow_right: `@${member.username}` が AFK から ${channelJoined.mention} へ戻りました。",
+                        isOnlyMessage = isOnlyMessage
                     )
 
                     return@action
@@ -84,7 +90,8 @@ class VoiceMoveEvent : Extension() {
                 guild.announce(
                     voice = if (channelJoined == selfChannel) NarrationScripts.userJoined(member)
                     else NarrationScripts.userJoinedOtherChannel(member, channelJoined),
-                    text = ":arrow_right: `@${member.username}` が ${channelLeft.mention} から ${channelJoined.mention} へ移動しました。"
+                    text = ":arrow_right: `@${member.username}` が ${channelLeft.mention} から ${channelJoined.mention} へ移動しました。",
+                    isOnlyMessage = isOnlyMessage
                 )
             }
         }
