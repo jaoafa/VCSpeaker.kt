@@ -39,8 +39,10 @@ class JoinCommand : Extension() {
         if (channel.isAfk()) {
             replier("**:zzz: AFK チャンネルには接続できません。**")
 
+            val guildName = guild.asGuildOrNull()?.name
+
             logger.info {
-                "Join Failed: Join request to AFK channel rejected."
+                "[$guildName] Join Failed: Join request to AFK channel rejected."
             }
 
             return

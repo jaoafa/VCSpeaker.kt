@@ -25,7 +25,7 @@ class ClearCommand : Extension() {
                 }
 
                 narrator.clear()
-                narrator.queueSelf("読み上げを中止しました。")
+                narrator.scheduleAsSystem("読み上げを中止しました。")
 
                 respond("**:white_check_mark: 予定されていたメッセージの読み上げを中止しました。**")
 
@@ -45,7 +45,7 @@ class ClearCommand : Extension() {
                 }
 
                 narrator.clear()
-                narrator.queueSelf("読み上げを中止しました。")
+                narrator.scheduleAsSystem("読み上げを中止しました。")
 
                 respond("**:white_check_mark: 予定されていたメッセージの読み上げを中止しました。**")
 

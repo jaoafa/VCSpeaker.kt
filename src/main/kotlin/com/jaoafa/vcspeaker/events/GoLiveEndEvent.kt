@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.calculateGoLiveRate
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
@@ -46,9 +47,12 @@ class GoLiveEndEvent : Extension() {
                     NarrationScripts.userEndGoLiveOtherChannel(member, channelGoLiveEnded)
                 }
 
+                val goLiveRate = channelGoLiveEnded.calculateGoLiveRate()
+
                 guild.announce(
                     voice = voice,
                     text = ":satellite: `@${member.username}` が ${channelGoLiveEnded.mention} で GoLive を終了しました。"
+                            + if (goLiveRate > 0) " (GoLive 率: $goLiveRate%)" else ""
                 )
 
                 logger.info { "[${guild.name}] GoLive Stopped: @${member.username} Stopped GoLive-ing" }

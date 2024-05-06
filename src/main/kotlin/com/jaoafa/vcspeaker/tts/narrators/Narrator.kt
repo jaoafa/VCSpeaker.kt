@@ -8,6 +8,7 @@ import com.jaoafa.vcspeaker.tts.MessageProcessor.processMessage
 import com.jaoafa.vcspeaker.tts.Scheduler
 import com.jaoafa.vcspeaker.tts.TextProcessor.extractInlineVoice
 import com.jaoafa.vcspeaker.tts.TextProcessor.processText
+import com.jaoafa.vcspeaker.tts.TrackType
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.kotlindiscord.kord.extensions.utils.addReaction
@@ -49,7 +50,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
                 channel?.createMessage(text)
             }
 
-            narrator()?.queueSelf(voice)
+            narrator()?.scheduleAsSystem(voice)
         }
     }
 
@@ -60,16 +61,26 @@ class Narrator @OptIn(KordVoice::class) constructor(
      *
      * @param text 読み上げる文章
      */
-    suspend fun queueSelf(text: String) =
-        queue(text = text, voice = GuildStore.getOrDefault(guildId).voice)
+    suspend fun scheduleAsSystem(text: String) =
+        schedule(
+            text = text,
+            voice = GuildStore.getOrDefault(guildId).voice,
+            guild = VCSpeaker.kord.getGuild(guildId),
+            type = TrackType.System
+        )
 
     /**
      * ユーザーの発言としてメッセージをキューに追加します。
      *
      * @param message 読み上げるメッセージ
      */
-    suspend fun queueUser(message: Message) =
-        queue(message = message, voice = VoiceStore.byIdOrDefault(message.author!!.id))
+    suspend fun scheduleAsUser(message: Message) =
+        schedule(
+            message = message,
+            voice = VoiceStore.byIdOrDefault(message.author!!.id),
+            guild = message.getGuild(),
+            type = TrackType.User
+        )
 
     /**
      * 読み上げをキューに追加します。
@@ -78,7 +89,13 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * @param text 読み上げる文章
      * @param voice 読み上げに使用する音声
      */
-    private suspend fun queue(message: Message? = null, text: String? = null, voice: Voice) {
+    private suspend fun schedule(
+        message: Message? = null,
+        text: String? = null,
+        voice: Voice,
+        guild: Guild,
+        type: TrackType
+    ) {
         val content = processMessage(message) ?: text ?: return
 
         // extract inline voice
@@ -93,7 +110,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             message?.addReaction("👀")
         }
 
-        scheduler.queue(message, replacedText, inlineVoice)
+        scheduler.queue(message, replacedText, inlineVoice, guild, type)
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.deleteOwnReaction("👀")

@@ -23,7 +23,7 @@ class SpeakCommand : Extension() {
         publicSlashCommand("speak", "VCSpeaker として文章を読み上げます (デバッグ用)", ::SpeakOptions) {
             check { anyGuild() }
             action {
-                guild?.narrator()?.queueSelf(arguments.text)
+                guild?.narrator()?.scheduleAsSystem(arguments.text)
                 respond(arguments.text)
             }
         }

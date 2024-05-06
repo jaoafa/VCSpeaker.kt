@@ -10,19 +10,27 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import dev.kord.core.behavior.reply
+import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class Scheduler(
     private val player: AudioPlayer
 ) : AudioEventAdapter() {
+    private val logger = KotlinLogging.logger { }
+
     val queue = mutableListOf<SpeakInfo>()
     var now: SpeakInfo? = null
 
-    suspend fun queue(message: Message? = null, text: String, voice: Voice) {
+    suspend fun queue(
+        message: Message? = null, text: String, voice: Voice, guild: Guild, type: TrackType
+    ) {
+        val guildName = guild.name
+
         val file = if (!CacheStore.exists(text, voice)) {
             val audio = try {
                 VCSpeaker.voicetext.generateSpeech(text, voice)
@@ -36,11 +44,22 @@ class Scheduler(
                             「${message.content}」はよくわからない文字列ではありませんか？
                         """.trimIndent()
 
+                        field("Exception") {
+                            "```\n${exception.message ?: "不明"}\n```"
+                        }
+
                         errorColor()
                     }
                 }
 
-                exception.printStackTrace()
+                val messageInfo = when (type) {
+                    TrackType.System -> "the system message \"$text\""
+                    TrackType.User -> "the message \"$text\" by @${message?.author?.username ?: "unknown_member"}"
+                }
+
+                logger.error(exception) {
+                    "[$guildName] Failed to Generate Speech: Audio generation for $messageInfo failed."
+                }
 
                 return
             }
@@ -48,12 +67,24 @@ class Scheduler(
             CacheStore.create(text, voice, audio)
         } else CacheStore.read(text, voice)!!
 
-        val info = SpeakInfo(message, voice, file)
+        val info = SpeakInfo(message, guild, text, voice, file, type)
+
+        val messageInfo = info.getMessageLogInfo()
 
         if (queue.isEmpty() && now == null) {
             now = info
             speak(info)
-        } else queue.add(info)
+
+            logger.info {
+                "[$guildName] First Track Starting: Queue is empty. Audio track for $messageInfo skipped queue."
+            }
+        } else {
+            queue.add(info)
+
+            logger.info {
+                "[$guildName] Track Queued: Audio track for $messageInfo has been queued. Waiting for ${queue.size} track(s) to finish playing."
+            }
+        }
     }
 
     suspend fun skip() {
@@ -69,14 +100,28 @@ class Scheduler(
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
         runBlocking {
+            val info = track.userData as SpeakInfo
+            val message = info.message
+            val guildName = info.guild.name
+
             launch {
-                (track.userData as SpeakInfo).message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
+                message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
             }
 
             if (endReason.mayStartNext && queue.isNotEmpty()) {
                 now = queue.removeFirst()
                 launch { speak(now!!) }
-            } else now = null
+
+                logger.info {
+                    "[$guildName] Next Track Starting: Audio track for ${info.getMessageLogInfo()} popped out from the queue."
+                }
+            } else {
+                now = null
+
+                logger.info {
+                    "[$guildName] Playing Track Finished: All tracks have been played. Waiting for the next track..."
+                }
+            }
         }
 
     private suspend fun speak(info: SpeakInfo): Unit = runBlocking {

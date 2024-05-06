@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.calculateGoLiveRate
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
@@ -43,9 +44,12 @@ class GoLiveStartEvent : Extension() {
                     NarrationScripts.userStartGoLiveOtherChannel(member, channelGoLiveStarted)
                 }
 
+                val goLiveRate = channelGoLiveStarted.calculateGoLiveRate()
+
                 guild.announce(
                     voice = voice,
                     text = ":satellite: `@${member.username}` が ${channelGoLiveStarted.mention} で GoLive を開始しました。"
+                            + if (goLiveRate > 0) " (GoLive 率: $goLiveRate%)" else ""
                 )
 
                 logger.info { "[${guild.name}] GoLive Started: @${member.username} Started GoLive-ing" }

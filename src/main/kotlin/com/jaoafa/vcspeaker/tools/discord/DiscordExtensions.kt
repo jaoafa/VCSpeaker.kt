@@ -23,6 +23,8 @@ import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
 import dev.kord.rest.builder.message.embed
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.filterNot
 
 typealias Options = Arguments
 
@@ -178,5 +180,10 @@ object DiscordExtensions {
         ChannelType.PublicNewsThread
     ).contains(type)
 
-    suspend fun UserBehavior.getUsername() = this.asUser().username
+    suspend fun BaseVoiceChannelBehavior.calculateGoLiveRate(): Int {
+        val states = voiceStates.filterNot { it.getMember().isBot }
+        val goLiveMemberCount = states.count { it.isSelfStreaming }
+        val memberCount = states.count()
+        return (goLiveMemberCount.toDouble() / memberCount * 100).toInt()
+    }
 }
