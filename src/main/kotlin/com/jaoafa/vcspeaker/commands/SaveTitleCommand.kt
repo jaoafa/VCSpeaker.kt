@@ -18,7 +18,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class SaveTitleCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }

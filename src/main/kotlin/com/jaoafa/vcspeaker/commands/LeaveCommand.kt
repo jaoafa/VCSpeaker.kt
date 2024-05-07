@@ -10,7 +10,6 @@ import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
 
-@Suppress("unused")
 class LeaveCommand : Extension() {
     override val name = this::class.simpleName!!
 

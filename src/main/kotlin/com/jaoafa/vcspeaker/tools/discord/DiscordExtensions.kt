@@ -180,6 +180,9 @@ object DiscordExtensions {
         ChannelType.PublicNewsThread
     ).contains(type)
 
+    /**
+     * VC の GoLive 率を計算します。
+     */
     suspend fun BaseVoiceChannelBehavior.calculateGoLiveRate(): Int {
         val states = voiceStates.filterNot { it.getMember().isBot }
         val goLiveMemberCount = states.count { it.isSelfStreaming }

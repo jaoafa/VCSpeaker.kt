@@ -8,7 +8,6 @@ import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 
-@Suppress("unused")
 class SpeakCommand : Extension() {
     override val name = this::class.simpleName!!
 

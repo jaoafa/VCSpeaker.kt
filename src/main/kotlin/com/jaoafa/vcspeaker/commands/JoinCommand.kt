@@ -18,7 +18,6 @@ import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class JoinCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }

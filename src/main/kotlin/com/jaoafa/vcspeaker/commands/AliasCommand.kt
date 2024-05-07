@@ -23,7 +23,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.capitalizeWords
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }

@@ -20,7 +20,7 @@ object TextProcessor {
     private fun String.shouldIgnoreOn(guildId: Snowflake) =
         IgnoreStore.filter(guildId).any {
             when (it.type) {
-                IgnoreType.Matches -> this == it.text
+                IgnoreType.Equals -> this == it.text
                 IgnoreType.Contains -> contains(it.text)
             }
         }

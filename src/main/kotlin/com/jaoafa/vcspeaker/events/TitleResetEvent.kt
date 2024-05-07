@@ -14,7 +14,6 @@ import dev.kord.core.event.user.VoiceStateUpdateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.count
 
-@Suppress("unused")
 class TitleResetEvent : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger {}

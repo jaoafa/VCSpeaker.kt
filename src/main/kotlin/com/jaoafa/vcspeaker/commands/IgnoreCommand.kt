@@ -20,7 +20,6 @@ import com.kotlindiscord.kord.extensions.utils.FilterStrategy
 import com.kotlindiscord.kord.extensions.utils.suggestStringCollection
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class IgnoreCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }

@@ -17,6 +17,7 @@ import dev.kord.rest.builder.message.embed
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.system.measureTimeMillis
 
 class Scheduler(
     private val player: AudioPlayer
@@ -31,9 +32,16 @@ class Scheduler(
     ) {
         val guildName = guild.name
 
+        val messageInfo = "the message by @${message?.author?.username ?: "unknown_member"}"
+
         val file = if (!CacheStore.exists(text, voice)) {
-            val audio = try {
-                VCSpeaker.voicetext.generateSpeech(text, voice)
+            val downloadTime: Long
+
+            val audio: ByteArray
+            try {
+                downloadTime = measureTimeMillis {
+                    audio = VCSpeaker.voicetext.generateSpeech(text, voice)
+                }
             } catch (exception: Exception) {
                 message?.reply {
                     embed {
@@ -52,24 +60,32 @@ class Scheduler(
                     }
                 }
 
-                val messageInfo = when (type) {
+                val messageInfoDetail = when (type) {
                     TrackType.System -> "the system message \"$text\""
                     TrackType.User -> "the message \"$text\" by @${message?.author?.username ?: "unknown_member"}"
                 }
 
                 logger.error(exception) {
-                    "[$guildName] Failed to Generate Speech: Audio generation for $messageInfo failed."
+                    "[$guildName] Failed to Generate Speech: Audio generation for $messageInfoDetail failed."
                 }
 
                 return
             }
 
+            logger.info {
+                "[$guildName] Audio Downloaded: Audio for $messageInfo has been downloaded in $downloadTime ms."
+            }
+
             CacheStore.create(text, voice, audio)
-        } else CacheStore.read(text, voice)!!
+        } else {
+            logger.info {
+                "[$guildName] Audio Found: Audio for $messageInfo has been found in the cache."
+            }
+
+            CacheStore.read(text, voice)!!
+        }
 
         val info = SpeakInfo(message, guild, text, voice, file, type)
-
-        val messageInfo = info.getMessageLogInfo()
 
         if (queue.isEmpty() && now == null) {
             now = info

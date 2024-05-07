@@ -14,7 +14,6 @@ import com.kotlindiscord.kord.extensions.utils.respond
 import dev.kord.core.event.message.MessageCreateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class NewMessageEvent : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
@@ -47,7 +46,7 @@ class NewMessageEvent : Extension() {
 
                 if (message.content.startsWith(VCSpeaker.prefix)) return@action
 
-                guild.narrator()?.scheduleAsUser(message) // Not bot
+                guild.narrator()?.scheduleAsUser(message)
 
                 logger.info {
                     "[${guild.name}] Message Received: Adding the message by @${message.author?.username} to the queue."

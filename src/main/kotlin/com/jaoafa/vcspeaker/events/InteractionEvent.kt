@@ -6,7 +6,6 @@ import dev.kord.common.entity.InteractionType
 import dev.kord.core.event.interaction.InteractionCreateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class InteractionEvent : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }

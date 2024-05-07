@@ -16,7 +16,6 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class VoiceCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger {}

@@ -13,7 +13,6 @@ import com.kotlindiscord.kord.extensions.extensions.event
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 
-@Suppress("unused")
 class VoiceJoinEvent : Extension() {
     override val name = this::class.simpleName!!
 

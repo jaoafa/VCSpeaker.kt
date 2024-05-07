@@ -25,7 +25,6 @@ import dev.kord.core.entity.channel.TextChannel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.system.exitProcess
 
-@Suppress("unused")
 class VCSpeakerCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger {}

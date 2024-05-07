@@ -10,7 +10,6 @@ import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-@Suppress("unused")
 class ClearCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
