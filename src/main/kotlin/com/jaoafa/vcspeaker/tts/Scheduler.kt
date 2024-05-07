@@ -129,7 +129,7 @@ class Scheduler(
                 launch { speak(now!!) }
 
                 logger.info {
-                    "[$guildName] Next Track Starting: Audio track for ${info.getMessageLogInfo()} popped out from the queue."
+                    "[$guildName] Next Track Starting: Audio track for ${info.getMessageLogInfo()} has been retrieved from the queue."
                 }
             } else {
                 now = null

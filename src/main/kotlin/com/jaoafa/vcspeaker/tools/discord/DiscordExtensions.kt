@@ -6,10 +6,12 @@ import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
 import com.kotlindiscord.kord.extensions.commands.chat.ChatCommandContext
 import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
+import com.kotlindiscord.kord.extensions.utils.hasPermission
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
+import dev.kord.common.entity.Permission
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.MemberBehavior
@@ -24,7 +26,7 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
 import dev.kord.rest.builder.message.embed
 import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.filter
 
 typealias Options = Arguments
 
@@ -184,9 +186,14 @@ object DiscordExtensions {
      * VC の GoLive 率を計算します。
      */
     suspend fun BaseVoiceChannelBehavior.calculateGoLiveRate(): Int {
-        val states = voiceStates.filterNot { it.getMember().isBot }
+        val states = voiceStates.filter { !it.getMember().isBot && it.getMember().hasPermission(Permission.Stream) }
         val goLiveMemberCount = states.count { it.isSelfStreaming }
         val memberCount = states.count()
-        return (goLiveMemberCount.toDouble() / memberCount * 100).toInt()
+
+        return if (memberCount == 0) {
+            0
+        } else {
+            (goLiveMemberCount.toDouble() / memberCount * 100).toInt()
+        }
     }
 }
