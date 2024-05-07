@@ -91,7 +91,7 @@ class AliasCommand : Extension() {
                     val isUpdate = duplicate != null
                     val oldReplace = duplicate?.replace
 
-                    if (duplicate != null) AliasStore.remove(duplicate)
+                    if (isUpdate) AliasStore.remove(duplicate)
 
                     AliasStore.create(AliasData(guild!!.id, user.id, type, search, replace))
 
