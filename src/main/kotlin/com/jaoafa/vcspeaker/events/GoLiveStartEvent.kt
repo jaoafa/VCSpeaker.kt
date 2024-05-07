@@ -51,7 +51,7 @@ class GoLiveStartEvent : Extension() {
                             + if (goLiveRate > 0) " (GoLive 率: $goLiveRate%)" else ""
                 )
 
-                logger.info { "[${guild.name}] GoLive Started: @${member.username} Started GoLive-ing" }
+                logger.info { "[${guild.name}] GoLive Started: @${member.username} Started GoLive (GoLive Rate: $goLiveRate%)" }
             }
         }
     }

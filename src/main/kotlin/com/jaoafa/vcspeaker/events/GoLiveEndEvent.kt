@@ -54,7 +54,7 @@ class GoLiveEndEvent : Extension() {
                             + if (goLiveRate > 0) " (GoLive 率: $goLiveRate%)" else ""
                 )
 
-                logger.info { "[${guild.name}] GoLive Stopped: @${member.username} Stopped GoLive-ing" }
+                logger.info { "[${guild.name}] GoLive Stopped: @${member.username} Stopped GoLive (GoLive Rate: $goLiveRate%)" }
             }
         }
     }
