@@ -10,8 +10,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -69,7 +69,7 @@ class TitleCommand : Extension() {
                     successColor()
                 }
                 
-                guild?.narrator()?.queueSelf("タイトルを「$title」に変更しました。")
+                guild?.narrator()?.scheduleAsSystem("タイトルを「$title」に変更しました。")
                 val channelName = channel.asChannel().name
 
                 log(logger) { guild, user ->
