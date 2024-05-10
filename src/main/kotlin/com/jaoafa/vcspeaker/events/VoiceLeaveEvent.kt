@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.events
 
+import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
@@ -21,15 +22,21 @@ class VoiceLeaveEvent : Extension() {
             // target channel is set
             // user left a voice channel
             check {
-                failIf(event.state.getMember().isBot)
+                // Bot自身の場合は無視
+                failIf(event.state.getMember().id == VCSpeaker.kord.selfId)
+
+                // サーバー設定が存在しない場合は無視
                 val settings = GuildStore.getOrDefault(event.state.guildId)
                 failIf(settings.channelId == null)
+
+                // ボイスチャンネル退出時のみ
                 failIf(event.old?.getChannelOrNull() == null || event.state.getChannelOrNull() != null)
             }
 
             action {
                 val guild = event.state.getGuildOrNull() ?: return@action // checked
                 val member = event.state.getMember()
+                val isOnlyMessage = member.isBot
                 val channelLeft = event.old?.getChannelOrNull() ?: return@action // checked
 
                 val selfChannel = guild.selfVoiceChannel()
@@ -41,7 +48,8 @@ class VoiceLeaveEvent : Extension() {
                 if (channelLeft.isAfk()) {
                     guild.announce(
                         voice = NarrationScripts.userLeftOtherChannel(event.state.getMember(), channelLeft),
-                        text = ":outbox_tray: `@${member.username}` が AFK から退出しました。"
+                        text = ":outbox_tray: `@${member.username}` が AFK から退出しました。",
+                        isOnlyMessage = isOnlyMessage
                     )
                     return@action
                 }
@@ -56,7 +64,8 @@ class VoiceLeaveEvent : Extension() {
                 guild.announce(
                     voice = if (channelLeft == selfChannel) NarrationScripts.userLeft(member)
                     else NarrationScripts.userLeftOtherChannel(member, channelLeft),
-                    text = ":outbox_tray: `@${member.username}` が ${channelLeft.mention} から退出しました。"
+                    text = ":outbox_tray: `@${member.username}` が ${channelLeft.mention} から退出しました。",
+                    isOnlyMessage = isOnlyMessage
                 )
             }
         }

@@ -41,7 +41,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
         suspend fun Guild.announce(
             voice: String,
             text: String,
-            replier: (suspend (String) -> Unit)? = null
+            replier: (suspend (String) -> Unit)? = null,
+            isOnlyMessage: Boolean = false,
         ) {
             if (replier != null) {
                 replier(text)
@@ -50,7 +51,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
                 channel?.createMessage(text)
             }
 
-            narrator()?.scheduleAsSystem(voice)
+            if (!isOnlyMessage)
+                narrator()?.scheduleAsSystem(voice)
         }
     }
 

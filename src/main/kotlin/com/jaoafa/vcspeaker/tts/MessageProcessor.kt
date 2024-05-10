@@ -51,6 +51,10 @@ object MessageProcessor {
             return "添付ファイル ${firstAttachment.filename} $moreFileRead"
         }
 
+        if (!File(System.getenv("GOOGLE_APPLICATION_CREDENTIALS")).exists()) {
+            return "画像ファイル ${firstAttachment.filename} $moreFileRead"
+        }
+
         // 画像解析を行う
         val binaryArray = firstAttachment.download()
         try {

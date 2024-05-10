@@ -33,19 +33,32 @@ object Twitter {
         return when (response.status) {
             HttpStatusCode.OK -> {
                 val json: TwitterOEmbedResponse = response.body()
+                val plainText = Source(json.html.replace("<a.*>(.*)</a>", ""))
+                    .getFirstElement("p")
+                    .renderer
+                    .setMaxLineLength(Integer.MAX_VALUE)
+                    .setNewLine(null)
+                    .toString()
+                val readText = getReadText(plainText)
                 Tweet(
                     json.authorName,
                     json.html,
-                    Source(json.html.replace("<a.*>(.*)</a>", ""))
-                        .getFirstElement("p")
-                        .renderer
-                        .setMaxLineLength(Integer.MAX_VALUE)
-                        .setNewLine(null)
-                        .toString()
+                    plainText,
+                    readText
                 )
             }
 
             else -> null
         }
+    }
+
+    private fun getReadText(text: String): String {
+        // "#(\S+)" は " ハッシュタグ「$1」 " に変換
+        // t.co, twitter.com, pic.twitter.com のリンクを削除。プロトコル有無両方に対応
+        return text
+            .replace("#(\\S+)".toRegex(), " ハッシュタグ「$1」 ")
+            .replace("<?(?:https?://)?t\\.co/[a-zA-Z0-9]+>?".toRegex(), "")
+            .replace("<?(?:https?://)?twitter\\.com/.+>?".toRegex(), "")
+            .replace("<?(?:https?://)?pic\\.twitter\\.com/[a-zA-Z0-9]+>?".toRegex(), "")
     }
 }
