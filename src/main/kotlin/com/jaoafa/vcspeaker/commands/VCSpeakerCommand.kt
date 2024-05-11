@@ -3,15 +3,17 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalBoolean
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
@@ -20,10 +22,12 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.entity.channel.TextChannel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.system.exitProcess
 
 class VCSpeakerCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger {}
 
     inner class SettingsOptions : Options() {
         val channel by optionalChannel {
@@ -95,6 +99,7 @@ class VCSpeakerCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("vcspeaker", "VCSpeaker を操作します。") {
+            check { anyGuild() }
 
             publicSubCommand("restart", "VCSpeaker を再起動します。") {
                 action {
@@ -199,6 +204,10 @@ class VCSpeakerCommand : Extension() {
                         }
 
                         successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Settings Updated: Settings updated by @${user.username}"
                     }
                 }
             }

@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import com.jaoafa.vcspeaker.tts.SpeakInfo
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
@@ -18,6 +19,7 @@ import dev.kord.core.behavior.channel.connect
 import dev.kord.core.behavior.reply
 import dev.kord.rest.builder.message.embed
 import dev.kord.voice.AudioFrame
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import java.rmi.UnexpectedException
 import java.util.concurrent.TimeUnit
@@ -25,6 +27,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 object VoiceExtensions {
+    private val logger = KotlinLogging.logger { }
+
     /**
      * VoiceChannel に接続します。
      *
@@ -55,6 +59,13 @@ object VoiceExtensions {
             replier
         )
 
+        val name = name()
+        val guildName = guild.asGuild().name
+
+        logger.info {
+            "[$guildName] Joined: Joined to $name"
+        }
+
         return narrator
     }
 
@@ -78,6 +89,13 @@ object VoiceExtensions {
             "**:loudspeaker: $mention に移動しました。**",
             replier
         )
+
+        val name = name()
+        val guildName = guild.asGuild().name
+
+        logger.info {
+            "[$guildName] Moved: Moved to $name"
+        }
 
         return narrator
     }
@@ -107,16 +125,29 @@ object VoiceExtensions {
             "**:wave: $mention から退出しました。**",
             replier
         )
+
+        val name = name()
+        val guildName = guild.asGuild().name
+
+        logger.info {
+            "[$guildName] Left: Left from $name"
+        }
     }
 
+    // TODO: Separate load and play to avoid blocking the main thread
     suspend fun AudioPlayer.speak(info: SpeakInfo) {
+        val guildName = info.guild.name
+
         val track = suspendCoroutine {
             VCSpeaker.lavaplayer.loadItemOrdered(
                 this,
                 info.file.path, // already checked
                 object : AudioLoadResultHandler {
                     override fun trackLoaded(track: AudioTrack) {
-                        println("Track Loaded: ${track.identifier}")
+                        logger.info {
+                            "[$guildName] Loaded Track: Audio for ${info.getMessageLogInfo()} has been loaded successfully (${track.identifier})"
+                        }
+
                         track.userData = info
                         it.resume(track)
                     }
@@ -146,16 +177,24 @@ object VoiceExtensions {
                                 errorColor()
                             }
                         }
+
+                        logger.error(exception) {
+                            "[$guildName] Failed to Load Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to load."
+                        }
                     }
                 })
         }
 
         try {
-            println("Playing Track: ${track.identifier}")
             this.playTrack(track)
-        } catch (e: Exception) {
-            println("Failed to play track: ${track.identifier}")
-            e.printStackTrace()
+
+            logger.info {
+                "[$guildName] Playing Track: Audio for ${info.getMessageLogInfo()} is playing now (${track.identifier})"
+            }
+        } catch (exception: Exception) {
+            logger.error(exception) {
+                "[$guildName] Failed to Play Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to play."
+            }
         }
     }
 }

@@ -6,10 +6,12 @@ import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
 import com.kotlindiscord.kord.extensions.commands.chat.ChatCommandContext
 import com.kotlindiscord.kord.extensions.types.PublicInteractionContext
+import com.kotlindiscord.kord.extensions.utils.hasPermission
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kord.extensions.utils.selfMember
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
+import dev.kord.common.entity.Permission
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.MemberBehavior
@@ -23,6 +25,8 @@ import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
 import dev.kord.rest.builder.message.embed
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.filter
 
 typealias Options = Arguments
 
@@ -146,7 +150,7 @@ object DiscordExtensions {
      * @param member 対象のメンバー
      * @param onFailure エラーメッセージの返信処理 (it にはエラーメッセージが入ります)
      */
-    suspend fun Channel?.orFallbackOf(member: MemberBehavior, onFailure: suspend (String) -> Unit) =
+    suspend fun Channel?.orFallbackTo(member: MemberBehavior, onFailure: suspend (String) -> Unit) =
         this?.asChannelOf<VoiceChannel>() ?: member.getVoiceStateOrNull()?.getChannelOrNull() ?: run {
             onFailure("**:question: VC に参加、または指定してください。**")
             null
@@ -177,4 +181,19 @@ object DiscordExtensions {
         ChannelType.PublicGuildThread,
         ChannelType.PublicNewsThread
     ).contains(type)
+
+    /**
+     * VC の GoLive 率を計算します。
+     */
+    suspend fun BaseVoiceChannelBehavior.calculateGoLiveRate(): Int {
+        val states = voiceStates.filter { !it.getMember().isBot && it.getMember().hasPermission(Permission.Stream) }
+        val goLiveMemberCount = states.count { it.isSelfStreaming }
+        val memberCount = states.count()
+
+        return if (memberCount == 0) {
+            0
+        } else {
+            (goLiveMemberCount.toDouble() / memberCount * 100).toInt()
+        }
+    }
 }

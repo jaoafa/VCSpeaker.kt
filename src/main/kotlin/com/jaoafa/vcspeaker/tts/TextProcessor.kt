@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.tts
 import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.Emoji.replaceEmojiToName
-import com.jaoafa.vcspeaker.tools.getObjectsIn
+import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.jaoafa.vcspeaker.tts.markdown.toMarkdown
@@ -12,14 +12,15 @@ import com.kotlindiscord.kord.extensions.utils.capitalizeWords
 import dev.kord.common.entity.Snowflake
 
 object TextProcessor {
-    val replacers = getObjectsIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers")
-        .filterNotNull()
-        .sortedByDescending { it.priority.level }
+    val replacers = getClassesIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers")
+        .mapNotNull {
+            it.kotlin.objectInstance
+        }.sortedByDescending { it.priority.level }
 
     private fun String.shouldIgnoreOn(guildId: Snowflake) =
         IgnoreStore.filter(guildId).any {
             when (it.type) {
-                IgnoreType.Exact -> this == it.text
+                IgnoreType.Equals -> this == it.text
                 IgnoreType.Contains -> contains(it.text)
             }
         }

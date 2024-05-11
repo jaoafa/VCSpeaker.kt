@@ -5,6 +5,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
+import com.kotlindiscord.kord.extensions.checks.anyGuild
+import com.kotlindiscord.kord.extensions.checks.isNotBot
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
 
@@ -13,6 +15,7 @@ class LeaveCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("leave", "VC から退出します。") {
+            check { anyGuild() }
             action {
                 val selfChannel = guild!!.selfVoiceChannel() ?: run {
                     respond("**:question: VC に参加していません。**")
@@ -26,6 +29,10 @@ class LeaveCommand : Extension() {
         chatCommand("leave", "VC から退出します。") {
             aliases += "disconnect"
 
+            check {
+                anyGuild()
+                isNotBot()
+            }
             action {
                 val selfChannel = guild!!.selfVoiceChannel() ?: run {
                     respond("**:question: VC に参加していません。**")

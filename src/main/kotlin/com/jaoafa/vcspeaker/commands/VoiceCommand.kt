@@ -4,17 +4,21 @@ import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.extensions.Extension
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class VoiceCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger {}
 
     inner class VoiceOptions : Options() {
         val speaker by optionalStringChoice {
@@ -70,6 +74,7 @@ class VoiceCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("voice", "自分の声を設定します。") {
+            check { anyGuild() }
             publicSubCommand("set", "自分の声を設定します。", ::VoiceOptions) {
                 action {
                     val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
@@ -132,6 +137,10 @@ class VoiceCommand : Extension() {
 
                         successColor()
                     }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Voice Set: @${user.username} set their voice"
+                    }
                 }
             }
 
@@ -142,6 +151,10 @@ class VoiceCommand : Extension() {
                     respondEmbed(":broom: Voice Reset", "声を初期化しました。") {
                         authorOf(user)
                         successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Voice Reset: @${user.username} reset their voice"
                     }
                 }
             }

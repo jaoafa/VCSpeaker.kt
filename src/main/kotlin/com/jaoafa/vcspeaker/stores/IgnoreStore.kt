@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker.stores
 import com.jaoafa.vcspeaker.VCSpeaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Serializable
@@ -11,7 +10,7 @@ enum class IgnoreType(
     val displayName: String,
     val emoji: String
 ) {
-    Exact("完全一致", ":asterisk:"),
+    Equals("完全一致", ":asterisk:"),
     Contains("部分一致", ":record_button:")
 }
 

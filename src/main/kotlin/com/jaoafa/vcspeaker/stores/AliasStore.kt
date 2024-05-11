@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker.stores
 import com.jaoafa.vcspeaker.VCSpeaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Serializable
@@ -21,8 +20,8 @@ data class AliasData(
     val guildId: Snowflake,
     val userId: Snowflake,
     val type: AliasType,
-    val from: String,
-    val to: String
+    val search: String,
+    val replace: String
 )
 
 object AliasStore : StoreStruct<AliasData>(
@@ -31,7 +30,7 @@ object AliasStore : StoreStruct<AliasData>(
     { Json.decodeFromString(this) }
 ) {
     fun find(guildId: Snowflake, from: String) =
-        data.find { it.guildId == guildId && it.from == from }
+        data.find { it.guildId == guildId && it.search == from }
 
     fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
 }

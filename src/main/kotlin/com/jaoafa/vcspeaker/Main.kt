@@ -4,13 +4,13 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
-import com.jaoafa.vcspeaker.commands.*
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
-import com.jaoafa.vcspeaker.events.*
 import com.jaoafa.vcspeaker.stores.CacheStore
+import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
 import com.kotlindiscord.kord.extensions.ExtensibleBot
+import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.sentry.SentryAdapter
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.Config
@@ -19,6 +19,7 @@ import dev.kord.common.entity.Snowflake
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
+import kotlin.reflect.full.createInstance
 
 class Main : CliktCommand() {
     private val configPath by option(
@@ -101,9 +102,7 @@ class Main : CliktCommand() {
             )
 
             val instance = ExtensibleBot(discordToken) {
-                applicationCommands {
-                    enabled = true
-                }
+                applicationCommands {}
 
                 chatCommands {
                     enabled = true
@@ -111,28 +110,14 @@ class Main : CliktCommand() {
                 }
 
                 extensions {
-                    // commands
-                    add(::AliasCommand)
-                    add(::ClearCommand)
-                    add(::IgnoreCommand)
-                    add(::JoinCommand)
-                    add(::LeaveCommand)
-                    add(::SpeakCommand)
-                    add(::TitleCommand)
-                    add(::ResetTitleCommand)
-                    add(::SaveTitleCommand)
-                    add(::VCSpeakerCommand)
-                    add(::VoiceCommand)
-
-                    // events
-                    add(::NewMessageEvent)
-                    add(::GoLiveStartEvent)
-                    add(::GoLiveEndEvent)
-                    add(::VoiceJoinEvent)
-                    add(::VoiceLeaveEvent)
-                    add(::VoiceMoveEvent)
-                    add(::TitleResetEvent)
-                    add(::SelfVoiceJoinEvent)
+                    listOf(
+                        "com.jaoafa.vcspeaker.commands",
+                        "com.jaoafa.vcspeaker.events"
+                    ).forEach {
+                        for (extensionClass in getClassesIn<Extension>(it)) {
+                            add { extensionClass.kotlin.createInstance() }
+                        }
+                    }
                 }
             }
 

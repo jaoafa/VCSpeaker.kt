@@ -1,9 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.Options
+import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 
@@ -19,8 +20,9 @@ class SpeakCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("speak", "VCSpeaker として文章を読み上げます (デバッグ用)", ::SpeakOptions) {
+            check { anyGuild() }
             action {
-                guild?.narrator()?.queueSelf(arguments.text)
+                guild?.narrator()?.scheduleAsSystem(arguments.text)
                 respond(arguments.text)
             }
         }

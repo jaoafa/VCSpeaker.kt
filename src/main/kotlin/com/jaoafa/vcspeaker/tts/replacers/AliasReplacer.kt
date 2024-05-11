@@ -11,6 +11,6 @@ object AliasReplacer : BaseReplacer {
 
     override suspend fun replace(text: String, guildId: Snowflake) =
         replaceText(text, guildId, AliasType.Text) { alias, replacedText ->
-            replacedText.replace(alias.from, alias.to)
+            replacedText.replace(alias.search, alias.replace)
         }
 }

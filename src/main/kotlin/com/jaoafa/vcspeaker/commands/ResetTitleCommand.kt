@@ -3,18 +3,22 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.features.Title.resetTitle
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackTo
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import dev.kord.common.entity.ChannelType
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ResetTitleCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger { }
 
     inner class TitleOptions : Options() {
         val channel by optionalChannel {
@@ -27,8 +31,9 @@ class ResetTitleCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("reset-title", "タイトルをリセットします。", ::TitleOptions) {
+            check { anyGuild() }
             action {
-                val channel = arguments.channel.orFallbackOf(member!!) {
+                val channel = arguments.channel.orFallbackTo(member!!) {
                     respond(it)
                 } ?: return@action
 
@@ -53,6 +58,12 @@ class ResetTitleCommand : Extension() {
                         }
 
                         successColor()
+                    }
+
+                    val channelName = channel.asChannel().name
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Title Reset: @${user.username} reset the title of $channelName"
                     }
                 } else {
                     respondEmbed(

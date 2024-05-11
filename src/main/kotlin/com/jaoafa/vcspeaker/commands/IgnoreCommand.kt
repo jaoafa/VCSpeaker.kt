@@ -7,18 +7,22 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.kotlindiscord.kord.extensions.annotations.AlwaysPublicResponse
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.FilterStrategy
 import com.kotlindiscord.kord.extensions.utils.suggestStringCollection
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class IgnoreCommand : Extension() {
     override val name = this::class.simpleName!!
+    private val logger = KotlinLogging.logger { }
 
     inner class CreateOptions : Options() {
         val type by stringChoice {
@@ -53,6 +57,7 @@ class IgnoreCommand : Extension() {
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("ignore", "無視機能を設定します。") {
+            check { anyGuild() }
             publicSubCommand("create", "無視する文字列を作成します。", ::CreateOptions) {
                 action {
                     val type = IgnoreType.valueOf(arguments.type)
@@ -70,6 +75,12 @@ class IgnoreCommand : Extension() {
                     ) {
                         authorOf(user)
                         successColor()
+                    }
+
+                    val typeName = type.name.lowercase()
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Ignore Created: @${user.username} created ignore that ignores text that $typeName \"$text\""
                     }
                 }
             }
@@ -91,6 +102,10 @@ class IgnoreCommand : Extension() {
                             authorOf(user)
                             successColor()
                         }
+
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Ignore Deleted: @${user.username} deleted ignore that ignores text that ${target.type.name.lowercase()} \"${text}\""
+                        }
                     } else {
                         respondEmbed(
                             ":question: Ignore Not Found",
@@ -99,6 +114,10 @@ class IgnoreCommand : Extension() {
                             `/ignore list` で一覧を確認できます。    
                             """.trimIndent()
                         )
+
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Ignore Not Found: @${user.username} searched for ignore that ignores text \"$text\" but not found"
+                        }
                     }
                 }
             }
