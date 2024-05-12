@@ -64,45 +64,141 @@ object UrlReplacer : BaseReplacer {
         }
     }
 
+    /**
+     * DiscordのメッセージURLを表す正規表現
+     *
+     * 例: https://discord.com/channels/123456789012345678/123456789012345678/123456789012345678
+     * 例: https://discordapp.com/channels/123456789012345678/123456789012345678/123456789012345678
+     * 例: https://discord.com/channels/123456789012345678/123456789012345678/123456789012345678?query=example
+     * 例: https://discordapp.com/channels/123456789012345678/123456789012345678/123456789012345678?query=example
+     */
     private val messageUrlRegex = Regex(
-        "^https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)/(\\d+)\\??(.*)$",
+        "https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)/(\\d+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * DiscordのチャンネルURLを表す正規表現
+     *
+     * 例: https://discord.com/channels/123456789012345678/123456789012345678
+     * 例: https://discordapp.com/channels/123456789012345678/123456789012345678
+     * 例: https://discord.com/channels/123456789012345678/123456789012345678?query=example
+     * 例: https://discordapp.com/channels/123456789012345678/123456789012345678?query=example
+     */
     private val channelUrlRegex = Regex(
-        "^https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)\\??(.*)$",
+        "https://.*?discord(?:app)?\\.com/channels/(\\d+)/(\\d+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * Discordのイベントへの直接URLを表す正規表現
+     *
+     * 例: https://discord.com/events/123456789012345678/123456789012345678
+     * 例: https://discordapp.com/events/123456789012345678/123456789012345678
+     * 例: https://discord.com/events/123456789012345678/123456789012345678?query=example
+     * 例: https://discordapp.com/events/123456789012345678/123456789012345678?query=example
+     */
     private val eventDirectUrlRegex = Regex(
-        "^(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)$",
+        "(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * Discordのイベントへの招待URLを表す正規表現
+     *
+     * 例: https://discord.com/invite/abcdef?event=123456789012345678
+     * 例: https://discordapp.com/invite/abcdef?event=123456789012345678
+     * 例: https://discord.com/invite/abcdef?event=123456789012345678&query=example
+     * 例: https://discordapp.com/invite/abcdef?event=123456789012345678&query=example
+     * 例: https://discord.gg/abcdef?event=123456789012345678
+     * 例: https://discord.gg/abcdef?event=123456789012345678&query=example
+     * 例: discord.com/invite/abcdef?event=123456789012345678
+     * 例: discordapp.com/invite/abcdef?event=123456789012345678
+     * 例: discord.gg/abcdef?event=123456789012345678
+     * 例: discord.gg/abcdef?event=123456789012345678&query=example
+     */
     private val eventInviteUrlRegex = Regex(
-        "^(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\?event=(\\d+)$",
+        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\?event=(\\d+)",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * Discordの招待URLを表す正規表現
+     *
+     * 例: https://discord.com/invite/abcdef
+     * 例: https://discordapp.com/invite/abcdef
+     * 例: https://discord.com/invite/abcdef?query=example
+     * 例: https://discordapp.com/invite/abcdef?query=example
+     * 例: https://discord.gg/abcdef
+     * 例: https://discord.gg/abcdef?query=example
+     * 例: discord.com/invite/abcdef
+     */
     private val inviteUrlRegex = Regex(
-        "^(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)$",
+        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * ツイートURLを表す正規表現
+     *
+     * 例: https://twitter.com/username/status/123456789012345678
+     * 例: https://twitter.com/username/status/123456789012345678?query=example
+     * 例: https://twitter.com/username/status/123456789012345678/
+     * 例: https://twitter.com/username/status/123456789012345678/?query=example
+     * 例: https://x.com/username/status/123456789012345678
+     * 例: https://x.com/username/status/123456789012345678?query=example
+     * 例: https://x.com/username/status/123456789012345678/
+     * 例: https://x.com/username/status/123456789012345678/?query=example
+     */
     private val tweetUrlRegex = Regex(
-        "^https://(?:x|twitter)\\.com/(\\w){1,15}/status/(\\d+)\\??(.*)$",
+        "https://(?:x|twitter)\\.com/(\\w){1,15}/status/(\\d+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * SteamアイテムへのURLを表す正規表現
+     *
+     * 例: https://store.steampowered.com/app/1234567890
+     * 例: https://store.steampowered.com/app/1234567890?query=example
+     */
     private val steamAppUrlRegex = Regex(
-        "^https://store\\.steampowered\\.com/app/(\\d+)(.*)$",
+        "https://store\\.steampowered\\.com/app/(\\d+)(.*)",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * YouTubeのURLを表す正規表現 (動画、ライブ、ショートに対応。no-cookieも対応)
+     *
+     * 例: https://www.youtube.com/watch?v=abcdefg
+     */
     private val youtubeUrlRegex = Regex(
-        "^(?:https?:)?(?://)?(?:youtu\\.be/|(?:www\\.|m\\.)?(?:youtube\\.com|youtube-nocookie\\.com)/(watch|v|e|embed|shorts|live)(?:\\.php)?(?:\\?.*v=|/))([a-zA-Z0-9_-]{7,15})(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?$",
+        "(?:https?:)?(?://)?(?:youtu\\.be/|(?:www\\.|m\\.)?(?:youtube\\.com|youtube-nocookie\\.com)/(watch|v|e|embed|shorts|live)(?:\\.php)?(?:\\?.*v=|/))([a-zA-Z0-9_-]{7,15})(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * YouTubeのプレイリストURLを表す正規表現
+     *
+     * 例: https://www.youtube.com/playlist?list=abcdefg
+     */
     private val youtubePlaylistUrlRegex = Regex(
-        "^(?:https?:)?(?://)?(?:www\\.|m\\.)?youtube\\.com/playlist\\?list=([a-zA-Z0-9_-]+)(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?$",
+        "(?:https?:)?(?://)?(?:www\\.|m\\.)?youtube\\.com/playlist\\?list=([a-zA-Z0-9_-]+)(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?",
         RegexOption.IGNORE_CASE
     )
+
+    /**
+     * タイトル要素を取得するための正規表現
+     */
     private val titleRegex = Regex("<title>([^<]+)</title>", RegexOption.IGNORE_CASE)
+
+    /**
+     * URLを表す正規表現
+     */
     private val urlRegex = Regex("https?://\\S+", RegexOption.IGNORE_CASE)
 
+    /**
+     * 拡張子名とその拡張子に対応する呼び名のマップ
+     */
     private val extensionNameMap = mapOf(
         "jpg" to "JPEGファイル",
         "apng" to "アニメーションPNGファイル",
@@ -234,6 +330,9 @@ object UrlReplacer : BaseReplacer {
         }
     }
 
+    /**
+     * URLから拡張子を取得します。
+     */
     private fun getExtension(url: String) = try {
         val path = Url(url).pathSegments.last()
         val dotPath = path.split(".")
@@ -494,6 +593,9 @@ object UrlReplacer : BaseReplacer {
             replacedText.replace(matchResult.value, replaceTo)
         }
 
+    /**
+     * 正規表現にマッチした文字列を置換します。
+     */
     private suspend fun Regex.replaceAll(text: String, replacer: suspend (String, MatchResult) -> String): String {
         val matchResults = this.findAll(text)
         return matchResults.fold(text) { replacedText, matchResult ->
@@ -501,5 +603,8 @@ object UrlReplacer : BaseReplacer {
         }
     }
 
+    /**
+     * 文字列を指定した長さに短縮します。短縮後、末尾に「以下略」を付けます。
+     */
     private fun String.shorten(length: Int) = if (this.length > length) substring(0, length) + " 以下略" else this
 }
