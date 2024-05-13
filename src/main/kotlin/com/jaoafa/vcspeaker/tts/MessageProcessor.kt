@@ -56,6 +56,7 @@ object MessageProcessor {
         }
 
         // 画像解析を行う
+        val isSpoiler = firstAttachment.isSpoiler
         val binaryArray = firstAttachment.download()
         try {
             val visionApi = VisionApi()
@@ -69,17 +70,18 @@ object MessageProcessor {
 
             // 画像解析結果を返信する
             val editedImage = visionApi.drawTextAnnotations(binaryArray)
-            val filePath = editedImage.outputTempFile()
+            val filePath = editedImage.outputTempFile(isSpoiler)
             val visionApiCounterStore = VisionApiCounterStore.get()
 
             val requestedCount = visionApiCounterStore?.count ?: 0
             val requestLimit = VisionApiCounterStore.VISION_API_LIMIT
             val remainingRequests = requestLimit - requestedCount
 
+            val spoilerPrefixSuffix = if (isSpoiler) "||" else ""
             message.reply {
                 embeds = mutableListOf(
                     EmbedBuilder().apply {
-                        description = "```$embedDescription```"
+                        description = "$spoilerPrefixSuffix```$embedDescription```$spoilerPrefixSuffix"
                         thumbnail = EmbedBuilder.Thumbnail().apply {
                             url = "attachment://${filePath.fileName}"
                         }
@@ -91,7 +93,12 @@ object MessageProcessor {
                 addFile(filePath)
             }
 
-            return "$shortDescription を含む画像ファイル $moreFileRead"
+            return if (isSpoiler) {
+                // スポイラーファイルの場合は、スポイラー画像ファイルとして読み上げ
+                "スポイラー画像ファイル $moreFileRead"
+            } else {
+                "$shortDescription を含む画像ファイル $moreFileRead"
+            }
         } catch (_: VisionApi.VisionApiLimitExceededException) {
             // 月のリクエスト数が上限に達している場合、ファイル名のみを読み上げる
             return "画像ファイル ${firstAttachment.filename} $moreFileRead"
@@ -133,8 +140,9 @@ object MessageProcessor {
         }
     }
 
-    private fun ImmutableImage.outputTempFile(): Path {
-        val tempFile = File.createTempFile("image", ".png")
+    private fun ImmutableImage.outputTempFile(isSpoiler: Boolean): Path {
+        val prefix = if (isSpoiler) "SPOILER_" else "Image_"
+        val tempFile = File.createTempFile(prefix, ".png")
         this.output(PngWriter(), tempFile)
         return tempFile.toPath()
     }

@@ -21,10 +21,13 @@ FROM azul/zulu-openjdk-alpine:17-latest as runner
 WORKDIR /app
 
 # hadolint ignore=DL3018
-RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig tzdata && \
+RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig curl tzdata && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     echo "Asia/Tokyo" > /etc/timezone && \
     apk del tzdata && \
+    curl -O https://moji.or.jp/wp-content/ipafont/IPAexfont/IPAexfont00301.zip && \
+    mkdir -p /usr/share/fonts/ipa && \
+    unzip -o -d /usr/share/fonts/ipa/ IPAexfont00301.zip "*.ttf" && \
     update-ms-fonts
 
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
