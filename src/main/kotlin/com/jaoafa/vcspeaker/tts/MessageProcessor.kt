@@ -93,11 +93,12 @@ object MessageProcessor {
                 addFile(filePath)
             }
 
-            if (isSpoiler) {
+            return if (isSpoiler) {
                 // スポイラーファイルの場合は、スポイラー画像ファイルとして読み上げ
-                return "スポイラー画像ファイル $moreFileRead"
+                "スポイラー画像ファイル $moreFileRead"
+            } else {
+                "$shortDescription を含む画像ファイル $moreFileRead"
             }
-            return "$shortDescription を含む画像ファイル $moreFileRead"
         } catch (_: VisionApi.VisionApiLimitExceededException) {
             // 月のリクエスト数が上限に達している場合、ファイル名のみを読み上げる
             return "画像ファイル ${firstAttachment.filename} $moreFileRead"
