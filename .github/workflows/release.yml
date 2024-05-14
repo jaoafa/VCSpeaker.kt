@@ -152,5 +152,6 @@ jobs:
         with:
           body: ${{ needs.bump-version.outputs.changelog }}
           tag_name: ${{ needs.bump-version.outputs.tag }}
+          target_commitish: ${{ github.ref }}
           files: |
             build/libs/vcspeaker-kt.jar
