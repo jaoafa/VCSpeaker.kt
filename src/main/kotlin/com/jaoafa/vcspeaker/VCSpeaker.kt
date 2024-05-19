@@ -22,14 +22,13 @@ object VCSpeaker {
     lateinit var storeFolder: File
     lateinit var cacheFolder: File
 
-    var cachePolicy: Int = 7
     lateinit var prefix: String
 
     // 開発環境のコマンドを登録する Guild ID (null で開発環境を無効化)
-    var devId: Snowflake? = null
+    var devGuildId: Snowflake? = null
 
     // 開発環境かどうか
-    fun isDev() = devId != null
+    fun isDev() = devGuildId != null
 
     // Store ファイルパス
     object Files {
@@ -53,12 +52,11 @@ object VCSpeaker {
      * @param config [Config]
      */
     fun init(
-        voicetext: VoiceTextAPI,
         config: Config,
+        voicetext: VoiceTextAPI,
         storeFolder: File,
         cacheFolder: File,
-        devId: Snowflake?,
-        cachePolicy: Int?,
+        devGuildId: Snowflake?,
         prefix: String,
         resamplingQuality: ResamplingQuality,
         encodingQuality: Int
@@ -75,8 +73,7 @@ object VCSpeaker {
             this.config = config
             this.storeFolder = storeFolder
             this.cacheFolder = cacheFolder
-            this.devId = devId
-            this.cachePolicy = cachePolicy ?: 7
+            this.devGuildId = devGuildId
             this.prefix = prefix
         }
 
