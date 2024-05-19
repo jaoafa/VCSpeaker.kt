@@ -13,7 +13,7 @@ import java.io.File
 class TextProcessorTest : FunSpec({
     beforeTest {
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File("./store")
+        every { VCSpeaker.storeFolder } returns File("./store-test")
 
         val storeStruct = mockk<StoreStruct<IgnoreData>>()
         every { storeStruct.write() } returns Unit
