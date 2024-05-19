@@ -29,5 +29,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: ✅ Run Tests
+      - name: 🧪 Run Tests
         run: gradle test
