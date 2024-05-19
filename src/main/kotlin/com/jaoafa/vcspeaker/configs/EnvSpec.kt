@@ -4,9 +4,9 @@ import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.ConfigSpec
 
 object EnvSpec : ConfigSpec() {
-    val cacheFolder by optional<String?>(null)
+    val storeFolder by optional<String>("./store")
 
-    val storeFolder by optional<String?>(null)
+    val cacheFolder by optional<String>("./cache")
 
     /**
      * The days to keep the cache.
@@ -19,7 +19,7 @@ object EnvSpec : ConfigSpec() {
      * The guild id for development.
      * VCSpeaker will launch in development mode when this is set.
      */
-    val dev by optional<Long?>(null)
+    val devGuildId by optional<Long?>(null)
 
     /**
      * The command prefix. The default value is `$`.
@@ -31,7 +31,7 @@ object EnvSpec : ConfigSpec() {
      */
     val sentryEnv by optional<String?>(null)
 
-    val resamplingQuality by optional<AudioConfiguration.ResamplingQuality?>(null)
+    val resamplingQuality by optional<AudioConfiguration.ResamplingQuality>(AudioConfiguration.ResamplingQuality.HIGH)
 
-    val encodingQuality by optional<Int?>(null)
+    val encodingQuality by optional<Int>(10)
 }
