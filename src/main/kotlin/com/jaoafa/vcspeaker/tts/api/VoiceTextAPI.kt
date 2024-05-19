@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-class VoiceTextAPI(private val token: String) {
+class VoiceTextAPI(private val apiKey: String) {
     private val baseURL = "https://api.voicetext.jp/v1/tts"
     private val client = HttpClient(CIO)
 
@@ -24,7 +24,7 @@ class VoiceTextAPI(private val token: String) {
             Json.parseToJsonElement(voice.toJson()).jsonObject.toMap().forEach { (t, u) ->
                 parameter(t, u.jsonPrimitive.content.lowercase())
             }
-            basicAuth(token, "")
+            basicAuth(apiKey, "")
         }
 
         return when (response.status) {
