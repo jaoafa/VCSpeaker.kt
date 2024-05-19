@@ -90,7 +90,7 @@ class Main : CliktCommand() {
         runBlocking {
             VCSpeaker.init(
                 config = config,
-                voicetext = VoiceTextAPI(token = config[TokenSpec.voicetext]),
+                voicetext = VoiceTextAPI(apiKey = config[TokenSpec.voicetext]),
                 storeFolder = (storePath ?: Path(config[EnvSpec.storeFolder])).toFile(),
                 cacheFolder = (cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile(),
                 devGuildId = (devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) },
