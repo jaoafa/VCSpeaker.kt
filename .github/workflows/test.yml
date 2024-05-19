@@ -22,4 +22,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: ✅ Run Tests
-        run: ./gradlew test
+        run: gradle test
