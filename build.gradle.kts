@@ -20,7 +20,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:5.9.0")
     testImplementation("io.mockk:mockk:1.13.11")
     implementation(kotlin("reflect"))
-    implementation("junit:junit:4.13.1")
+    implementation("junit:junit:4.13.2")
 
     // Logging
     implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
