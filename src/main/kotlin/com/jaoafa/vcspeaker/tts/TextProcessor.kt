@@ -32,6 +32,8 @@ object TextProcessor {
             replacer.replace(replacedText, guildId)
         }.replaceEmojiToName()
 
+        if (replacedText.shouldIgnoreOn(guildId)) return null
+
         val markdown = replacedText.toMarkdown().joinToString("") { it.toReadable() }
 
         return markdown.let { if (it.length > 180) it.substring(0, 180) else it }

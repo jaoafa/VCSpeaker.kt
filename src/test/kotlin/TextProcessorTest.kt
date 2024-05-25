@@ -53,6 +53,82 @@ class TextProcessorTest : FunSpec({
         }
     }
 
+    test("processText - replace then ignore") {
+        AliasStore.create(
+            AliasData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = AliasType.Text,
+                search = "world",
+                replace = "Kotlin"
+            )
+        )
+
+        IgnoreStore.create(
+            IgnoreData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = IgnoreType.Contains,
+                text = "Kotlin"
+            )
+        )
+
+        val processed = TextProcessor.processText(Snowflake(0), "Hello, world!")
+        processed.shouldBeNull()
+    }
+
+    test("processText - ignore then replace") {
+        IgnoreStore.create(
+            IgnoreData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = IgnoreType.Contains,
+                text = "world"
+            )
+        )
+
+        AliasStore.create(
+            AliasData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = AliasType.Text,
+                search = "world",
+                replace = "Kotlin"
+            )
+        )
+
+        val processed = TextProcessor.processText(Snowflake(0), "Hello, world!")
+        processed.shouldBeNull()
+    }
+
+    test("processText - replace url then ignore") {
+        IgnoreStore.create(
+            IgnoreData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = IgnoreType.Contains,
+                text = "Domain"
+            )
+        )
+
+        val processed = TextProcessor.processText(Snowflake(0), "Please visit https://example.com for more information.")
+        processed.shouldBeNull()
+    }
+
+    test("processText - ignore then replace url") {
+        IgnoreStore.create(
+            IgnoreData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = IgnoreType.Contains,
+                text = "https://"
+            )
+        )
+
+        val processed = TextProcessor.processText(Snowflake(0), "Please visit https://example.com for more information.")
+        processed.shouldBeNull()
+    }
+
     context("ignore") {
         test("processText - ignore (equals)") {
             val text = "Hello, world!"
@@ -180,6 +256,56 @@ class TextProcessorTest : FunSpec({
 
             val processed = TextProcessor.processText(Snowflake(0), text)
             processed shouldBe text
+        }
+
+        test("processText - alias - multiple") {
+            AliasStore.create(
+                AliasData(
+                    guildId = Snowflake(0),
+                    userId = Snowflake(0),
+                    type = AliasType.Text,
+                    search = "Hello",
+                    replace = "Bonjour"
+                )
+            )
+
+            AliasStore.create(
+                AliasData(
+                    guildId = Snowflake(0),
+                    userId = Snowflake(0),
+                    type = AliasType.Regex,
+                    search = "w.+d",
+                    replace = "Kotlin"
+                )
+            )
+
+            val processed = TextProcessor.processText(Snowflake(0), "Hello, world!")
+            processed shouldBe "Bonjour, Kotlin!"
+        }
+
+        test("processText - alias - recursive") {
+            AliasStore.create(
+                AliasData(
+                    guildId = Snowflake(0),
+                    userId = Snowflake(0),
+                    type = AliasType.Text,
+                    search = "Hello",
+                    replace = "Bonjour"
+                )
+            )
+
+            AliasStore.create(
+                AliasData(
+                    guildId = Snowflake(0),
+                    userId = Snowflake(0),
+                    type = AliasType.Text,
+                    search = "Bonjour, world!",
+                    replace = "你好，Kotlin!"
+                )
+            )
+
+            val processed = TextProcessor.processText(Snowflake(0), "Hello, world!")
+            processed shouldBe "你好，Kotlin!"
         }
     }
 })
