@@ -22,6 +22,8 @@ import kotlin.io.path.Path
 import kotlin.reflect.full.createInstance
 
 class Main : CliktCommand() {
+    private val logger = KotlinLogging.logger {}
+
     private val configPath by option(
         "-c", "--config",
         help = "The config file location.",
@@ -42,13 +44,27 @@ class Main : CliktCommand() {
 
     private val cachePolicy by option(
         "--cache-policy",
-        help = "The days to keep the cache."
+        help = "The days to keep the cache.",
+        envvar = "VCSKT_CACHE_POLICY"
     ).int()
 
-    private val devId by option(
+    private val devGuildId by option(
         "-d", "--dev",
-        help = "The guild id for development."
+        help = "The guild id for development.",
+        envvar = "VCSKT_DEV_GUILD_ID"
     ).long()
+
+    private val prefix by option(
+        "-p", "--prefix",
+        help = "The prefix for chat commands.",
+        envvar = "VCSKT_PREFIX"
+    )
+
+    private val sentryEnv by option(
+        "--sentry-env",
+        help = "The Sentry environment.",
+        envvar = "VCSKT_SENTRY_ENV"
+    )
 
     private val resamplingQuality by option(
         "--resampling-quality",
@@ -62,8 +78,6 @@ class Main : CliktCommand() {
         envvar = "VCSKT_ENCODING_QUALITY"
     ).int().restrictTo(1..10)
 
-    private val logger = KotlinLogging.logger {}
-
     override fun run() {
         logger.info { "Starting VCSpeaker..." }
 
@@ -73,40 +87,24 @@ class Main : CliktCommand() {
             addSpec(EnvSpec)
         }.from.yaml.file(configPath.toFile())
 
-        val storeFolder = (storePath ?: Path(config[EnvSpec.storeFolder] ?: "./store")).toFile()
-        val cacheFolder = (cachePath ?: Path(config[EnvSpec.cacheFolder] ?: "./cache")).toFile()
-
-        val devId = (devId ?: config[EnvSpec.dev])?.let { Snowflake(it) }
-
-        val finalCachePolicy = cachePolicy ?: config[EnvSpec.cachePolicy]
-
-        val voicetextToken = config[TokenSpec.voicetext]
-
-        val voicetext = VoiceTextAPI(voicetextToken)
-
-        val discordToken = config[TokenSpec.discord]
-
-        val prefix = config[EnvSpec.commandPrefix]
-
         runBlocking {
             VCSpeaker.init(
-                voicetext,
-                config,
-                storeFolder,
-                cacheFolder,
-                devId,
-                finalCachePolicy,
-                prefix,
-                config[EnvSpec.resamplingQuality] ?: resamplingQuality ?: AudioConfiguration.ResamplingQuality.HIGH,
-                config[EnvSpec.encodingQuality] ?: encodingQuality ?: 10
+                config = config,
+                voicetext = VoiceTextAPI(apiKey = config[TokenSpec.voicetext]),
+                storeFolder = (storePath ?: Path(config[EnvSpec.storeFolder])).toFile(),
+                cacheFolder = (cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile(),
+                devGuildId = (devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) },
+                prefix = prefix ?: config[EnvSpec.commandPrefix],
+                resamplingQuality = resamplingQuality ?: config[EnvSpec.resamplingQuality],
+                encodingQuality = encodingQuality ?: config[EnvSpec.encodingQuality]
             )
 
-            val instance = ExtensibleBot(discordToken) {
+            val instance = ExtensibleBot(token = config[TokenSpec.discord]) {
                 applicationCommands {}
 
                 chatCommands {
                     enabled = true
-                    defaultPrefix = prefix
+                    defaultPrefix = VCSpeaker.prefix
                 }
 
                 extensions {
@@ -125,14 +123,18 @@ class Main : CliktCommand() {
 
             VCSpeaker.kord = instance.kordRef
 
-            if (finalCachePolicy != 0)
-                CacheStore.initiateAuditJob(finalCachePolicy)
+            with(cachePolicy ?: config[EnvSpec.cachePolicy]) {
+                if (this != 0)
+                    CacheStore.initiateAuditJob(this)
+            }
 
-            if (config[TokenSpec.sentry] != null)
-                instance.getKoin().get<SentryAdapter>().init {
-                    dsn = config[TokenSpec.sentry]
-                    environment = config[EnvSpec.sentryEnv]
-                }
+            with(sentryEnv ?: config[EnvSpec.sentryEnv]) {
+                if (this != null)
+                    instance.getKoin().get<SentryAdapter>().init {
+                        dsn = config[TokenSpec.sentry]
+                        environment = this@with
+                    }
+            }
 
             instance.start()
         }

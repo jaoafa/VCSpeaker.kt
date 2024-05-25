@@ -10,7 +10,7 @@ import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 
 object SlashCommandExtensions {
     private fun PublicSlashCommand<*, *>.devGuild() {
-        val devGuildId = VCSpeaker.devId
+        val devGuildId = VCSpeaker.devGuildId
         if (devGuildId != null) guild(devGuildId)
     }
 

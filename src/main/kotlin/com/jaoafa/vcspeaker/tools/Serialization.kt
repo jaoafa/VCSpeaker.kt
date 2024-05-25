@@ -9,6 +9,7 @@ inline fun <reified T> File.readOrCreateAs(
     context: T,
     deserializer: String.() -> T
 ) = if (!exists()) {
+    parentFile.mkdirs()
     createNewFile()
     writeText(Json.encodeToString(strategy, context))
     context
