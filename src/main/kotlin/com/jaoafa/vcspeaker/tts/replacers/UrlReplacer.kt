@@ -8,6 +8,7 @@ import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
+import com.jaoafa.vcspeaker.tts.Token
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.asChannelOf
@@ -34,24 +35,28 @@ import kotlin.text.String
 object UrlReplacer : BaseReplacer {
     override val priority = ReplacerPriority.High
 
-    override suspend fun replace(text: String, guildId: Snowflake): String {
+    override suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake): MutableList<Token> {
         suspend fun replaceUrl(vararg replacers: suspend (String, Snowflake) -> String) =
-            replacers.fold(text) { replacedText, replacer ->
+            replacers.fold(tokens.joinToString("") { it.text }) { replacedText, replacer ->
                 replacer(replacedText, guildId)
             }
 
-        return replaceUrl(
-            ::replaceMessageUrl,
-            ::replaceChannelUrl,
-            ::replaceEventDirectUrl,
-            ::replaceEventInviteUrl,
-            ::replaceTweetUrl,
-            ::replaceInviteUrl,
-            ::replaceSteamAppUrl,
-            ::replaceYouTubeUrl,
-            ::replaceYouTubePlaylistUrl,
-            ::replaceUrlToTitle,
-            ::replaceUrl,
+        return mutableListOf(
+            Token(
+                replaceUrl(
+                    ::replaceMessageUrl,
+                    ::replaceChannelUrl,
+                    ::replaceEventDirectUrl,
+                    ::replaceEventInviteUrl,
+                    ::replaceTweetUrl,
+                    ::replaceInviteUrl,
+                    ::replaceSteamAppUrl,
+                    ::replaceYouTubeUrl,
+                    ::replaceYouTubePlaylistUrl,
+                    ::replaceUrlToTitle,
+                    ::replaceUrl,
+                )
+            )
         )
     }
 
@@ -523,11 +528,9 @@ object UrlReplacer : BaseReplacer {
             )
 
             // 動画タイトルが20文字を超える場合は、20文字に短縮して「以下略」を付ける
-            val videoTitle = video.title.substring(0, 15.coerceAtMost(video.title.length)) +
-                    if (video.title.length > 15) " 以下略" else ""
+            val videoTitle = video.title.shorten(20)
             // 投稿者名が15文字を超える場合は、15文字に短縮して「以下略」を付ける
-            val authorName = video.authorName.substring(0, 13.coerceAtMost(video.authorName.length)) +
-                    if (video.authorName.length > 15) " 以下略" else ""
+            val authorName = video.authorName.shorten(15)
 
             // URLからアイテムの種別を断定できる場合は、それに応じたテンプレートを使用する
             val replaceTo = when (videoType) {

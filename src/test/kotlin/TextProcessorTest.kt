@@ -1,3 +1,4 @@
+
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.*
 import com.jaoafa.vcspeaker.tts.TextProcessor
@@ -283,7 +284,7 @@ class TextProcessorTest : FunSpec({
             processed shouldBe "Bonjour, Kotlin!"
         }
 
-        test("processText - alias - recursive") {
+        test("processText - alias - non recursive") {
             AliasStore.create(
                 AliasData(
                     guildId = Snowflake(0),
@@ -294,6 +295,7 @@ class TextProcessorTest : FunSpec({
                 )
             )
 
+            // should be skipped
             AliasStore.create(
                 AliasData(
                     guildId = Snowflake(0),
@@ -304,8 +306,18 @@ class TextProcessorTest : FunSpec({
                 )
             )
 
+            AliasStore.create(
+                AliasData(
+                    guildId = Snowflake(0),
+                    userId = Snowflake(0),
+                    type = AliasType.Regex,
+                    search = "w.+d",
+                    replace = "Kotlin"
+                )
+            )
+
             val processed = TextProcessor.processText(Snowflake(0), "Hello, world!")
-            processed shouldBe "你好，Kotlin!"
+            processed shouldBe "Bonjour, Kotlin!"
         }
     }
 })

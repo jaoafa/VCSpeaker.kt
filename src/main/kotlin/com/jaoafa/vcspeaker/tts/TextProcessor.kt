@@ -28,9 +28,9 @@ object TextProcessor {
     suspend fun processText(guildId: Snowflake, text: String): String? {
         if (text.shouldIgnoreOn(guildId)) return null
 
-        val replacedText = replacers.fold(text) { replacedText, replacer ->
-            replacer.replace(replacedText, guildId)
-        }.replaceEmojiToName()
+        val replacedText = replacers.fold(mutableListOf(Token(text))) { tokens, replacer ->
+            replacer.replace(tokens, guildId)
+        }.joinToString("") { it.text }.replaceEmojiToName()
 
         if (replacedText.shouldIgnoreOn(guildId)) return null
 

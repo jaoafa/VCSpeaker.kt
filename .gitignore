@@ -8,3 +8,5 @@ data/
 logs/
 
 config.yml
+
+store-test/
