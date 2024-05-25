@@ -98,14 +98,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create and push manifest images (latest)
-        uses: Noelware/docker-manifest-action@0.4.0
+        uses: Noelware/docker-manifest-action@0.4.2
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-arm64
           inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           push: true
 
       - name: Create and push manifest images (version)
-        uses: Noelware/docker-manifest-action@0.4.0
+        uses: Noelware/docker-manifest-action@0.4.2
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-arm64
           inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}
