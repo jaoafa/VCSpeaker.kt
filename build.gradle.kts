@@ -43,7 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:2.2.4")
 
     // Kotlinx
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Other Libraries
