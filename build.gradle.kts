@@ -44,10 +44,10 @@ dependencies {
 
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Other Libraries
-    implementation("io.sentry:sentry:6.30.0")
+    implementation("io.sentry:sentry:6.34.0")
     implementation("net.htmlparser.jericho:jericho-html:3.4")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.32.0")
