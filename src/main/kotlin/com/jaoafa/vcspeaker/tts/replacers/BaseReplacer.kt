@@ -70,7 +70,7 @@ interface BaseReplacer {
         // ["Token1", "Token2", "Token3"] -> ["Token1", provider(1), "Token2", provider(2), "Token3"]
         for (index in 0..(this@mixin.size * 2 - 2)) {
             if (index % 2 == 0) add(Token(this@mixin[index / 2]))
-            else add(runBlocking { provider((index + 1) / 2) })
+            else add(runBlocking { provider((index - 1) / 2) })
         }
     }
 
