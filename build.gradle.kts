@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.24"
-    kotlin("plugin.serialization") version "1.8.0"
+    kotlin("plugin.serialization") version "2.0.0"
     application
 }
 
@@ -47,7 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Other Libraries
-    implementation("io.sentry:sentry:6.34.0")
+    implementation("io.sentry:sentry:7.9.0")
     implementation("net.htmlparser.jericho:jericho-html:3.4")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.32.0")

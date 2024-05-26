@@ -127,7 +127,7 @@ jobs:
           java-version: 17
 
       - name: 🐘 Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           gradle-version: release-candidate
 
@@ -148,7 +148,7 @@ jobs:
           mv build/libs/*.jar build/libs/vcspeaker-kt.jar
 
       - name: 🗃️ Publish Release on main
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body: ${{ needs.bump-version.outputs.changelog }}
           tag_name: ${{ needs.bump-version.outputs.tag }}
