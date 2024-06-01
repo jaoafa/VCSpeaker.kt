@@ -17,6 +17,7 @@ import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import dev.kord.common.entity.Snowflake
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.sentry.Sentry
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
 import kotlin.reflect.full.createInstance
@@ -88,6 +89,14 @@ class Main : CliktCommand() {
         }.from.yaml.file(configPath.toFile())
 
         runBlocking {
+            if (config[EnvSpec.sentryEnv] != null && config[TokenSpec.sentry] != null) {
+                logger.info { "Initializing Sentry..." }
+                Sentry.init { options ->
+                    options.dsn = config[TokenSpec.sentry]
+                    options.environment = config[EnvSpec.sentryEnv]
+                }
+            }
+
             VCSpeaker.init(
                 config = config,
                 voicetext = VoiceTextAPI(apiKey = config[TokenSpec.voicetext]),
