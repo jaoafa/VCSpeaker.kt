@@ -33,7 +33,7 @@ dependencies {
     implementation("dev.kord:kord-core-voice:0.14.0")
     implementation("dev.kord:kord-voice:0.13.1")
     implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0")
-    implementation("dev.arbjerg:lavaplayer:2.0.2")
+    implementation("dev.arbjerg:lavaplayer:2.2.0")
     implementation("com.github.aikaterna:lavaplayer-natives:original-SNAPSHOT")
 
     // Ktor
