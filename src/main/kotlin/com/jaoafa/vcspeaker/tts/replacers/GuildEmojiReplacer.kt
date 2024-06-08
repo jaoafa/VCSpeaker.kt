@@ -14,7 +14,7 @@ object GuildEmojiReplacer : BaseReplacer {
         for (token in tokens) {
             val text = token.text
 
-            if (token.replaced || !text.partialMatch(regex)) {
+            if (token.replaced() || !text.partialMatch(regex)) {
                 add(token)
                 continue
             }
@@ -27,7 +27,7 @@ object GuildEmojiReplacer : BaseReplacer {
                 val match = matches[index]
                 val emojiName = match.groupValues[1]
 
-                Token(emojiName, true)
+                Token(emojiName, "Guild Emoji `${match.value}` →「$emojiName」")
             }
 
             addAll(additions)

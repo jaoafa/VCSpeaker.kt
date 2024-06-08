@@ -18,7 +18,7 @@ object RegexReplacer : BaseReplacer {
                 for (replacedToken in replacedTokens) {
                     val text = replacedToken.text
 
-                    if (replacedToken.replaced || !text.partialMatch(regex)) {
+                    if (replacedToken.replaced() || !text.partialMatch(regex)) {
                         add(replacedToken)
                         continue
                     }
@@ -26,7 +26,7 @@ object RegexReplacer : BaseReplacer {
                     val splitTexts = text.split(regex)
 
                     val additions = splitTexts.mixin {
-                        Token(alias.replace, true)
+                        Token(alias.replace, "Regex Alias `${alias.search}` →「${alias.replace}」")
                     }
 
                     addAll(additions)

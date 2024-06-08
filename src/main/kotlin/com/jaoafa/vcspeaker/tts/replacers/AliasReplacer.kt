@@ -16,7 +16,8 @@ object AliasReplacer : BaseReplacer {
                 for (replacedToken in replacedTokens) {
                     val text = replacedToken.text
 
-                    if (replacedToken.replaced || !text.contains(alias.search)) {
+                    // should be skipped
+                    if (replacedToken.replaced() || !text.contains(alias.search)) {
                         add(replacedToken)
                         continue
                     }
@@ -24,7 +25,7 @@ object AliasReplacer : BaseReplacer {
                     val splitTexts = text.split(alias.search)
 
                     val additions = splitTexts.mixin {
-                        Token(alias.replace, true)
+                        Token(alias.replace, "Text Alias「${alias.search}」→「${alias.replace}」")
                     }
 
                     addAll(additions)

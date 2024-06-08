@@ -238,9 +238,8 @@ class AliasCommand : Extension() {
 
                                 title = ":information_source: Aliases"
 
-                                description = chunkedAliases.joinToString("\n") { (_, userId, type, from, to) ->
-                                    val fromDisplay = if (type == AliasType.Regex) "`$from`" else from
-                                    "${type.emoji} ${type.displayName} | 「$fromDisplay → $to」 | <@${userId}>"
+                                description = chunkedAliases.joinToString("\n") {
+                                    it.toDisplayWithEmoji()
                                 }
 
                                 successColor()

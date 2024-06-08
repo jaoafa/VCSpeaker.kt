@@ -42,7 +42,7 @@ interface BaseReplacer {
         for (token in tokens) {
             val text = token.text
 
-            if (token.replaced || !text.partialMatch(regex)) {
+            if (token.replaced() || !text.partialMatch(regex)) {
                 newTokens.add(token)
                 continue
             }
@@ -56,7 +56,7 @@ interface BaseReplacer {
                 val id = Snowflake(match.groupValues[1]) // 0 is for whole match
                 val name = nameSupplier(VCSpeaker.kord, id)
 
-                Token(name, true)
+                Token(name, "Mentionable `$id` →「$name」")
             }
 
             newTokens.addAll(additions)

@@ -16,7 +16,7 @@ object EmojiReplacer : BaseReplacer {
                 for (token in replacedTokens) {
                     val text = token.text
 
-                    if (token.replaced || !text.contains(alias.search)) {
+                    if (token.replaced() || !text.contains(alias.search)) {
                         add(token)
                         continue
                     }
@@ -24,7 +24,7 @@ object EmojiReplacer : BaseReplacer {
                     val splitTexts = text.split(alias.search)
 
                     val additions = splitTexts.mixin {
-                        Token(alias.replace, true)
+                        Token(alias.replace, "Emoji Alias「${alias.search}」→「${alias.replace}」")
                     }
 
                     addAll(additions)

@@ -70,7 +70,7 @@ class TextProcessorTest : FunSpec({
                 guildId = Snowflake(0),
                 userId = Snowflake(0),
                 type = IgnoreType.Contains,
-                text = "Kotlin"
+                search = "Kotlin"
             )
         )
 
@@ -84,7 +84,7 @@ class TextProcessorTest : FunSpec({
                 guildId = Snowflake(0),
                 userId = Snowflake(0),
                 type = IgnoreType.Contains,
-                text = "world"
+                search = "world"
             )
         )
 
@@ -108,7 +108,7 @@ class TextProcessorTest : FunSpec({
                 guildId = Snowflake(0),
                 userId = Snowflake(0),
                 type = IgnoreType.Contains,
-                text = "Domain"
+                search = "Domain"
             )
         )
 
@@ -122,7 +122,7 @@ class TextProcessorTest : FunSpec({
                 guildId = Snowflake(0),
                 userId = Snowflake(0),
                 type = IgnoreType.Contains,
-                text = "https://"
+                search = "https://"
             )
         )
 
@@ -139,7 +139,7 @@ class TextProcessorTest : FunSpec({
                     guildId = Snowflake(0),
                     userId = Snowflake(0),
                     type = IgnoreType.Equals,
-                    text = text
+                    search = text
                 )
             )
 
@@ -153,7 +153,7 @@ class TextProcessorTest : FunSpec({
                     guildId = Snowflake(0),
                     userId = Snowflake(0),
                     type = IgnoreType.Equals,
-                    text = "Hello, world"
+                    search = "Hello, world"
                 )
             )
 
@@ -169,7 +169,7 @@ class TextProcessorTest : FunSpec({
                     guildId = Snowflake(0),
                     userId = Snowflake(0),
                     type = IgnoreType.Contains,
-                    text = "world"
+                    search = "world"
                 )
             )
 
@@ -183,7 +183,7 @@ class TextProcessorTest : FunSpec({
                     guildId = Snowflake(0),
                     userId = Snowflake(0),
                     type = IgnoreType.Contains,
-                    text = "worlds"
+                    search = "worlds"
                 )
             )
 

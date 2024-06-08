@@ -26,11 +26,11 @@ object Emoji {
         val emojiDataString = lines.map { it.split("#").last().trim() }
         val emojiData = emojiDataString.map {
             val stringPart = it.split(" ")
-            val emoji = stringPart.first()
+            val unicode = stringPart.first()
             val name = stringPart.drop(2).joinToString(" ")
 
-            EmojiData(emoji, name)
-        }
+            EmojiData(unicode, name)
+        }.filter { it.unicode.isNotEmpty() && it.name.isNotEmpty() }
 
         logger.info { "Loading emojis complete." }
 
@@ -53,11 +53,13 @@ object Emoji {
         replaced.replace(emoji.unicode, "")
     }
 
-    fun String.replaceEmojiToName(): String {
-        return emojis.fold(this) { replaced, emoji ->
-            replaced.replace(emoji.unicode, emoji.name)
-        }
+    fun String.replaceEmojisToName() = emojis.fold(this) { replaced, emoji ->
+        replaced.replace(emoji.unicode, emoji.name)
     }
+
+    fun String.containsEmojis() = emojis.any { contains(it.unicode) }
+
+    fun String.getEmojis() = emojis.filter { contains(it.unicode) }
 
     private fun List<String>.startsWith(list: List<String>): Boolean {
         if (this.size < list.size) return false
