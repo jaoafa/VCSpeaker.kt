@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: 🔼 Bump release version
         id: version
-        uses: mathieudutour/github-tag-action@v6.0
+        uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ github.token }}
           default_bump: "minor"
@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🐋 Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -59,7 +59,7 @@ jobs:
 
       - name: 📝 Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5.0.0
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |

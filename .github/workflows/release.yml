@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🐋 Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -64,7 +64,7 @@ jobs:
 
       - name: 📝 Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5.0.0
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -98,14 +98,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create and push manifest images (latest)
-        uses: Noelware/docker-manifest-action@0.4.0
+        uses: Noelware/docker-manifest-action@0.4.2
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-arm64
           inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           push: true
 
       - name: Create and push manifest images (version)
-        uses: Noelware/docker-manifest-action@0.4.0
+        uses: Noelware/docker-manifest-action@0.4.2
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-arm64
           inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}
@@ -121,13 +121,13 @@ jobs:
 
     steps:
       - name: ☕ Setup Zulu JDK 17
-        uses: actions/setup-java@v3.0.0
+        uses: actions/setup-java@v4.2.1
         with:
           distribution: zulu
           java-version: 17
 
       - name: 🐘 Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           gradle-version: release-candidate
 
@@ -148,10 +148,10 @@ jobs:
           mv build/libs/*.jar build/libs/vcspeaker-kt.jar
 
       - name: 🗃️ Publish Release on main
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body: ${{ needs.bump-version.outputs.changelog }}
           tag_name: ${{ needs.bump-version.outputs.tag }}
-          target_commitish: ${{ github.ref }}
+          target_commitish: ${{ github.sha }}
           files: |
             build/libs/vcspeaker-kt.jar
