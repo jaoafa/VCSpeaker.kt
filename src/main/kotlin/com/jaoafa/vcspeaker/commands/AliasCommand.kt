@@ -47,7 +47,7 @@ class AliasCommand : Extension() {
     }
 
     inner class UpdateOptions : Options() {
-        val search by string {
+        val alias by string {
             name = "alias"
             description = "更新するエイリアス"
 
@@ -59,6 +59,11 @@ class AliasCommand : Extension() {
             description = "エイリアスの種類"
             for (aliasType in AliasType.entries)
                 choice(aliasType.displayName, aliasType.name)
+        }
+
+        val search by optionalString {
+            name = "search"
+            description = "置き換える条件"
         }
 
         val replace by optionalString {
@@ -121,11 +126,12 @@ class AliasCommand : Extension() {
 
             publicSubCommand("update", "エイリアスを更新します。", ::UpdateOptions) {
                 action {
-                    val aliasData = AliasStore.find(guild!!.id, arguments.search)
+                    val aliasData = AliasStore.find(guild!!.id, arguments.alias)
                     if (aliasData != null) {
                         val (_, _, type, search, replace) = aliasData
 
                         val updatedType = arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: type
+                        val updatedSearch = arguments.search ?: search
                         val updatedReplace = arguments.replace ?: replace
 
                         AliasStore.remove(aliasData)
@@ -133,20 +139,31 @@ class AliasCommand : Extension() {
                             aliasData.copy(
                                 userId = user.id,
                                 type = updatedType,
+                                search = updatedSearch,
                                 replace = updatedReplace
                             )
                         )
 
                         respondEmbed(
                             ":repeat: Alias Updated",
-                            "${type.displayName}のエイリアスを更新しました。"
+                            "エイリアスを更新しました。"
                         ) {
                             authorOf(user)
 
-                            fieldAliasFrom(updatedType, search)
+                            fun searchDisplay(type: AliasType, search: String) = when (type) {
+                                AliasType.Text -> search
+                                AliasType.Regex -> "`$search`"
+                                AliasType.Emoji -> "$search `$search`"
+                            }
+
+                            field("${updatedType.emoji} ${updatedType.displayName}", true) {
+                                searchDisplay(type, search) + if (replace != updatedReplace)
+                                    " → **${searchDisplay(updatedType, updatedSearch)}**"
+                                else ""
+                            }
 
                             field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                "$replace → **${updatedReplace}**"
+                                if (replace != updatedReplace) "「$replace」→「**$updatedReplace**」" else "「$replace」"
                             }
 
                             successColor()
@@ -158,14 +175,14 @@ class AliasCommand : Extension() {
                     } else {
                         respondEmbed(
                             ":question: Alias Not Found",
-                            "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
+                            "置き換え条件が「${arguments.alias}」のエイリアスは見つかりませんでした。"
                         ) {
                             authorOf(user)
                             errorColor()
                         }
 
                         log(logger) { guild, user ->
-                            "[${guild.name}] Alias Not Found: @${user.username} searched for alias contains \"${arguments.search}\" but not found"
+                            "[${guild.name}] Alias Not Found: @${user.username} searched for alias contains \"${arguments.alias}\" but not found"
                         }
                     }
                 }
