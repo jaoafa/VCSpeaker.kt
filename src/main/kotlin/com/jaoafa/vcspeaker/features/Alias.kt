@@ -19,12 +19,12 @@ object Alias {
         )
     }
 
-    fun EmbedBuilder.fieldAliasFrom(type: AliasType, from: String) =
+    fun EmbedBuilder.fieldAliasFrom(type: AliasType, search: String) =
         this.field("${type.emoji} ${type.displayName}", true) {
             when (type) {
-                AliasType.Text -> from
-                AliasType.Regex -> "`$from`"
-                AliasType.Emoji -> "$from `$from`"
+                AliasType.Text -> search
+                AliasType.Regex -> "`$search`"
+                AliasType.Emoji -> "$search `$search`"
             }
         }
 }

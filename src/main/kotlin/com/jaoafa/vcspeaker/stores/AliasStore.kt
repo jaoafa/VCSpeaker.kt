@@ -22,7 +22,12 @@ data class AliasData(
     val type: AliasType,
     val search: String,
     val replace: String
-)
+) {
+    private val searchDisplay = if (type == AliasType.Regex) " `$search` " else "「$search」"
+    fun toDisplay() = "${type.displayName}${searchDisplay}→「$replace」<@$userId>"
+
+    fun toDisplayWithEmoji() = "${type.emoji} ${toDisplay()}"
+}
 
 object AliasStore : StoreStruct<AliasData>(
     VCSpeaker.Files.aliases.path,

@@ -81,6 +81,8 @@ class Main : CliktCommand() {
     override fun run() {
         logger.info { "Starting VCSpeaker..." }
 
+        logger.info { "Reading config: $configPath" }
+
         // Options > Config > Default
         val config = Config {
             addSpec(TokenSpec)
