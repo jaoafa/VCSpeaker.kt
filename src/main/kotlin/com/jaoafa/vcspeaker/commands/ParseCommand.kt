@@ -60,7 +60,7 @@ class ParseCommand : Extension() {
                         val emoji = if (text != null) emojis.getOrNull(step - 1) else ":white_large_square:"
 
                         field("$emoji $title") {
-                            text ?: "スキップされました。"
+                            text ?: "＊スキップされました。"
                         }
                     }
 
@@ -101,7 +101,7 @@ class ParseCommand : Extension() {
                         checkIgnore = effectiveIgnores.joinToString("\n") {
                             it.toDisplay()
                         },
-                        result = "無視されました。",
+                        result = "＊無視されました。",
                         ignored = true
                     )
 
@@ -133,12 +133,12 @@ class ParseCommand : Extension() {
 
                 if (annotatedEffectiveIgnores.isNotEmpty()) {
                     respondStepEmbed(
-                        checkIgnore = "無視されませんでした。",
+                        checkIgnore = "＊無視されませんでした。",
                         applyAlias = replaceResult,
                         recheckIgnore = annotatedEffectiveIgnores.joinToString("\n") {
                             it.toDisplay()
                         },
-                        result = "無視されました。",
+                        result = "＊無視されました。",
                         ignored = true
                     )
 
@@ -163,10 +163,10 @@ class ParseCommand : Extension() {
                     .withIndex().joinToString("\n") { (i, emoji) -> "$i. ${emoji.unicode} → ${emoji.name}" }
 
                 respondStepEmbed(
-                    checkIgnore = "無視されませんでした。",
-                    applyAlias = if (replacedTokens.isNotEmpty()) replaceResult else "置き換えられませんでした。",
-                    recheckIgnore = "無視されませんでした。",
-                    replaceEmoji = if (appliedText.containsEmojis()) emojiReplaceResult else "絵文字は含まれていませんでした。",
+                    checkIgnore = "＊無視されませんでした。",
+                    applyAlias = if (replacedTokens.isNotEmpty()) replaceResult else "＊置き換えられませんでした。",
+                    recheckIgnore = "＊無視されませんでした。",
+                    replaceEmoji = if (appliedText.containsEmojis()) emojiReplaceResult else "＊絵文字は含まれていませんでした。",
                     result = "「$result」",
                     ignored = false
                 )
