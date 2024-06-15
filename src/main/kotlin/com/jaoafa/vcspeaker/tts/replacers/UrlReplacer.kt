@@ -8,6 +8,7 @@ import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
+import com.jaoafa.vcspeaker.tts.TextProcessor.substringByCodePoints
 import com.jaoafa.vcspeaker.tts.Token
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
@@ -491,7 +492,7 @@ object UrlReplacer : BaseReplacer {
                 "ユーザー「$userName」のツイートへのリンク"
             )
 
-            val tweetContent = tweet.readText.substring(
+            val tweetContent = tweet.readText.substringByCodePoints(
                 0,
                 70.coerceAtMost(tweet.readText.length)
             ) + if (tweet.readText.length > 70) " 以下略" else ""
@@ -628,5 +629,5 @@ object UrlReplacer : BaseReplacer {
     /**
      * 文字列を指定した長さに短縮します。短縮後、末尾に「以下略」を付けます。
      */
-    private fun String.shorten(length: Int) = if (this.length > length) substring(0, length) + " 以下略" else this
+    private fun String.shorten(length: Int) = if (this.length > length) substringByCodePoints(0, length) + " 以下略" else this
 }
