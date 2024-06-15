@@ -7,6 +7,7 @@ import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Message
+import dev.kord.core.entity.effectiveName
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.addFile
 import java.io.File
@@ -19,17 +20,24 @@ object MessageProcessor {
         val stickers = message.stickers
         val attachments = message.attachments
         val content = message.content
+        val replyReadText = if (message.referencedMessage != null) {
+            val replyToName = message.referencedMessage!!.author?.effectiveName ?: "だれか"
+            "$replyToName への返信、"
+        } else {
+            ""
+        }
 
         if (stickers.isNotEmpty())
-            return stickers.joinToString(" ") { "スタンプ ${it.name}" }
+            return replyReadText + stickers.joinToString(" ") { "スタンプ ${it.name}" }
 
         if (attachments.isNotEmpty()) {
             val fileText = getReadFileText(message)
 
-            return if (content.isBlank()) fileText else "$content $fileText"
+            // ファイルのみ送信の場合、返信先とファイル名を読み上げる。ファイル送信と合わせてメッセージがある場合は、返信先 + メッセージ + ファイル名を読み上げる
+            return if (content.isBlank()) replyReadText + fileText else "$replyReadText$content $fileText"
         }
 
-        return content.ifBlank { null }
+        return replyReadText + content.ifBlank { null }
     }
 
     /**
