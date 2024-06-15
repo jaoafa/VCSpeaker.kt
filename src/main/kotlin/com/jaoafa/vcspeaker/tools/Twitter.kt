@@ -39,7 +39,7 @@ object Twitter {
                     .setMaxLineLength(Integer.MAX_VALUE)
                     .setNewLine(null)
                     .toString()
-                val readText = getReadText(plainText)
+                val readText = getReadText(plainText).trim()
                 Tweet(
                     json.authorName,
                     json.html,
@@ -58,7 +58,7 @@ object Twitter {
         return text
             .replace("#(\\S+)".toRegex(), " ハッシュタグ「$1」 ")
             .replace("<?(?:https?://)?t\\.co/[a-zA-Z0-9]+>?".toRegex(), "")
-            .replace("<?(?:https?://)?twitter\\.com/.+>?".toRegex(), "")
-            .replace("<?(?:https?://)?pic\\.twitter\\.com/[a-zA-Z0-9]+>?".toRegex(), "")
+            .replace("<?(?:https?://)?pic\\.(?:x|twitter)\\.com/[a-zA-Z0-9]+>?".toRegex(), "")
+            .replace("<?(?:https?://)?(?:x|twitter)\\.com/.+>?".toRegex(), "")
     }
 }
