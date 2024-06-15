@@ -36,7 +36,7 @@ object TextProcessor {
 
         val markdown = replacedText.toMarkdown().joinToString("") { it.toReadable() }
 
-        return markdown.let { if (it.length > 180) it.substring(0, 180) else it }
+        return markdown.let { if (it.length > 180) it.substringByCodePoints(0, 180) else it }
     }
 
     fun extractInlineVoice(text: String, voice: Voice): Pair<String, Voice> {
@@ -62,5 +62,10 @@ object TextProcessor {
         }.trim()
 
         return newText to newVoice
+    }
+
+    fun String.substringByCodePoints(start: Int, end: Int): String {
+        val codePoints = codePoints().toArray()
+        return String(codePoints.copyOfRange(start, end), 0, end - start)
     }
 }
