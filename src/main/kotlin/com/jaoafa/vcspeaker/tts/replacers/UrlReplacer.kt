@@ -573,7 +573,7 @@ object UrlReplacer : BaseReplacer {
             val urlParams = Url(url).parameters
             val query = urlParams["q"] ?: return@replaceAll replacedText
 
-            val replaceTo = "Google検索「${query}」へのリンク"
+            val replaceTo = "Google検索「$query」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
