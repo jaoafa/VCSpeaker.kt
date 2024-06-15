@@ -41,7 +41,7 @@ interface BaseReplacer {
             val id = Snowflake(match.groupValues[1]) // 0 is for whole match
             val name = nameSupplier(VCSpeaker.kord, id)
 
-            replacedText.replace(match.value, name)
+            replacedText.replace(match.value, "@$name")
         }
 
         return replacedText
