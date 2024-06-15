@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
 import com.jaoafa.vcspeaker.tools.VisionApi
+import com.jaoafa.vcspeaker.tts.TextProcessor.substringByCodePoints
 import com.kotlindiscord.kord.extensions.utils.download
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
@@ -72,9 +73,9 @@ object MessageProcessor {
             // 改行は半角スペースに置換する
             val firstDescription = textAnnotations.firstOrNull()?.description?.replace("\n", " ") ?: ""
             val shortDescription =
-                if (firstDescription.length > 20) firstDescription.substring(0, 20) + "..." else firstDescription
+                if (firstDescription.length > 20) firstDescription.substringByCodePoints(0, 20) + "..." else firstDescription
             val embedDescription =
-                if (firstDescription.length > 1000) firstDescription.substring(0, 1000) + "..." else firstDescription
+                if (firstDescription.length > 1000) firstDescription.substringByCodePoints(0, 1000) + "..." else firstDescription
 
             // 画像解析結果を返信する
             val editedImage = visionApi.drawTextAnnotations(binaryArray)
