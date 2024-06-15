@@ -53,6 +53,7 @@ object UrlReplacer : BaseReplacer {
                     ::replaceSteamAppUrl,
                     ::replaceYouTubeUrl,
                     ::replaceYouTubePlaylistUrl,
+                    ::replaceGoogleSearchUrl,
                     ::replaceUrlToTitle,
                     ::replaceUrl,
                 )
@@ -555,6 +556,24 @@ object UrlReplacer : BaseReplacer {
             )
 
             val replaceTo = "YouTubeの「${playlist.authorName}」によるプレイリスト「${playlist.title}」へのリンク"
+
+            replacedText.replace(matchResult.value, replaceTo)
+        }
+
+    /**
+     * Google検索のURLを置換します。
+     */
+    private suspend fun replaceGoogleSearchUrl(text: String, guildId: Snowflake) =
+        urlRegex.replaceAll(text) { replacedText, matchResult ->
+            val url = matchResult.value
+
+            val expectedUrlStarts = "https://www.google.com/search"
+            if (!url.startsWith(expectedUrlStarts)) return@replaceAll replacedText
+
+            val urlParams = Url(url).parameters
+            val query = urlParams["q"] ?: return@replaceAll replacedText
+
+            val replaceTo = "Google検索「${query}」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
