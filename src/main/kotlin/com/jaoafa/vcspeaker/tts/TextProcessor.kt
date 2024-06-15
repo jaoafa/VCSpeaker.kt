@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.stores.IgnoreType
-import com.jaoafa.vcspeaker.tools.Emoji.replaceEmojiToName
+import com.jaoafa.vcspeaker.tools.Emoji.replaceEmojisToName
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
@@ -17,20 +17,20 @@ object TextProcessor {
             it.kotlin.objectInstance
         }.sortedByDescending { it.priority.level }
 
-    private fun String.shouldIgnoreOn(guildId: Snowflake) =
+    fun String.shouldIgnoreOn(guildId: Snowflake) =
         IgnoreStore.filter(guildId).any {
             when (it.type) {
-                IgnoreType.Equals -> this == it.text
-                IgnoreType.Contains -> contains(it.text)
+                IgnoreType.Equals -> this == it.search
+                IgnoreType.Contains -> contains(it.search)
             }
         }
 
     suspend fun processText(guildId: Snowflake, text: String): String? {
         if (text.shouldIgnoreOn(guildId)) return null
 
-        val replacedText = replacers.fold(text) { replacedText, replacer ->
-            replacer.replace(replacedText, guildId)
-        }.replaceEmojiToName()
+        val replacedText = replacers.fold(mutableListOf(Token(text))) { tokens, replacer ->
+            replacer.replace(tokens, guildId)
+        }.joinToString("") { it.text }.replaceEmojisToName()
 
         if (replacedText.shouldIgnoreOn(guildId)) return null
 

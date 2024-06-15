@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation("io.kotest:kotest-runner-junit5:5.9.0")
+    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
     testImplementation("io.mockk:mockk:1.13.11")
     implementation(kotlin("reflect"))
     implementation("junit:junit:4.13.2")
@@ -33,26 +33,26 @@ dependencies {
     implementation("dev.kord:kord-core-voice:0.14.0")
     implementation("dev.kord:kord-voice:0.13.1")
     implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0")
-    implementation("dev.arbjerg:lavaplayer:2.0.2")
+    implementation("dev.arbjerg:lavaplayer:2.2.0")
     implementation("com.github.aikaterna:lavaplayer-natives:original-SNAPSHOT")
 
     // Ktor
-    implementation("io.ktor:ktor-client-cio-jvm:2.2.4")
-    implementation("io.ktor:ktor-client-cio:2.2.4")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.5")
-    implementation("io.ktor:ktor-client-core:2.2.4")
+    implementation("io.ktor:ktor-client-cio-jvm:2.3.11")
+    implementation("io.ktor:ktor-client-cio:2.3.11")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
+    implementation("io.ktor:ktor-client-core:2.3.11")
 
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Other Libraries
-    implementation("io.sentry:sentry:7.9.0")
+    implementation("io.sentry:sentry:7.10.0")
     implementation("net.htmlparser.jericho:jericho-html:3.4")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.32.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.1.3")
-    implementation("com.github.ajalt.clikt:clikt:4.0.0")
+    implementation("com.github.ajalt.clikt:clikt:4.4.0")
     implementation("com.uchuhimo:konf:1.1.2")
 }
 

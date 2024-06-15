@@ -19,15 +19,19 @@ data class IgnoreData(
     val guildId: Snowflake,
     val userId: Snowflake,
     val type: IgnoreType,
-    val text: String
-)
+    val search: String
+) {
+    fun toDisplay() = "${type.displayName}「$search」<@$userId>"
+
+    fun toDisplayWithEmoji() = "${type.emoji} ${toDisplay()}"
+}
 
 object IgnoreStore : StoreStruct<IgnoreData>(
     VCSpeaker.Files.ignores.path,
     IgnoreData.serializer(),
     { Json.decodeFromString(this) }
 ) {
-    fun find(guildId: Snowflake, text: String) = data.find { it.guildId == guildId && it.text == text }
+    fun find(guildId: Snowflake, text: String) = data.find { it.guildId == guildId && it.search == text }
 
     fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
 }

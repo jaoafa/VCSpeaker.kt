@@ -47,7 +47,7 @@ class IgnoreCommand : Extension() {
                 val guildId = event.interaction.getChannel().data.guildId.value
 
                 suggestStringCollection(
-                    IgnoreStore.filter(guildId).map { it.text },
+                    IgnoreStore.filter(guildId).map { it.search },
                     FilterStrategy.Contains
                 )
             }
@@ -144,8 +144,8 @@ class IgnoreCommand : Extension() {
 
                                 title = ":information_source: Ignores"
 
-                                description = chunkedIgnores.joinToString("\n") { (_, userId, type, text) ->
-                                    "${type.emoji} ${type.displayName} | 「$text」 | <@${userId}>"
+                                description = chunkedIgnores.joinToString("\n") {
+                                    it.toDisplayWithEmoji()
                                 }
 
                                 successColor()

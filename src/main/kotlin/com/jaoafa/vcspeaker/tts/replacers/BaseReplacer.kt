@@ -4,8 +4,10 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.AliasData
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.tts.Token
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import kotlinx.coroutines.runBlocking
 
 /**
  * テキストを置換する基底クラス
@@ -13,37 +15,64 @@ import dev.kord.core.Kord
 interface BaseReplacer {
     val priority: ReplacerPriority
 
-    suspend fun replace(text: String, guildId: Snowflake): String
+    suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake): MutableList<Token>
 
     fun replaceText(
-        text: String,
+        tokens: MutableList<Token>,
         guildId: Snowflake,
         type: AliasType,
-        transform: (AliasData, String) -> String
-    ): String {
+        transform: (AliasData, MutableList<Token>) -> MutableList<Token>
+    ): MutableList<Token> {
         val aliases = AliasStore.filter(guildId).filter { it.type == type }
 
-        val replacedText = aliases.fold(text) { replacedText, alias ->
-            transform(alias, replacedText)
+        val replacedText = aliases.fold(tokens) { replacedTokens, alias ->
+            transform(alias, replacedTokens)
         }
 
         return replacedText
     }
 
     suspend fun replaceMentionable(
-        text: String,
+        tokens: MutableList<Token>,
         regex: Regex,
         nameSupplier: suspend (Kord, Snowflake) -> String
-    ): String {
-        val matches = regex.findAll(text)
+    ): MutableList<Token> {
+        val newTokens = mutableListOf<Token>()
 
-        val replacedText = matches.fold(text) { replacedText, match ->
-            val id = Snowflake(match.groupValues[1]) // 0 is for whole match
-            val name = nameSupplier(VCSpeaker.kord, id)
+        for (token in tokens) {
+            val text = token.text
 
-            replacedText.replace(match.value, "@$name")
+            if (token.replaced() || !text.partialMatch(regex)) {
+                newTokens.add(token)
+                continue
+            }
+
+            val matches = regex.findAll(text).toList()
+
+            val splitTexts = text.split(regex)
+
+            val additions = splitTexts.mixin { index ->
+                val match = matches[index]
+                val id = Snowflake(match.groupValues[1]) // 0 is for whole match
+                val name = nameSupplier(VCSpeaker.kord, id)
+
+                Token(name, "Mentionable `$id` →「$name」")
+            }
+
+            newTokens.addAll(additions)
         }
 
-        return replacedText
+        return newTokens
     }
+
+
+    fun List<String>.mixin(provider: suspend (Int) -> Token) = buildList {
+        // ["text1", "text2", "text3"] -> [Token1, provider(0), Token2, provider(1), Token3]
+        for (index in 0..(this@mixin.size * 2 - 2)) {
+            if (index % 2 == 0) add(Token(this@mixin[index / 2]))
+            else add(runBlocking { provider((index - 1) / 2) })
+        }
+    }
+
+    fun String.partialMatch(regex: Regex) = regex.findAll(this).toList().isNotEmpty()
 }
