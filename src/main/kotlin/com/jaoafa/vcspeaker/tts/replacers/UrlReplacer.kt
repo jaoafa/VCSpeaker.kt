@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
+import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
@@ -8,7 +9,6 @@ import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
-import com.jaoafa.vcspeaker.tts.TextProcessor.substringByCodePoints
 import com.jaoafa.vcspeaker.tts.Token
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
