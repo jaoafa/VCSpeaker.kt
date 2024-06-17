@@ -10,6 +10,6 @@ class StickerProcessor : BaseProcessor() {
         val stickers = message?.stickers ?: return content to voice
         if (stickers.isEmpty()) return content to voice
 
-        return content + stickers.joinToString(" ") { "スタンプ ${it.name}" } to voice
+        return (content + " " + stickers.joinToString(" ") { "スタンプ ${it.name}" }).trim() to voice
     }
 }
