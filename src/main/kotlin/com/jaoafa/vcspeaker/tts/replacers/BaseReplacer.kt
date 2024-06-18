@@ -35,6 +35,7 @@ interface BaseReplacer {
     suspend fun replaceMentionable(
         tokens: MutableList<Token>,
         regex: Regex,
+        mentionPrefix: String,
         nameSupplier: suspend (Kord, Snowflake) -> String
     ): MutableList<Token> {
         val newTokens = mutableListOf<Token>()
@@ -56,7 +57,7 @@ interface BaseReplacer {
                 val id = Snowflake(match.groupValues[1]) // 0 is for whole match
                 val name = nameSupplier(VCSpeaker.kord, id)
 
-                Token("@$name", "Mentionable `$id` →「$name」")
+                Token("$mentionPrefix$name", "Mentionable `$id` →「$name」")
             }
 
             newTokens.addAll(additions)
