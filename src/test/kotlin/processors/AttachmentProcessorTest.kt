@@ -1,16 +1,18 @@
 package processors
 
 import com.jaoafa.vcspeaker.tools.VisionApi
+import com.jaoafa.vcspeaker.tools.VisionTextAnnotation
+import com.jaoafa.vcspeaker.tools.VisionVertex
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.jaoafa.vcspeaker.tts.processors.AttachmentProcessor
+import com.kotlindiscord.kord.extensions.utils.download
+import com.sksamuel.scrimage.ImmutableImage
 import dev.kord.core.entity.Attachment
 import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkObject
+import io.mockk.*
 
 class AttachmentProcessorTest : FunSpec({
     test("If no file is attached, the text remains unchanged") {
@@ -79,5 +81,38 @@ class AttachmentProcessorTest : FunSpec({
         processedVoice shouldBe voice
     }
 
-    // attachment.download() がうまくモックできず (Connection refused: no further information エラー)、テストが作れない…。
+    test("download") {
+        // 画像ファイル image.png
+        mockkStatic("com.kotlindiscord.kord.extensions.utils._AttachmentsKt")
+        val attachment = mockk<Attachment>()
+        every { attachment.isImage } returns true
+        every { attachment.isSpoiler } returns false
+        every { attachment.filename } returns "image.png"
+        coEvery { attachment.download() } returns byteArrayOf(0x00)
+
+        // VisionApi
+        mockkObject(VisionApi)
+        every { VisionApi.isGoogleAppCredentialsExist() } returns true
+        every { VisionApi.getTextAnnotations(any()) } returns listOf(
+            VisionTextAnnotation(
+                "test",
+                "ja",
+                1.0f,
+                listOf(VisionVertex(0, 0), VisionVertex(0, 0), VisionVertex(0, 0), VisionVertex(0, 0))
+            )
+        )
+        every { VisionApi.drawTextAnnotations(any()) } returns mockk<ImmutableImage>()
+
+        // io.mockk.MockKException: no answer found for ImmutableImage(#43).output(com.sksamuel.scrimage.nio.PngWriter@651cf0a2, C:\Users\tomachi\AppData\Local\Temp\Image_1248740629635088695.png) among the configured answers: ()
+
+        val message = mockk<Message>()
+        every { message.attachments } returns setOf(attachment)
+
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = AttachmentProcessor().process(message, "test", voice)
+
+        processedText shouldBe "test 画像ファイル image.png "
+        processedVoice shouldBe voice
+    }
 })
