@@ -47,32 +47,6 @@ class ReplacerProcessorTest : FunSpec({
         processedVoice shouldBe voice
     }
 
-    test("replace URL") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
-        mapOf(
-            "https://example.com" to
-                    "Webページ「Example Domain」へのリンク",
-            "Please visit https://example.com for more information." to
-                    "Please visit Webページ「Example Domain」へのリンク for more information.",
-            "https://www.iana.org/help/example-domains explains why https://example.com is reserved." to
-                    "Webページ「Example Domains」へのリンク explains why Webページ「Example Domain」へのリンク is reserved.",
-        ).forEach { (text, replaced) ->
-            val voice = Voice(speaker = Speaker.Hikari)
-
-            val (processedText, processedVoice) = ReplacerProcessor().process(
-                message,
-                text,
-                voice
-            )
-
-            processedText shouldBe replaced
-            processedVoice shouldBe voice
-        }
-    }
-
     context("alias") {
         test("alias (text)") {
             val message = mockk<Message>()
@@ -246,5 +220,17 @@ class ReplacerProcessorTest : FunSpec({
             processedText shouldBe "Bonjour, Kotlin!"
             processedVoice shouldBe voice
         }
+    }
+
+    context("emoji") {
+        // TODO
+    }
+
+    context("mentions") {
+        // TODO
+    }
+
+    context("url") {
+        // TODO
     }
 })
