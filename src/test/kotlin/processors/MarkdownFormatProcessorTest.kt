@@ -7,18 +7,108 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 
 class MarkdownFormatProcessorTest : FunSpec({
-    test("Process returns content converted from inline markdown") {
+    test("Process returns content converted from inline bold markdown") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
 
         val (processedText, processedVoice) = processor.process(
             message,
-            "**bold** *italic* [link](http://example.com)",
+            "**bold**",
             voice
         )
 
-        processedText shouldBe "bold italic link"
+        processedText shouldBe "bold"
+        processedVoice shouldBe voice
+    }
+
+    test("Process returns content converted from inline italic markdown") {
+        val message = mockk<Message>()
+        val processor = MarkdownFormatProcessor()
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = processor.process(
+            message,
+            "*italic*",
+            voice
+        )
+
+        processedText shouldBe "italic"
+        processedVoice shouldBe voice
+    }
+
+    test("Process returns content converted from inline strike-through markdown") {
+        val message = mockk<Message>()
+        val processor = MarkdownFormatProcessor()
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = processor.process(
+            message,
+            "~~strike-through~~",
+            voice
+        )
+
+        processedText shouldBe "パー"
+        processedVoice shouldBe voice
+    }
+
+    test("Process returns content converted from inline underline markdown") {
+        val message = mockk<Message>()
+        val processor = MarkdownFormatProcessor()
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = processor.process(
+            message,
+            "__underline__",
+            voice
+        )
+
+        processedText shouldBe "underline"
+        processedVoice shouldBe voice
+    }
+
+    test("Process returns content converted from inline code markdown") {
+        val message = mockk<Message>()
+        val processor = MarkdownFormatProcessor()
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = processor.process(
+            message,
+            "`code`",
+            voice
+        )
+
+        processedText shouldBe "code"
+        processedVoice shouldBe voice
+    }
+
+    test("Process returns content converted from inline link markdown") {
+        val message = mockk<Message>()
+        val processor = MarkdownFormatProcessor()
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = processor.process(
+            message,
+            "[link](https://example.com)",
+            voice
+        )
+
+        processedText shouldBe "link"
+        processedVoice shouldBe voice
+    }
+
+    test("Process returns content converted from inline spoiler markdown") {
+        val message = mockk<Message>()
+        val processor = MarkdownFormatProcessor()
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = processor.process(
+            message,
+            "||spoiler||",
+            voice
+        )
+
+        processedText shouldBe "ピー"
         processedVoice shouldBe voice
     }
 
