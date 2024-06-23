@@ -177,6 +177,20 @@ object UrlReplacer : BaseReplacer {
      * YouTubeのURLを表す正規表現 (動画、ライブ、ショートに対応。no-cookieも対応)
      *
      * 例: https://www.youtube.com/watch?v=abcdefg
+     * 例: http://youtube.com/watch?v=abcdefg
+     * 例: https://m.youtube.com/watch?v=abcdefg
+     * 例: youtu.be/abcdefg
+     * 例: www.youtube.com/embed/abcdefg
+     * 例: youtube-nocookie.com/embed/abcdefg
+     * 例: https://youtube.com/v/abcdefg
+     * 例: https://youtube.com/e/abcdefg
+     * 例: https://youtube.com/shorts/abcdefg
+     * 例: https://youtube.com/live/abcdefg
+     * 例: https://www.youtube.com/watch.php?v=abcdefg
+     * 例: http://www.youtube.com/watch?v=abcdefg&feature=related
+     * 例: https://www.youtube.com/watch?v=abcdefg#t=30s
+     * 例: https://www.youtube.com/watch?v=abcdefg&ab_channel=TestChannel
+     * 例: http://youtube.com/watch?v=abcdefg&list=PLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
      */
     private val youtubeUrlRegex = Regex(
         "(?:https?:)?(?://)?(?:youtu\\.be/|(?:www\\.|m\\.)?(?:youtube\\.com|youtube-nocookie\\.com)/(watch|v|e|embed|shorts|live)(?:\\.php)?(?:\\?.*v=|/))([a-zA-Z0-9_-]{7,15})(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?",
@@ -186,7 +200,16 @@ object UrlReplacer : BaseReplacer {
     /**
      * YouTubeのプレイリストURLを表す正規表現
      *
-     * 例: https://www.youtube.com/playlist?list=abcdefg
+     * 例: https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: http://youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: https://m.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&feature=share
+     * 例: m.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI#t=30s
+     * 例: http://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&index=5
+     * 例: https://youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&ab_channel=RickAstley
+     * 例: http://m.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&shuffle=1
      */
     private val youtubePlaylistUrlRegex = Regex(
         "(?:https?:)?(?://)?(?:www\\.|m\\.)?youtube\\.com/playlist\\?list=([a-zA-Z0-9_-]+)(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?",
