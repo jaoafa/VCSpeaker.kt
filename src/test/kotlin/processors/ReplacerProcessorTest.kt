@@ -2,7 +2,9 @@ package processors
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
+import com.jaoafa.vcspeaker.models.original.twitter.Tweet
 import com.jaoafa.vcspeaker.stores.*
+import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.jaoafa.vcspeaker.tts.processors.ReplacerProcessor
@@ -844,7 +846,118 @@ class ReplacerProcessorTest : FunSpec({
             }
         }
 
-        context("replaceTweetUrl") {}
+        context("replaceTweetUrl") {
+            test("exists short tweet") {
+                listOf(
+                    "test https://twitter.com/username/status/123456789012345678",
+                    "test https://twitter.com/username/status/123456789012345678?query=example",
+                    "test https://twitter.com/username/status/123456789012345678/",
+                    "test https://twitter.com/username/status/123456789012345678/?query=example",
+                    "test https://x.com/username/status/123456789012345678",
+                    "test https://x.com/username/status/123456789012345678?query=example",
+                    "test https://x.com/username/status/123456789012345678/",
+                    "test https://x.com/username/status/123456789012345678/?query=example",
+                ).forEach { text ->
+                    mockkObject(Twitter)
+                    coEvery { Twitter.getTweet("username", "123456789012345678") } returns Tweet(
+                        authorName = "test-user ⚠️",
+                        html = "<p>test-tweet</p>",
+                        plainText = "test-plaintext",
+                        readText = "test-readtext",
+                    )
+
+                    val message = mockk<Message>()
+                    coEvery { message.getGuild() } returns mockk {
+                        every { id } returns Snowflake(123456789012345678)
+                    }
+                    val voice = Voice(speaker = Speaker.Hikari)
+
+                    val expected = "test test-user のツイート「test-readtext」へのリンク"
+
+                    val (processedText, processedVoice) = ReplacerProcessor().process(
+                        message, text, voice
+                    )
+
+                    processedText shouldBe expected
+                    processedVoice shouldBe voice
+                }
+            }
+
+            test("exists long tweet") {
+                mockkObject(Twitter)
+                coEvery { Twitter.getTweet("username", "123456789012345678") } returns Tweet(
+                    authorName = "test-user ⚠️",
+                    html = "<p>test-tweet</p>",
+                    plainText = "long".repeat(100),
+                    readText = "long".repeat(100),
+                )
+
+                val message = mockk<Message>()
+                coEvery { message.getGuild() } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                }
+                val voice = Voice(speaker = Speaker.Hikari)
+
+                val text = "test https://twitter.com/username/status/123456789012345678"
+                val expected =
+                    "test test-user のツイート「longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglo 以下略」へのリンク"
+
+                val (processedText, processedVoice) = ReplacerProcessor().process(
+                    message, text, voice
+                )
+
+                processedText shouldBe expected
+                processedVoice shouldBe voice
+            }
+
+            test("exists long tweet with special characters") {
+                mockkObject(Twitter)
+                coEvery { Twitter.getTweet("username", "123456789012345678") } returns Tweet(
+                    authorName = "test-user ⚠️",
+                    html = "<p>test-tweet</p>",
+                    plainText = "𝚐".repeat(100), // 普通の g ではない
+                    readText = "𝚐".repeat(100),
+                )
+
+                val message = mockk<Message>()
+                coEvery { message.getGuild() } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                }
+                val voice = Voice(speaker = Speaker.Hikari)
+
+                val text = "test https://twitter.com/username/status/123456789012345678"
+                val expected =
+                    "test test-user のツイート「\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90\uD835\uDE90 以下略」へのリンク"
+
+                val (processedText, processedVoice) = ReplacerProcessor().process(
+                    message, text, voice
+                )
+
+                processedText shouldBe expected
+                processedVoice shouldBe voice
+            }
+
+            test("not exists tweet") {
+                mockkObject(Twitter)
+                coEvery { Twitter.getTweet("username", "123456789012345678") } returns null
+
+                val message = mockk<Message>()
+                coEvery { message.getGuild() } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                }
+                val voice = Voice(speaker = Speaker.Hikari)
+
+                val text = "test https://twitter.com/username/status/123456789012345678"
+                val expected = "test ユーザー「username」のツイートへのリンク"
+
+                val (processedText, processedVoice) = ReplacerProcessor().process(
+                    message, text, voice
+                )
+
+                processedText shouldBe expected
+                processedVoice shouldBe voice
+            }
+        }
 
         context("replaceInviteUrl") {}
 

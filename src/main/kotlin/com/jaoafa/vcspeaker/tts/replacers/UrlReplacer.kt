@@ -141,7 +141,7 @@ object UrlReplacer : BaseReplacer {
      * 例: discord.com/invite/abcdef
      */
     private val inviteUrlRegex = Regex(
-        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)",
+        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
 
@@ -158,7 +158,7 @@ object UrlReplacer : BaseReplacer {
      * 例: https://x.com/username/status/123456789012345678/?query=example
      */
     private val tweetUrlRegex = Regex(
-        "https://(?:x|twitter)\\.com/(\\w){1,15}/status/(\\d+)\\??(.*)",
+        "https://(?:x|twitter)\\.com/(\\w{1,15})/status/(\\d+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
 
