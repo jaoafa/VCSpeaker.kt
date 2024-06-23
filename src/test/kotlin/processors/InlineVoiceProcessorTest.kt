@@ -1,3 +1,5 @@
+package processors
+
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
@@ -6,10 +8,20 @@ import dev.kord.core.entity.Message
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.mockk
 
+/**
+ * InlineVoiceProcessor のテスト
+ */
 class InlineVoiceProcessorTest : FunSpec({
-    test("Process returns original content when no inline voice parameters") {
+    // テスト後にモックを削除
+    afterTest {
+        clearAllMocks()
+    }
+
+    // インライン音声パラメータがない場合、プロセスは元のコンテンツを返す
+    test("If there is no inline audio parameter, returns the original content") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -20,7 +32,8 @@ class InlineVoiceProcessorTest : FunSpec({
         processedVoice shouldBe voice
     }
 
-    test("Process returns content with inline voice parameters") {
+    // インライン音声パラメータがある場合、プロセスはコンテンツと音声パラメータを返す
+    test("If inline voice parameters are present, returns content and voice parameters") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -41,8 +54,8 @@ class InlineVoiceProcessorTest : FunSpec({
         )
     }
 
-    // 異常値
-    test("Process returns content with inline voice parameters with invalid speaker name") {
+    // 無効なスピーカー名が指定された場合、例外がスローされる
+    test("If an invalid speaker name is specified, an exception is thrown") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -53,7 +66,8 @@ class InlineVoiceProcessorTest : FunSpec({
         exception.message shouldBe "No enum constant com.jaoafa.vcspeaker.tts.api.Speaker.Invalid"
     }
 
-    test("Process returns content with inline voice parameters with invalid emotion name") {
+    // 無効な感情名が指定された場合、例外がスローされる
+    test("If an invalid emotion name is specified, an exception is thrown") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -64,7 +78,8 @@ class InlineVoiceProcessorTest : FunSpec({
         exception.message shouldBe "No enum constant com.jaoafa.vcspeaker.tts.api.Emotion.Invalid"
     }
 
-    test("Process returns content with inline voice parameters with invalid emotion level") {
+    // 無効な感情レベルが指定された場合、例外がスローされず、値が無視される
+    test("If an invalid emotion level is specified, the value is ignored without throwing an exception") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -75,7 +90,8 @@ class InlineVoiceProcessorTest : FunSpec({
         processedVoice shouldBe voice // emotionLevel は変更されない。ユーザーが入力ミスをした場合は無視される形になるので、良いか悪いか…
     }
 
-    test("Process returns content with inline voice parameters with invalid pitch") {
+    // 無効なピッチが指定された場合、例外がスローされず、値が無視される
+    test("If an invalid pitch is specified, the value is ignored without throwing an exception") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -86,7 +102,8 @@ class InlineVoiceProcessorTest : FunSpec({
         processedVoice shouldBe voice // pitch は変更されない。ユーザーが入力ミスをした場合は無視される形になるので、良いか悪いか…
     }
 
-    test("Process returns content with inline voice parameters with invalid speed") {
+    // 無効なスピードが指定された場合、例外がスローされず、値が無視される
+    test("If an invalid speed is specified, the value is ignored without throwing an exception") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -97,7 +114,8 @@ class InlineVoiceProcessorTest : FunSpec({
         processedVoice shouldBe voice // speed は変更されない。ユーザーが入力ミスをした場合は無視される形になるので、良いか悪いか…
     }
 
-    test("Process returns content with inline voice parameters with invalid syntax") {
+    // インライン音声パラメータの構文が無効な場合、コンテンツと音声パラメータを返す
+    test("If the syntax of the inline voice parameter is invalid, returns the content and voice parameters") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)

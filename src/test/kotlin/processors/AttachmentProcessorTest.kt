@@ -8,11 +8,20 @@ import dev.kord.core.entity.Attachment
 import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 
+/**
+ * AttachmentProcessorのテスト
+ */
 class AttachmentProcessorTest : FunSpec({
+    afterTest {
+        clearAllMocks()
+    }
+
+    // もしファイルが添付されていない場合、テキストは変更されない
     test("If no file is attached, the text remains unchanged") {
         val message = mockk<Message>()
         every { message.attachments } returns emptySet()
@@ -22,6 +31,7 @@ class AttachmentProcessorTest : FunSpec({
         processedVoice shouldBe voice
     }
 
+    // 最初の添付ファイルが画像でない場合は、テキストとファイル名を読み上げる
     test("If the first attachment is not an image, read the text and filename") {
         // 画像ではないファイル test.txt
         val attachment = mockk<Attachment>()
@@ -39,6 +49,7 @@ class AttachmentProcessorTest : FunSpec({
         processedVoice shouldBe voice
     }
 
+    // 最初のファイルが画像でなく、複数のファイルが読み込まれた場合、2つ目以降のファイルは詳細が読み上げられない
     test("If the first file is not an image and multiple files are read, the second and subsequent files are not detailed") {
         val attachment1 = mockk<Attachment>()
         every { attachment1.isImage } returns false
@@ -59,6 +70,7 @@ class AttachmentProcessorTest : FunSpec({
         processedVoice shouldBe voice
     }
 
+    // 最初の添付ファイルが画像で、GOOGLE_APPLICATION_CREDENTIALS ファイルが存在しない場合、テキストとファイル名を読み上げる
     test("If the first attachment is an image and the GOOGLE_APPLICATION_CREDENTIALS file does not exist, read the text and filename") {
         val attachment = mockk<Attachment>()
         every { attachment.isImage } returns true

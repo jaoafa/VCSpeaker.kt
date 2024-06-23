@@ -536,7 +536,7 @@ object UrlReplacer : BaseReplacer {
                 "Steamアイテムへのリンク"
             )
 
-            val replaceTo = "Steamアイテム「${item.data.name}」へのリンク"
+            val replaceTo = "Steamアイテム「${item.data?.name}」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }

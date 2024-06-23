@@ -39,7 +39,10 @@ object Steam {
             HttpStatusCode.OK -> {
                 val mapSerializer = MapSerializer(String.serializer(), SteamAppDetail.serializer())
                 val map = JsonConfiguration.decodeFromString(mapSerializer, response.body())
-                map[appId] ?: return null
+                if (map.isEmpty()) return null
+                val app = map[appId]
+                if (app?.success == false) return null
+                app
             }
 
             else -> null

@@ -13,16 +13,19 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkObject
+import io.mockk.*
 import java.io.File
 
+/**
+ * IgnoreProcessorのテスト
+ */
 class IgnoreProcessorTest : FunSpec({
+    // テスト前処理
     beforeTest {
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File("./store-test")
+
+        // storeFolderを一時ディレクトリに設定
+        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
 
         val storeStruct = mockk<StoreStruct<IgnoreData>>()
         every { storeStruct.write() } returns Unit
@@ -32,10 +35,23 @@ class IgnoreProcessorTest : FunSpec({
 
         IgnoreStore.data.clear()
 
+        // テスト用データを作成
+        // equals という文字列で一致する場合無視
         IgnoreStore.create(IgnoreData(Snowflake(0), Snowflake(123), IgnoreType.Equals, "equals"))
+        // contains という文字列を含む場合無視
         IgnoreStore.create(IgnoreData(Snowflake(0), Snowflake(123), IgnoreType.Contains, "contains"))
     }
 
+    // テスト後処理
+    afterTest {
+        // storeFolderを削除
+        VCSpeaker.storeFolder.deleteRecursively()
+
+        // すべてのモックを削除
+        clearAllMocks()
+    }
+
+    // IgnoreBeforeReplaceProcessor を処理するときに、完全に一致する場合はキャンセルされる
     test("When processing the IgnoreBeforeReplaceProcessor, it is canceled if an exact match is made.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
@@ -50,6 +66,7 @@ class IgnoreProcessorTest : FunSpec({
         processor.isCancelled() shouldBe true
     }
 
+    // IgnoreBeforeReplaceProcessor を処理するときに、部分一致がある場合はキャンセルされる
     test("When processing the IgnoreBeforeReplaceProcessor, it should be canceled if a partial match is made.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
@@ -64,6 +81,7 @@ class IgnoreProcessorTest : FunSpec({
         processor.isCancelled() shouldBe true
     }
 
+    // IgnoreBeforeReplaceProcessor を処理するときに、一致するものがない場合はキャンセルされない
     test("When processing the IgnoreBeforeReplaceProcessor, it should not be canceled if there is no match.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
@@ -78,6 +96,7 @@ class IgnoreProcessorTest : FunSpec({
         processor.isCancelled() shouldBe false
     }
 
+    // IgnoreAfterReplaceProcessor を処理するときに、完全に一致する場合はキャンセルされる
     test("When processing the IgnoreAfterReplaceProcessor, it is canceled if an exact match is made.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
@@ -92,6 +111,7 @@ class IgnoreProcessorTest : FunSpec({
         processor.isCancelled() shouldBe true
     }
 
+    // IgnoreAfterReplaceProcessor を処理するときに、部分一致がある場合はキャンセルされる
     test("When processing the IgnoreAfterReplaceProcessor, it should be canceled if a partial match is made.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
@@ -106,6 +126,7 @@ class IgnoreProcessorTest : FunSpec({
         processor.isCancelled() shouldBe true
     }
 
+    // IgnoreAfterReplaceProcessor を処理するときに、一致するものがない場合はキャンセルされない
     test("When processing the IgnoreAfterReplaceProcessor, it should not be canceled if there is no match.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
