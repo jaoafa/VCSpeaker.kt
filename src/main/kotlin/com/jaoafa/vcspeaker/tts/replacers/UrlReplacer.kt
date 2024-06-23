@@ -106,7 +106,7 @@ object UrlReplacer : BaseReplacer {
      * 例: https://discordapp.com/events/123456789012345678/123456789012345678?query=example
      */
     private val eventDirectUrlRegex = Regex(
-        "(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)",
+        "(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
 
@@ -125,7 +125,7 @@ object UrlReplacer : BaseReplacer {
      * 例: discord.gg/abcdef?event=123456789012345678&query=example
      */
     private val eventInviteUrlRegex = Regex(
-        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\?event=(\\d+)",
+        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\?event=(\\d+)&?(.*)",
         RegexOption.IGNORE_CASE
     )
 
@@ -277,7 +277,7 @@ object UrlReplacer : BaseReplacer {
      */
     private suspend fun getInvite(inviteId: String, eventId: Snowflake? = null): DiscordInvite? {
         val url = "https://discord.com/api/invites/$inviteId"
-        val response = client.get((url)) {
+        val response = client.get(url) {
             parameter("with_counts", true)
             parameter("with_expiration", true)
             if (eventId != null)
@@ -286,7 +286,7 @@ object UrlReplacer : BaseReplacer {
 
         return when (response.status) {
             HttpStatusCode.OK -> {
-                val json: DiscordGetInviteResponse = response.body()
+                val json = response.body<DiscordGetInviteResponse>()
                 val guild = json.guild
                 val channel = json.channel
                 val inviter = json.inviter
@@ -371,7 +371,7 @@ object UrlReplacer : BaseReplacer {
             val thread = getThread(guild, urlChannelId)
 
             val replaceTo = if (thread != null) {
-                "$channelType「${thread.name}」のスレッド「${thread.parent.asChannel().name}」で送信したメッセージのリンク"
+                "$channelType「${thread.parent.asChannel().name}」のスレッド「${thread.name}」で送信したメッセージのリンク"
             } else {
                 "$channelType「${channel.name}」で送信したメッセージのリンク"
             }
