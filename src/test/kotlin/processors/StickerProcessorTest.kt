@@ -21,7 +21,7 @@ class StickerProcessorTest : FunSpec({
     }
 
     // スタンプがない場合、元のコンテンツを返す
-    test("Process returns original content when no stickers") {
+    test("Process returns original content when no stickers.") {
         val message = mockk<Message>()
         every { message.stickers } returns emptyList()
 
@@ -33,7 +33,7 @@ class StickerProcessorTest : FunSpec({
     }
 
     // スタンプが存在する場合、スタンプ名を含んだコンテンツを返す
-    test("Process returns content with sticker names when stickers exist") {
+    test("Process returns content with sticker names when stickers exist.") {
         val message = mockk<Message>()
         val sticker = mockk<StickerItem>()
         every { sticker.name } returns "sticker1"
@@ -47,7 +47,7 @@ class StickerProcessorTest : FunSpec({
     }
 
     // コンテンツが空白でスタンプが存在する場合、スタンプ名を返す
-    test("Process returns sticker names when content is blank and stickers exist") {
+    test("Process returns sticker names when content is blank and stickers exist.") {
         val message = mockk<Message>()
         val sticker = mockk<StickerItem>()
         every { sticker.name } returns "sticker1"

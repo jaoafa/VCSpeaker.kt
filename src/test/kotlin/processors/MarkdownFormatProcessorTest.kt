@@ -19,7 +19,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // インラインの太字マークダウンから変換されたコンテンツを返す
-    test("Process returns content converted from inline bold markdown") {
+    test("Process returns content converted from inline bold markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -35,7 +35,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // インラインの斜体マークダウンから変換されたコンテンツを返す
-    test("Process returns content converted from inline italic markdown") {
+    test("Process returns content converted from inline italic markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -51,7 +51,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // インラインの取り消し線マークダウンから変換されたコンテンツを返す
-    test("Process returns content converted from inline strike-through markdown") {
+    test("Process returns content converted from inline strike-through markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -67,7 +67,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // インラインの下線マークダウンから変換されたコンテンツを返す
-    test("Process returns content converted from inline underline markdown") {
+    test("Process returns content converted from inline underline markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -83,7 +83,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // インラインのコードマークダウンから変換されたコンテンツを返す
-    test("Process returns content converted from inline code markdown") {
+    test("Process returns content converted from inline code markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -99,7 +99,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // インラインのリンクマークダウンから変換されたコンテンツを返す
-    test("Process returns content converted from inline link markdown") {
+    test("Process returns content converted from inline link markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -115,7 +115,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // インラインの引用マークダウンから変換されたコンテンツを返す
-    test("Process returns content converted from inline spoiler markdown") {
+    test("Process returns content converted from inline spoiler markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -131,7 +131,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // ブロックマークダウンは改行とコードブロックを除去して返す
-    test("Process returns content converted from block markdown") {
+    test("Process returns content converted from block markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -166,7 +166,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // マークダウンがない場合、変更なしのコンテンツを返す
-    test("Process returns content with no changes when no markdown") {
+    test("Process returns content with no changes when no markdown.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -178,7 +178,7 @@ class MarkdownFormatProcessorTest : FunSpec({
     }
 
     // 空の文字列の場合、変更なしのコンテンツを返す
-    test("Process returns content with no changes when empty string") {
+    test("Process returns content with no changes when empty string.") {
         val message = mockk<Message>()
         val processor = MarkdownFormatProcessor()
         val voice = Voice(speaker = Speaker.Hikari)

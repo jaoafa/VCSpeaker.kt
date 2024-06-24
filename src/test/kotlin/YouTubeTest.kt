@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 class YouTubeTest : FunSpec({
-    test("getVideo") {
+    test("If the video ID is valid, the video information is returned.") {
         val video = YouTube.getVideo("aEbZ1UXcKhI")
 
         video.shouldNotBeNull()
@@ -13,7 +13,7 @@ class YouTubeTest : FunSpec({
         video.authorName shouldBe "jaotan"
     }
 
-    test("getPlaylist") {
+    test("If the playlist ID is valid, the playlist information is returned.") {
         val playlist = YouTube.getPlaylist("PL98tDGwe38KzTLvjPA0FJEqHl2y-_QufX")
 
         playlist.shouldNotBeNull()

@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 class TwitterTest : FunSpec({
-    test("getTweet") {
+    test("If the tweet exists, the tweet information is returned.") {
         val tweet = Twitter.getTweet("jaoafa", "1685568414084124673")
 
         tweet.shouldNotBeNull()
@@ -20,13 +20,13 @@ class TwitterTest : FunSpec({
         tweet.readText shouldBe "この度、jao Minecraft Serverでは2023年08月02日 22時00分をもって、Minecraft サーバのサービス提供を終了させていただくこととなりました。\n利用者のみなさまには、突然のお知らせとなりますことをお詫びいたします。\n\n7年間、本当にありがとうございました。 ハッシュタグ「jaoafa」"
     }
 
-    test("getTweet (not found)") {
+    test("If the tweet does not exist, null is returned.") {
         val tweet = Twitter.getTweet("jaoafa", "0")
 
         tweet.shouldBeNull()
     }
 
-    test("getTweet (with picture)") {
+    test("If the tweet exists and with picture, the tweet information is returned.") {
         val tweet = Twitter.getTweet("jaoafa", "1775559092742021223")
 
         tweet.shouldNotBeNull()

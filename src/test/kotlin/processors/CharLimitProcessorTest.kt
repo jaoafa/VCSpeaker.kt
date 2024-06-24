@@ -18,7 +18,7 @@ class CharLimitProcessorTest : FunSpec({
     }
 
     // もしテキストが180文字未満の場合、テキストは変更されない
-    test("If the text is less than 180 characters, the text remains unchanged") {
+    test("If the text is less than 180 characters, the text remains unchanged.") {
         val message = mockk<Message>()
         val voice = Voice(speaker = Speaker.Hikari)
         val (processedText, processedVoice) = CharLimitProcessor().process(message, "test", voice)
@@ -27,7 +27,7 @@ class CharLimitProcessorTest : FunSpec({
     }
 
     // もしテキストが180文字の場合、テキストは変更されない
-    test("If the text is 180 characters, the text remains unchanged") {
+    test("If the text is 180 characters, the text remains unchanged.") {
         val message = mockk<Message>()
         val voice = Voice(speaker = Speaker.Hikari)
         val (processedText, processedVoice) = CharLimitProcessor().process(message, "a".repeat(180), voice)
@@ -36,7 +36,7 @@ class CharLimitProcessorTest : FunSpec({
     }
 
     // もしテキストが180文字以上の場合、テキストは180文字に切り詰められる
-    test("If the text is 180 characters or more, the text is truncated to 180 characters") {
+    test("If the text is 180 characters or more, the text is truncated to 180 characters.") {
         val message = mockk<Message>()
         val voice = Voice(speaker = Speaker.Hikari)
         val (processedText, processedVoice) = CharLimitProcessor().process(message, "a".repeat(181), voice)

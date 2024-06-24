@@ -77,7 +77,7 @@ class ReplacerProcessorTest : FunSpec({
     // エイリアスのテスト
     context("alias") {
         // テキストエイリアスを設定した場合、正しく置き換えられる
-        test("If a text alias is set, it will be replaced correctly") {
+        test("If a text alias is set, it will be replaced correctly.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
                 every { id } returns Snowflake(0)
@@ -101,7 +101,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // テキストエイリアスを設定していても合致しない場合、変更されない
-        test("Even if a text alias is set, it will not be changed if it does not match") {
+        test("Even if a text alias is set, it will not be changed if it does not match.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
                 every { id } returns Snowflake(0)
@@ -127,7 +127,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 正規表現エイリアスを設定した場合、正しく置き換えられる
-        test("If a regular expression alias is set, it will be replaced correctly") {
+        test("If a regular expression alias is set, it will be replaced correctly.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
                 every { id } returns Snowflake(0)
@@ -151,7 +151,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 正規表現エイリアスを設定していても合致しない場合、変更されない
-        test("Even if a regular expression alias is set, it will not be changed if it does not match") {
+        test("Even if a regular expression alias is set, it will not be changed if it does not match.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
                 every { id } returns Snowflake(0)
@@ -177,7 +177,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 複数のエイリアスを設定した場合、正しく置き換えられる
-        test("If multiple aliases are set, they will be replaced correctly") {
+        test("If multiple aliases are set, they will be replaced correctly.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
                 every { id } returns Snowflake(0)
@@ -211,7 +211,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // エイリアスは再帰的には行われない
-        test("Aliases are not performed recursively") {
+        test("Aliases are not performed recursively.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
                 every { id } returns Snowflake(0)
@@ -256,7 +256,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 絵文字エイリアスを設定した場合、正しく置き換えられる
-        test("If an emoji alias is set, it will be replaced correctly") {
+        test("If an emoji alias is set, it will be replaced correctly.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
                 every { id } returns Snowflake(0)
@@ -285,7 +285,7 @@ class ReplacerProcessorTest : FunSpec({
     // メンションのテスト
     context("mentions") {
         // 既知のチャンネルメンションを置き換える
-        test("Replace channel mention (known)") {
+        test("For channel mentions you know, replace with the channel name.") {
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 coEvery { getChannel(Snowflake(123456789012345678)) } returns mockk {
@@ -312,7 +312,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 未知のチャンネルメンションを置き換える
-        test("Replace channel mention (unknown)") {
+        test("For unknown channel mentions, replace with an unknown channel.") {
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 coEvery { getChannel(Snowflake(123456789012345678)) } returns null
@@ -333,7 +333,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 既知のロールメンションを置き換える
-        test("Replace role mention (known)") {
+        test("For known role mentions, replace with the role name.") {
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 coEvery { getGuildOrNull(Snowflake(0)) } returns mockk {
@@ -360,7 +360,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 未知のロールメンションを置き換える
-        test("Replace role mention (unknown)") {
+        test("For unknown role mentions, replace with an unknown role.") {
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 coEvery { getGuildOrNull(Snowflake(0)) } returns null
@@ -381,7 +381,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 既知のユーザーメンションを置き換える
-        test("Replace user mention (known)") {
+        test("For known user mentions, replace with the user name.") {
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 coEvery { getGuildOrNull(Snowflake(0)) } returns mockk {
@@ -406,7 +406,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 未知のユーザーメンションを置き換える
-        test("Replace user mention (unknown)") {
+        test("For unknown user mentions, replace with an unknown user.") {
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 coEvery { getGuildOrNull(Snowflake(0)) } returns null
@@ -432,7 +432,7 @@ class ReplacerProcessorTest : FunSpec({
         // メッセージURLの置き換え
         context("replaceMessageUrl") {
             // 既知の通常のメッセージURLを置き換える
-            test("known normal channel message") {
+            test("Replace regular message URL if server and channel are known.") {
                 listOf(
                     "test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678",
                     "test https://discordapp.com/channels/123456789012345678/876543210987654321/123456789012345678",
@@ -474,7 +474,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 既知のスレッドチャンネルメッセージURLを置き換える
-            test("known thread channel message") {
+            test("Replace known thread channel message URL.") {
                 mapOf(
                     ChannelType.GuildText to "テキストチャンネル",
                     ChannelType.GuildNews to "ニュースチャンネル",
@@ -520,7 +520,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 未知のチャンネルメッセージURLを置き換える
-            test("unknown channel message") {
+            test("Replace unknown channel message URL.") {
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                     coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns null
@@ -547,7 +547,7 @@ class ReplacerProcessorTest : FunSpec({
         // チャンネルURLの置き換え
         context("replaceChannelUrl") {
             // 既知の通常のチャンネルURLを置き換える
-            test("known normal channel") {
+            test("Replace regular channel URL if server and channel are known.") {
                 listOf(
                     "test https://discord.com/channels/123456789012345678/876543210987654321",
                     "test https://discordapp.com/channels/123456789012345678/876543210987654321",
@@ -589,7 +589,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 既知のスレッドチャンネルURLを置き換える
-            test("known thread channel") {
+            test("Replace known thread channel URL.") {
                 mapOf(
                     ChannelType.GuildText to "テキストチャンネル",
                     ChannelType.GuildNews to "ニュースチャンネル",
@@ -634,7 +634,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 未知のチャンネルURLを置き換える
-            test("unknown channel message") {
+            test("Replace unknown channel URL.") {
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                     coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns null
@@ -661,7 +661,7 @@ class ReplacerProcessorTest : FunSpec({
         // イベントへの直接URLの置き換え
         context("replaceEventDirectUrl") {
             // メッセージが投稿されたサーバでのイベントへのリンクを置き換える
-            test("this guild event") {
+            test("Replace a link to an event in the server where the message was posted.") {
                 listOf(
                     "test https://discord.com/events/123456789012345678/876543210987654321",
                     "test https://discordapp.com/events/123456789012345678/876543210987654321",
@@ -699,7 +699,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 他のサーバでのイベントへのリンクを置き換える
-            test("other guild event") {
+            test("Replace a link to an event in another server.") {
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                     coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
@@ -732,7 +732,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 既知のサーバだが未知のイベントへのリンクを置き換える
-            test("known guild but unknown event") {
+            test("Replace a link to an unknown event in a known server.") {
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                     coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
@@ -760,7 +760,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 未知のサーバでのイベントへのリンクを置き換える
-            test("unknown guild") {
+            test("Replace a link to an event in an unknown server.") {
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                     coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns null
@@ -787,7 +787,7 @@ class ReplacerProcessorTest : FunSpec({
         // イベント招待URLの置き換え
         context("replaceEventInviteUrl") {
             // メッセージが投稿されたサーバでのイベントへのリンクを置き換える
-            test("this guild event") {
+            test("Replace a link to an event in the server where the message was posted.") {
                 listOf(
                     "test https://discord.com/invite/abcdef?event=123456789012345678",
                     "test https://discordapp.com/invite/abcdef?event=123456789012345678",
@@ -835,7 +835,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 他のサーバでのイベントへのリンクを置き換える
-            test("other guild event") {
+            test("Replace a link to an event in another server.") {
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 }
@@ -872,7 +872,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 招待リンクが取得できなかった場合の置き換え
-            test("failed to get invite") {
+            test("If invitation link could not be retrieved, replace as unknown.") {
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
                 }
@@ -901,7 +901,7 @@ class ReplacerProcessorTest : FunSpec({
         // ツイートURLの置き換え
         context("replaceTweetUrl") {
             // 存在するツイートで、短いツイートの場合
-            test("exists short tweet") {
+            test("If the tweet exists and is short, replace it.") {
                 listOf(
                     "test https://twitter.com/username/status/123456789012345678",
                     "test https://twitter.com/username/status/123456789012345678?query=example",
@@ -938,7 +938,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 存在するツイートで、長いツイートの場合
-            test("exists long tweet") {
+            test("For existing tweets, read out the first 70 characters of long tweets.") {
                 mockkObject(Twitter)
                 coEvery { Twitter.getTweet("username", "123456789012345678") } returns Tweet(
                     authorName = "test-user ⚠️",
@@ -966,7 +966,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 存在するツイートで、特殊文字を含む長いツイートの場合
-            test("exists long tweet with special characters") {
+            test("For existing tweets, read out the first 70 characters of long tweets with special characters.") {
                 mockkObject(Twitter)
                 coEvery { Twitter.getTweet("username", "123456789012345678") } returns Tweet(
                     authorName = "test-user ⚠️",
@@ -994,7 +994,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 存在しないツイートの場合
-            test("not exists tweet") {
+            test("If the tweet does not exist, replace it as an unknown tweet.") {
                 mockkObject(Twitter)
                 coEvery { Twitter.getTweet("username", "123456789012345678") } returns null
 
@@ -1019,7 +1019,7 @@ class ReplacerProcessorTest : FunSpec({
         // 招待URLの置き換え
         context("replaceInviteUrl") {
             // メッセージが投稿されたサーバでの招待リンクを置き換える
-            test("exists this guild invite") {
+            test("If the invite link exists in the server where the message was posted, replace it.") {
                 listOf(
                     "test https://discord.com/invite/abcdef",
                     "test https://discordapp.com/invite/abcdef",
@@ -1060,7 +1060,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 他のサーバでの招待リンクを置き換える
-            test("exists other guild invite") {
+            test("If the invitation link is on another server, include and replace the server name.") {
                 mockkObject(UrlReplacer)
                 coEvery { UrlReplacer["getInvite"]("abcdef", any<Snowflake>()) } returns DiscordInvite(
                     code = "abcdef",
@@ -1092,7 +1092,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 招待リンクが取得できなかった場合の置き換え
-            test("not exists invite") {
+            test("If the invitation link could not be retrieved, replace it as an unknown invitation link.") {
                 mockkObject(UrlReplacer)
                 coEvery { UrlReplacer["getInvite"]("abcdef", any<Snowflake>()) } returns null
 
@@ -1117,7 +1117,7 @@ class ReplacerProcessorTest : FunSpec({
         // SteamアプリURLの置き換え
         context("replaceSteamAppUrl") {
             // 存在するアプリの場合
-            test("exists app") {
+            test("If the app exists, replace it.") {
                 listOf(
                     "test https://store.steampowered.com/app/1234567890",
                     "test https://store.steampowered.com/app/1234567890?query=example",
@@ -1148,7 +1148,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 存在しないアプリの場合
-            test("not exists app") {
+            test("If the app does not exist, replace it as an unknown Steam item.") {
                 mockkObject(Steam)
                 coEvery { Steam.getAppDetail("1234567890") } returns null
 
@@ -1173,7 +1173,7 @@ class ReplacerProcessorTest : FunSpec({
         // YouTubeURLの置き換え
         context("replaceYouTubeUrl") {
             // 存在する動画の場合
-            test("exists video") {
+            test("If the video exists, replace it.") {
                 mapOf(
                     "test https://www.youtube.com/watch?v=abcdefg" to "動画",
                     "test http://youtube.com/watch?v=abcdefg" to "動画",
@@ -1226,7 +1226,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 存在する動画だが、タイトルや作者名が長い場合
-            test("exists video but long title and long author name") {
+            test("If the video exists but the title or author name is long, read it out briefly.") {
                 mockkObject(YouTube)
                 coEvery { YouTube.getVideo("abcdefg") } returns YouTubeOEmbedResponse(
                     authorName = "test-user".repeat(100),
@@ -1265,7 +1265,7 @@ class ReplacerProcessorTest : FunSpec({
         // YouTubeプレイリストURLの置き換え
         context("replaceYouTubePlaylistUrl") {
             // 存在するプレイリストの場合
-            test("exists playlist") {
+            test("If the playlist exists, replace it.") {
                 listOf(
                     "test https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI",
                     "test http://youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI",
@@ -1316,7 +1316,7 @@ class ReplacerProcessorTest : FunSpec({
         // Google検索URLの置き換え
         context("replaceGoogleSearchUrl") {
             // 通常の検索URL
-            test("normal search") {
+            test("If the search URL is normal, replace it.") {
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
                     every { id } returns Snowflake(123456789012345678)
@@ -1335,7 +1335,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 日本語文字列の検索URL (URLエンコードされている文字列)
-            test("japanese search") {
+            test("If the search URL contains Japanese characters, url decode and replace it.") {
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
                     every { id } returns Snowflake(123456789012345678)
@@ -1357,7 +1357,7 @@ class ReplacerProcessorTest : FunSpec({
         // URLからtitleタグ値への置き換え
         context("replaceUrlToTitle") {
             // 単一のURL
-            test("single url") {
+            test("If the URL is a single URL, replace it with the title tag value.") {
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
                     every { id } returns Snowflake(0)
@@ -1376,7 +1376,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 単一のURLにテキストが付随
-            test("single url with text") {
+            test("If the URL is a single URL with text, replace it with the title tag value.") {
                 mockkObject(UrlReplacer)
                 coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
 
@@ -1398,7 +1398,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             // 複数のURL
-            test("multiple urls") {
+            test("If there are multiple URLs, replace them with the title tag value.") {
                 mockkObject(UrlReplacer)
                 coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
                 coEvery { UrlReplacer["getPageTitle"]("https://www.iana.org/help/example-domains") } returns "Example Domains"
@@ -1425,7 +1425,7 @@ class ReplacerProcessorTest : FunSpec({
         // URLを拡張子に置き換える
         context("replaceUrl") {
             // 定義された拡張子を持つURL
-            test("url with defined extension") {
+            test("If the URL has a defined extension, replace it.") {
                 mockkObject(UrlReplacer)
                 coEvery { UrlReplacer["getPageTitle"]("https://example.com/test.jpg") } returns null
 
@@ -1448,7 +1448,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 未定義の拡張子を持つURL
-        test("url with not defined extension") {
+        test("If the URL has an undefined extension, replace it as a file link.") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com/test.hoge") } returns null
 
@@ -1470,7 +1470,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         // 拡張子を持たないURL
-        test("url without extension") {
+        test("If the URL does not have an extension, replace it as a web page link.") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com/test") } returns null
 
