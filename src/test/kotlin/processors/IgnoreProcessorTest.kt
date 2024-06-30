@@ -51,93 +51,97 @@ class IgnoreProcessorTest : FunSpec({
         clearAllMocks()
     }
 
-    // IgnoreBeforeReplaceProcessor を処理するときに、完全に一致する場合はキャンセルされる
-    test("When IgnoreBeforeReplaceProcessor found the text exactly matches to Ignore entry, the process should be cancelled.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
+    context("IgnoreBeforeReplaceProcessor") {
+        // 完全に一致する場合はキャンセルされる
+        test("If the text exactly matches to Ignore entry, the process should be cancelled.") {
+            val message = mockk<Message>()
+            coEvery { message.getGuild() } returns mockk {
+                every { id } returns Snowflake(0)
+            }
+
+            val voice = Voice(speaker = Speaker.Hikari)
+
+            val processor = IgnoreBeforeReplaceProcessor()
+            processor.process(message, "equals", voice)
+
+            processor.isCancelled() shouldBe true
         }
 
-        val voice = Voice(speaker = Speaker.Hikari)
+        // 部分一致がある場合はキャンセルされる
+        test("If the text partially matches to Ignore entry, the process should be cancelled.") {
+            val message = mockk<Message>()
+            coEvery { message.getGuild() } returns mockk {
+                every { id } returns Snowflake(0)
+            }
 
-        val processor = IgnoreBeforeReplaceProcessor()
-        processor.process(message, "equals", voice)
+            val voice = Voice(speaker = Speaker.Hikari)
 
-        processor.isCancelled() shouldBe true
+            val processor = IgnoreBeforeReplaceProcessor()
+            processor.process(message, "the text contains the word contains", voice)
+
+            processor.isCancelled() shouldBe true
+        }
+
+        // 一致するものがない場合はキャンセルされない
+        test("If did not find any Ignore entries matches to the text, the process should not be cancelled.") {
+            val message = mockk<Message>()
+            coEvery { message.getGuild() } returns mockk {
+                every { id } returns Snowflake(0)
+            }
+
+            val voice = Voice(speaker = Speaker.Hikari)
+
+            val processor = IgnoreBeforeReplaceProcessor()
+            processor.process(message, "no match", voice)
+
+            processor.isCancelled() shouldBe false
+        }
     }
 
-    // IgnoreBeforeReplaceProcessor を処理するときに、部分一致がある場合はキャンセルされる
-    test("When IgnoreBeforeReplaceProcessor found the text partially matches to Ignore entry, the process should be cancelled.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
+    context("IgnoreAfterReplaceProcessor") {
+        // 完全に一致する場合はキャンセルされる
+        test("If the text exactly matches to Ignore entry, the process should be cancelled.") {
+            val message = mockk<Message>()
+            coEvery { message.getGuild() } returns mockk {
+                every { id } returns Snowflake(0)
+            }
+
+            val voice = Voice(speaker = Speaker.Hikari)
+
+            val processor = IgnoreAfterReplaceProcessor()
+            processor.process(message, "equals", voice)
+
+            processor.isCancelled() shouldBe true
         }
 
-        val voice = Voice(speaker = Speaker.Hikari)
+        // 部分一致がある場合はキャンセルされる
+        test("If the text partially matches to Ignore entry, the process should be cancelled.") {
+            val message = mockk<Message>()
+            coEvery { message.getGuild() } returns mockk {
+                every { id } returns Snowflake(0)
+            }
 
-        val processor = IgnoreBeforeReplaceProcessor()
-        processor.process(message, "the text contains the word contains", voice)
+            val voice = Voice(speaker = Speaker.Hikari)
 
-        processor.isCancelled() shouldBe true
-    }
+            val processor = IgnoreAfterReplaceProcessor()
+            processor.process(message, "the text contains the word contains", voice)
 
-    // IgnoreBeforeReplaceProcessor を処理するときに、一致するものがない場合はキャンセルされない
-    test("When IgnoreBeforeReplaceProcessor did not find any Ignore entries matches to the text, the process should not be cancelled.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
+            processor.isCancelled() shouldBe true
         }
 
-        val voice = Voice(speaker = Speaker.Hikari)
+        // 一致するものがない場合はキャンセルされない
+        test("If did not find any Ignore entries matches to the text, the process should not be cancelled.") {
+            val message = mockk<Message>()
+            coEvery { message.getGuild() } returns mockk {
+                every { id } returns Snowflake(0)
+            }
 
-        val processor = IgnoreBeforeReplaceProcessor()
-        processor.process(message, "no match", voice)
+            val voice = Voice(speaker = Speaker.Hikari)
 
-        processor.isCancelled() shouldBe false
-    }
+            val processor = IgnoreAfterReplaceProcessor()
+            processor.process(message, "no match", voice)
 
-    // IgnoreAfterReplaceProcessor を処理するときに、完全に一致する場合はキャンセルされる
-    test("When IgnoreAfterReplaceProcessor found the text exactly matches to Ignore entry, the process should be cancelled.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
+            processor.isCancelled() shouldBe false
         }
-
-        val voice = Voice(speaker = Speaker.Hikari)
-
-        val processor = IgnoreAfterReplaceProcessor()
-        processor.process(message, "equals", voice)
-
-        processor.isCancelled() shouldBe true
-    }
-
-    // IgnoreAfterReplaceProcessor を処理するときに、部分一致がある場合はキャンセルされる
-    test("When IgnoreAfterReplaceProcessor found the text partially matches to Ignore entry, the process should be cancelled.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
-
-        val voice = Voice(speaker = Speaker.Hikari)
-
-        val processor = IgnoreAfterReplaceProcessor()
-        processor.process(message, "the text contains the word contains", voice)
-
-        processor.isCancelled() shouldBe true
-    }
-
-    // IgnoreAfterReplaceProcessor を処理するときに、一致するものがない場合はキャンセルされない
-    test("When IgnoreAfterReplaceProcessor did not find any Ignore entries matches to the text, the process should not be cancelled.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
-
-        val voice = Voice(speaker = Speaker.Hikari)
-
-        val processor = IgnoreAfterReplaceProcessor()
-        processor.process(message, "no match", voice)
-
-        processor.isCancelled() shouldBe false
     }
 })
