@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 class SteamTest : FunSpec({
-    test("If the app ID is valid, the app information is returned.") {
+    test("If the app ID is valid, the app information should be returned.") {
         val app = Steam.getAppDetail("270450")
 
         app.shouldNotBeNull()
