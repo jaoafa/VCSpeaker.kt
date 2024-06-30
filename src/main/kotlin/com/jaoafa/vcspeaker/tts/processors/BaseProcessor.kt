@@ -9,18 +9,18 @@ import dev.kord.core.entity.Message
 abstract class BaseProcessor {
     abstract val priority: Int
     private var isCancelled: Boolean = false
-    private var isImmediatelyRead: Boolean = false
+    private var isImmediateRead: Boolean = false
 
     abstract suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice>
 
     fun isCancelled() = isCancelled
-    fun isImmediately() = isImmediatelyRead
+    fun isImmediately() = isImmediateRead
 
     fun cancel() {
         isCancelled = true
     }
 
-    fun immediatelyRead() {
-        isImmediatelyRead = true
+    fun immediateRead() {
+        isImmediateRead = true
     }
 }
