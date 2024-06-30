@@ -22,7 +22,7 @@ class AttachmentProcessorTest : FunSpec({
     }
 
     // もしファイルが添付されていない場合、テキストは変更されない
-    test("If no file is attached, the text should remain unchanged.") {
+    test("If no attachment, the text should remain unchanged.") {
         val message = mockk<Message>()
         every { message.attachments } returns emptySet()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -50,7 +50,7 @@ class AttachmentProcessorTest : FunSpec({
     }
 
     // 最初のファイルが画像でなく、複数のファイルが読み込まれた場合、2つ目以降のファイルは詳細が読み上げられない
-    test("If multiple files are attached and the first file is not an image, the second and subsequent files should not be read.") {
+    test("If multiple attachments are attached and the first attachment is not an image, the second and subsequent attachments should not be read.") {
         val attachment1 = mockk<Attachment>()
         every { attachment1.isImage } returns false
         every { attachment1.filename } returns "test1.txt"
