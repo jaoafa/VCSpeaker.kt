@@ -21,7 +21,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // インライン音声パラメータがない場合、プロセスは元のコンテンツを返す
-    test("If there is no inline audio parameter, returns the original content.") {
+    test("If there is no inline voice parameters, the unchanged text should be returned.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -33,7 +33,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // インライン音声パラメータがある場合、プロセスはコンテンツと音声パラメータを返す
-    test("If inline voice parameters are present, returns content and voice parameters.") {
+    test("If inline voice parameters exist, the text and voice parameters should be returned.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -55,7 +55,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // 無効なスピーカー名が指定された場合、例外がスローされる
-    test("If an invalid speaker name is specified, an exception is thrown.") {
+    test("If an invalid speaker name is specified, an exception should be thrown.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -67,7 +67,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // 無効な感情名が指定された場合、例外がスローされる
-    test("If an invalid emotion name is specified, an exception is thrown.") {
+    test("If an invalid emotion name is specified, an exception should be thrown.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -79,7 +79,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // 無効な感情レベルが指定された場合、例外がスローされず、値が無視される
-    test("If an invalid emotion level is specified, the value is ignored without throwing an exception.") {
+    test("If an invalid emotion level is specified, the parameter should be ignored without throwing an exception.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -91,7 +91,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // 無効なピッチが指定された場合、例外がスローされず、値が無視される
-    test("If an invalid pitch is specified, the value is ignored without throwing an exception.") {
+    test("If an invalid pitch is specified, the parameter should be ignored without throwing an exception.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -103,7 +103,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // 無効なスピードが指定された場合、例外がスローされず、値が無視される
-    test("If an invalid speed is specified, the value is ignored without throwing an exception.") {
+    test("If an invalid speed is specified, the parameter should be ignored without throwing an exception.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -115,7 +115,7 @@ class InlineVoiceProcessorTest : FunSpec({
     }
 
     // インライン音声パラメータの構文が無効な場合、コンテンツと音声パラメータを返す
-    test("If the syntax of the inline voice parameter is invalid, returns the content and voice parameters.") {
+    test("If the syntax of the inline voice parameters is invalid, the parameters should be ignored.") {
         val message = mockk<Message>()
         val processor = InlineVoiceProcessor()
         val voice = Voice(speaker = Speaker.Hikari)
