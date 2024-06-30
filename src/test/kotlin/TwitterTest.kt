@@ -26,7 +26,7 @@ class TwitterTest : FunSpec({
         tweet.shouldBeNull()
     }
 
-    test("If the tweet exists and with picture, the tweet information is returned.") {
+    test("If the tweet with picture exists, the tweet information should be returned.") {
         val tweet = Twitter.getTweet("jaoafa", "1775559092742021223")
 
         tweet.shouldNotBeNull()
