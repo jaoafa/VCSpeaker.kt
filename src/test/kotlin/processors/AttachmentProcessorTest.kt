@@ -22,7 +22,7 @@ class AttachmentProcessorTest : FunSpec({
     }
 
     // もしファイルが添付されていない場合、テキストは変更されない
-    test("If no file is attached, the text remains unchanged.") {
+    test("If no file is attached, the text should remain unchanged.") {
         val message = mockk<Message>()
         every { message.attachments } returns emptySet()
         val voice = Voice(speaker = Speaker.Hikari)
@@ -32,7 +32,7 @@ class AttachmentProcessorTest : FunSpec({
     }
 
     // 最初の添付ファイルが画像でない場合は、テキストとファイル名を読み上げる
-    test("If the first attachment is not an image, read the text and filename.") {
+    test("If the first attachment is not an image, the text and filename should be read.") {
         // 画像ではないファイル test.txt
         val attachment = mockk<Attachment>()
         every { attachment.isImage } returns false
@@ -50,7 +50,7 @@ class AttachmentProcessorTest : FunSpec({
     }
 
     // 最初のファイルが画像でなく、複数のファイルが読み込まれた場合、2つ目以降のファイルは詳細が読み上げられない
-    test("If the first file is not an image and multiple files are read, the second and subsequent files are not detailed.") {
+    test("If multiple files are attached and the first file is not an image, the second and subsequent files should not be read.") {
         val attachment1 = mockk<Attachment>()
         every { attachment1.isImage } returns false
         every { attachment1.filename } returns "test1.txt"
@@ -71,7 +71,7 @@ class AttachmentProcessorTest : FunSpec({
     }
 
     // 最初の添付ファイルが画像で、GOOGLE_APPLICATION_CREDENTIALS ファイルが存在しない場合、テキストとファイル名を読み上げる
-    test("If the first attachment is an image and the GOOGLE_APPLICATION_CREDENTIALS file does not exist, read the text and filename.") {
+    test("If the first attachment is an image but GOOGLE_APPLICATION_CREDENTIALS file does not exist, the text and filename should be read.") {
         val attachment = mockk<Attachment>()
         every { attachment.isImage } returns true
         every { attachment.isSpoiler } returns false
