@@ -52,7 +52,7 @@ class IgnoreProcessorTest : FunSpec({
     }
 
     // IgnoreBeforeReplaceProcessor を処理するときに、完全に一致する場合はキャンセルされる
-    test("When processing the IgnoreBeforeReplaceProcessor, it is canceled if an exact match is made.") {
+    test("When IgnoreBeforeReplaceProcessor found the text exactly matches to Ignore entry, the process should be cancelled.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
             every { id } returns Snowflake(0)
@@ -67,7 +67,7 @@ class IgnoreProcessorTest : FunSpec({
     }
 
     // IgnoreBeforeReplaceProcessor を処理するときに、部分一致がある場合はキャンセルされる
-    test("When processing the IgnoreBeforeReplaceProcessor, it should be canceled if a partial match is made.") {
+    test("When IgnoreBeforeReplaceProcessor found the text partially matches to Ignore entry, the process should be cancelled.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
             every { id } returns Snowflake(0)
@@ -82,7 +82,7 @@ class IgnoreProcessorTest : FunSpec({
     }
 
     // IgnoreBeforeReplaceProcessor を処理するときに、一致するものがない場合はキャンセルされない
-    test("When processing the IgnoreBeforeReplaceProcessor, it should not be canceled if there is no match.") {
+    test("When IgnoreBeforeReplaceProcessor did not find any Ignore entries matches to the text, the process should not be cancelled.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
             every { id } returns Snowflake(0)
@@ -97,7 +97,7 @@ class IgnoreProcessorTest : FunSpec({
     }
 
     // IgnoreAfterReplaceProcessor を処理するときに、完全に一致する場合はキャンセルされる
-    test("When processing the IgnoreAfterReplaceProcessor, it is canceled if an exact match is made.") {
+    test("When IgnoreAfterReplaceProcessor found the text exactly matches to Ignore entry, the process should be cancelled.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
             every { id } returns Snowflake(0)
@@ -112,7 +112,7 @@ class IgnoreProcessorTest : FunSpec({
     }
 
     // IgnoreAfterReplaceProcessor を処理するときに、部分一致がある場合はキャンセルされる
-    test("When processing the IgnoreAfterReplaceProcessor, it should be canceled if a partial match is made.") {
+    test("When IgnoreAfterReplaceProcessor found the text partially matches to Ignore entry, the process should be cancelled.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
             every { id } returns Snowflake(0)
@@ -127,7 +127,7 @@ class IgnoreProcessorTest : FunSpec({
     }
 
     // IgnoreAfterReplaceProcessor を処理するときに、一致するものがない場合はキャンセルされない
-    test("When processing the IgnoreAfterReplaceProcessor, it should not be canceled if there is no match.") {
+    test("When IgnoreAfterReplaceProcessor did not find any Ignore entries matches to the text, the process should not be cancelled.") {
         val message = mockk<Message>()
         coEvery { message.getGuild() } returns mockk {
             every { id } returns Snowflake(0)
