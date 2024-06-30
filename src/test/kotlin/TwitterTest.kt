@@ -20,7 +20,7 @@ class TwitterTest : FunSpec({
         tweet.readText shouldBe "この度、jao Minecraft Serverでは2023年08月02日 22時00分をもって、Minecraft サーバのサービス提供を終了させていただくこととなりました。\n利用者のみなさまには、突然のお知らせとなりますことをお詫びいたします。\n\n7年間、本当にありがとうございました。 ハッシュタグ「jaoafa」"
     }
 
-    test("If the tweet does not exist, null is returned.") {
+    test("If the tweet does not exist, null should be returned.") {
         val tweet = Twitter.getTweet("jaoafa", "0")
 
         tweet.shouldBeNull()
