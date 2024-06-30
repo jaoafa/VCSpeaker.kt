@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 class TwitterTest : FunSpec({
-    test("If the tweet exists, the tweet information is returned.") {
+    test("If the tweet exists, the tweet information should be returned.") {
         val tweet = Twitter.getTweet("jaoafa", "1685568414084124673")
 
         tweet.shouldNotBeNull()
