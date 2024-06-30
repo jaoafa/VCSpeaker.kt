@@ -21,7 +21,7 @@ class ReplyProcessorTest : FunSpec({
     }
 
     // メッセージに返信するとき、返信先のユーザー名を読み上げる
-    test("When replying to a message, read out the name of the user to whom you are replying.") {
+    test("If the message is a reply, read the author name of the replied message.") {
         val message = mockk<Message>()
         every { message.referencedMessage } returns mockk {
             every { author?.effectiveName } returns "User"
@@ -35,7 +35,7 @@ class ReplyProcessorTest : FunSpec({
     }
 
     // 返信メッセージでない場合、そのまま読み上げる
-    test("If it is not a reply message, read it out as is.") {
+    test("If the message is not a reply, read it as is.") {
         val message = mockk<Message>()
         every { message.referencedMessage } returns null
 
@@ -46,7 +46,7 @@ class ReplyProcessorTest : FunSpec({
     }
 
     // 作者のないメッセージに返信すると、不明な返信として読み上げる
-    test("Reply to a message without an author reads out as reply to unknown.") {
+    test("If the message is a reply but the author of the replied message is unknown, read it as a reply to an unknown author.") {
         val message = mockk<Message>()
         every { message.referencedMessage } returns mockk {
             every { author?.globalName } returns null
