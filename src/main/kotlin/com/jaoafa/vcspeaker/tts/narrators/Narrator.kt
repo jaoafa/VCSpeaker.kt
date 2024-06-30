@@ -121,23 +121,18 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * @return 処理後のテキストと音声
      */
     suspend fun process(message: Message? = null, text: String, voice: Voice): Pair<String, Voice> {
-        var processText = text
-        var processVoice = voice
-
         val processors = getClassesIn<BaseProcessor>("com.jaoafa.vcspeaker.tts.processors")
             .mapNotNull {
                 it.kotlin.createInstance()
             }.sortedBy { it.priority }
-        for (processor in processors) {
+
+        return processors.fold(text to voice) { (processText, processVoice), processor ->
             val (processedText, processedVoice) = processor.process(message, processText, processVoice)
-            if (processor.isCancelled()) return processText to processVoice
-            if (processor.isImmediately()) break
+            if (processor.isCancelled()) return@fold processText to processVoice // キャンセルされた場合は、このProcessorだけをスキップする
+            if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、このProcessorを最後とし読み上げる
 
-            processText = processedText
-            processVoice = processedVoice
+            processedText to processedVoice
         }
-
-        return processText to processVoice
     }
 
     /**
