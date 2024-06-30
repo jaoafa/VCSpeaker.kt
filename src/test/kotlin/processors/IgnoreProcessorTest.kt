@@ -42,13 +42,14 @@ class IgnoreProcessorTest : FunSpec({
         IgnoreStore.create(IgnoreData(Snowflake(0), Snowflake(123), IgnoreType.Contains, "contains"))
     }
 
-    // テスト後処理
+    // テスト後にモックを削除
     afterTest {
-        // storeFolderを削除
-        VCSpeaker.storeFolder.deleteRecursively()
-
-        // すべてのモックを削除
         clearAllMocks()
+    }
+
+    // 全てのテスト後にフォルダを削除
+    finalizeSpec {
+        VCSpeaker.storeFolder.deleteRecursively()
     }
 
     context("IgnoreBeforeReplaceProcessor") {
