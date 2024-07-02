@@ -50,7 +50,7 @@ dependencies {
     implementation("io.sentry:sentry:7.11.0")
     implementation("net.htmlparser.jericho:jericho-html:3.4")
     implementation("org.reflections:reflections:0.10.2")
-    implementation("com.google.cloud:google-cloud-vision:3.32.0")
+    implementation("com.google.cloud:google-cloud-vision:3.44.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.1.3")
     implementation("com.github.ajalt.clikt:clikt:4.4.0")
     implementation("com.uchuhimo:konf:1.1.2")
