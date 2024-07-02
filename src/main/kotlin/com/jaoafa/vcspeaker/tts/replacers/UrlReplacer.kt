@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
+import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
@@ -8,7 +9,6 @@ import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
-import com.jaoafa.vcspeaker.tts.TextProcessor.substringByCodePoints
 import com.jaoafa.vcspeaker.tts.Token
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
@@ -106,7 +106,7 @@ object UrlReplacer : BaseReplacer {
      * 例: https://discordapp.com/events/123456789012345678/123456789012345678?query=example
      */
     private val eventDirectUrlRegex = Regex(
-        "(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)",
+        "(?:https?://)?(?:www\\.)?discord(?:app)?\\.com/events/(\\d+)/(\\d+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
 
@@ -125,7 +125,7 @@ object UrlReplacer : BaseReplacer {
      * 例: discord.gg/abcdef?event=123456789012345678&query=example
      */
     private val eventInviteUrlRegex = Regex(
-        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\?event=(\\d+)",
+        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\?event=(\\d+)&?(.*)",
         RegexOption.IGNORE_CASE
     )
 
@@ -141,7 +141,7 @@ object UrlReplacer : BaseReplacer {
      * 例: discord.com/invite/abcdef
      */
     private val inviteUrlRegex = Regex(
-        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)",
+        "(?:https?://)?(?:www\\.)?(?:discord(?:app)?\\.com/invite|discord\\.gg)/(\\w+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
 
@@ -158,7 +158,7 @@ object UrlReplacer : BaseReplacer {
      * 例: https://x.com/username/status/123456789012345678/?query=example
      */
     private val tweetUrlRegex = Regex(
-        "https://(?:x|twitter)\\.com/(\\w){1,15}/status/(\\d+)\\??(.*)",
+        "https://(?:x|twitter)\\.com/(\\w{1,15})/status/(\\d+)\\??(.*)",
         RegexOption.IGNORE_CASE
     )
 
@@ -177,6 +177,20 @@ object UrlReplacer : BaseReplacer {
      * YouTubeのURLを表す正規表現 (動画、ライブ、ショートに対応。no-cookieも対応)
      *
      * 例: https://www.youtube.com/watch?v=abcdefg
+     * 例: http://youtube.com/watch?v=abcdefg
+     * 例: https://m.youtube.com/watch?v=abcdefg
+     * 例: youtu.be/abcdefg
+     * 例: www.youtube.com/embed/abcdefg
+     * 例: youtube-nocookie.com/embed/abcdefg
+     * 例: https://youtube.com/v/abcdefg
+     * 例: https://youtube.com/e/abcdefg
+     * 例: https://youtube.com/shorts/abcdefg
+     * 例: https://youtube.com/live/abcdefg
+     * 例: https://www.youtube.com/watch.php?v=abcdefg
+     * 例: http://www.youtube.com/watch?v=abcdefg&feature=related
+     * 例: https://www.youtube.com/watch?v=abcdefg#t=30s
+     * 例: https://www.youtube.com/watch?v=abcdefg&ab_channel=TestChannel
+     * 例: http://youtube.com/watch?v=abcdefg&list=PLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
      */
     private val youtubeUrlRegex = Regex(
         "(?:https?:)?(?://)?(?:youtu\\.be/|(?:www\\.|m\\.)?(?:youtube\\.com|youtube-nocookie\\.com)/(watch|v|e|embed|shorts|live)(?:\\.php)?(?:\\?.*v=|/))([a-zA-Z0-9_-]{7,15})(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?",
@@ -186,7 +200,16 @@ object UrlReplacer : BaseReplacer {
     /**
      * YouTubeのプレイリストURLを表す正規表現
      *
-     * 例: https://www.youtube.com/playlist?list=abcdefg
+     * 例: https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: http://youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: https://m.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&feature=share
+     * 例: m.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
+     * 例: https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI#t=30s
+     * 例: http://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&index=5
+     * 例: https://youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&ab_channel=RickAstley
+     * 例: http://m.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI&shuffle=1
      */
     private val youtubePlaylistUrlRegex = Regex(
         "(?:https?:)?(?://)?(?:www\\.|m\\.)?youtube\\.com/playlist\\?list=([a-zA-Z0-9_-]+)(?:[?&][a-zA-Z0-9_-]+=[a-zA-Z0-9_-]+)*(?:[&/#].*)?",
@@ -277,7 +300,7 @@ object UrlReplacer : BaseReplacer {
      */
     private suspend fun getInvite(inviteId: String, eventId: Snowflake? = null): DiscordInvite? {
         val url = "https://discord.com/api/invites/$inviteId"
-        val response = client.get((url)) {
+        val response = client.get(url) {
             parameter("with_counts", true)
             parameter("with_expiration", true)
             if (eventId != null)
@@ -286,7 +309,7 @@ object UrlReplacer : BaseReplacer {
 
         return when (response.status) {
             HttpStatusCode.OK -> {
-                val json: DiscordGetInviteResponse = response.body()
+                val json = response.body<DiscordGetInviteResponse>()
                 val guild = json.guild
                 val channel = json.channel
                 val inviter = json.inviter
@@ -371,7 +394,7 @@ object UrlReplacer : BaseReplacer {
             val thread = getThread(guild, urlChannelId)
 
             val replaceTo = if (thread != null) {
-                "$channelType「${thread.name}」のスレッド「${thread.parent.asChannel().name}」で送信したメッセージのリンク"
+                "$channelType「${thread.parent.asChannel().name}」のスレッド「${thread.name}」で送信したメッセージのリンク"
             } else {
                 "$channelType「${channel.name}」で送信したメッセージのリンク"
             }
@@ -513,7 +536,7 @@ object UrlReplacer : BaseReplacer {
                 "Steamアイテムへのリンク"
             )
 
-            val replaceTo = "Steamアイテム「${item.data.name}」へのリンク"
+            val replaceTo = "Steamアイテム「${item.data?.name}」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }

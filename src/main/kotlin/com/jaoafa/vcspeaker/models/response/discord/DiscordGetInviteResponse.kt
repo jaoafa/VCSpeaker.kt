@@ -106,7 +106,7 @@ data class GuildScheduledEvent(
     @SerialName("sku_ids")
     val skuIds: List<String>,
     @SerialName("auto_start")
-    val autoStart: Boolean,
+    val autoStart: Boolean = false,
     @SerialName("entity_metadata")
     val entityMetadata: EntityMetadata,
 )

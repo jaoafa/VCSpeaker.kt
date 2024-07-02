@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SteamAppDetail(
     val success: Boolean,
-    val data: SteamAppDetailData
+    val data: SteamAppDetailData?
 )
 
 @Serializable

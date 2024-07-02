@@ -30,7 +30,7 @@ data class VisionTextAnnotation(
     val vertices: List<VisionVertex>,
 )
 
-class VisionApi {
+object VisionApi {
     /**
      * Vision APIにリクエストを送信し、VisionTextAnnotationのリストを取得する。
      *
@@ -170,4 +170,12 @@ class VisionApi {
 
     /** File の加算拡張関数: `this + file` で `this` と `file` を連結する。 */
     private operator fun File.plus(file: File) = File(this, file.name)
+
+    // Systemがモックできないので、ラップする
+    // https://toranoana-lab.hatenablog.com/entry/2023/09/26/100000
+    // https://github.com/mockk/mockk/issues/98
+    /** Google Application Credentials が存在するか確認する */
+    fun isGoogleAppCredentialsExist(): Boolean {
+        return File(System.getenv("GOOGLE_APPLICATION_CREDENTIALS")).exists()
+    }
 }

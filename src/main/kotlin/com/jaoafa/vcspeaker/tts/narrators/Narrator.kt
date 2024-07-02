@@ -4,13 +4,12 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
-import com.jaoafa.vcspeaker.tts.MessageProcessor.processMessage
+import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
-import com.jaoafa.vcspeaker.tts.TextProcessor.extractInlineVoice
-import com.jaoafa.vcspeaker.tts.TextProcessor.processText
 import com.jaoafa.vcspeaker.tts.TrackType
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
 import com.kotlindiscord.kord.extensions.utils.addReaction
 import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
@@ -24,6 +23,7 @@ import dev.kord.voice.VoiceConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.reflect.full.createInstance
 
 /**
  * 読み上げを管理するクラスです。
@@ -79,6 +79,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
     suspend fun scheduleAsUser(message: Message) =
         schedule(
             message = message,
+            text = message.content,
             voice = VoiceStore.byIdOrDefault(message.author!!.id),
             guild = message.getGuild(),
             type = TrackType.User
@@ -93,29 +94,44 @@ class Narrator @OptIn(KordVoice::class) constructor(
      */
     private suspend fun schedule(
         message: Message? = null,
-        text: String? = null,
+        text: String,
         voice: Voice,
         guild: Guild,
         type: TrackType
     ) {
-        val content = processMessage(message) ?: text ?: return
-
-        // extract inline voice
-        val (extractedText, inlineVoice) = extractInlineVoice(content, voice)
-
-        // process text
-        val replacedText = processText(guildId, extractedText) ?: return
-
-        if (replacedText.isBlank()) return
+        val (processText, processVoice) = process(message, text, voice)
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.addReaction("👀")
         }
 
-        scheduler.queue(message, replacedText, inlineVoice, guild, type)
+        scheduler.queue(message, processText, processVoice, guild, type)
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.deleteOwnReaction("👀")
+        }
+    }
+
+    /**
+     * テキストを処理します。
+     *
+     * @param message メッセージ
+     * @param text 処理するテキスト
+     * @param voice 処理する音声
+     * @return 処理後のテキストと音声
+     */
+    suspend fun process(message: Message? = null, text: String, voice: Voice): Pair<String, Voice> {
+        val processors = getClassesIn<BaseProcessor>("com.jaoafa.vcspeaker.tts.processors")
+            .mapNotNull {
+                it.kotlin.createInstance()
+            }.sortedBy { it.priority }
+
+        return processors.fold(text to voice) { (processText, processVoice), processor ->
+            val (processedText, processedVoice) = processor.process(message, processText, processVoice)
+            if (processor.isCancelled()) return@fold processText to processVoice // キャンセルされた場合は、このProcessorだけをスキップする
+            if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、このProcessorを最後とし読み上げる
+
+            processedText to processedVoice
         }
     }
 
