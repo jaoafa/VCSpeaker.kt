@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:17-latest as builder
+FROM azul/zulu-openjdk-alpine:21-latest as builder
 
 # hadolint ignore=DL3018
 RUN apk add --no-cache git wget unzip
@@ -16,7 +16,7 @@ COPY src src
 
 RUN ./gradlew build
 
-FROM azul/zulu-openjdk-alpine:17-latest as runner
+FROM azul/zulu-openjdk-alpine:21-latest as runner
 
 WORKDIR /app
 
