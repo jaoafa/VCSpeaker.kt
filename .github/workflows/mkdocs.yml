@@ -1,13 +1,15 @@
-name: 📚 Deploy MkDocs
+name: 📚 Build & Deploy MkDocs
 on:
   push:
     branches:
       - main
+  pull_request:
+  merge_group:
 
-jobs: 
+jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout ${{ github.repository }}
         uses: actions/checkout@v4
@@ -15,14 +17,23 @@ jobs:
       - name: 🐍 Setup Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: 📄 Install Material for MkDocs
         run: pip install -r requirements.txt
-        
+
+      - name: Generate list
+        run: |
+          chmod +x ./scripts/generate-index-list.sh
+          ./scripts/generate-index-list.sh
+
+          # 差分があればエラー
+          git config core.filemode false
+          git diff --exit-code
+
       - name: 🏗️ Build MkDocs
         run: python -m mkdocs build --verbose --clean --strict
-      
+
       - name: 📤 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -30,6 +41,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     needs: build
     permissions:
       pages: write
