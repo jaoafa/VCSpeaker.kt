@@ -211,6 +211,32 @@ class VCSpeakerCommand : Extension() {
                     }
                 }
             }
+
+            publicSubCommand("remove", "VCSpeaker の登録を削除します。") {
+                action {
+                    val guildId = guild!!.id
+                    val guildData = GuildStore[guildId]
+
+                    if (guildData == null) {
+                        respond("**:x: このサーバーは登録されていません。**")
+                        return@action
+                    }
+
+                    GuildStore.remove(guildData)
+                    respondEmbed(
+                        ":wastebasket: Removed registration",
+                        "VCSpeaker の登録を削除しました。"
+                    ) {
+                        authorOf(user)
+
+                        successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Registration Removed: Removed by @${user.username}"
+                    }
+                }
+            }
         }
     }
 }
