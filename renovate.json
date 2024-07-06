@@ -4,5 +4,12 @@
   "timezone": "Asia/Tokyo",
   "automerge": true,
   "platformAutomerge": true,
-  "platformCommit": true
+  "platformCommit": true,
+  "packageRules": [
+    {
+      "groupName": "mkdocs",
+      "matchPackageNames": ["mkdocs"],
+      "matchPackagePatterns": ["^mkdocs-"]
+    }
+  ]
 }
