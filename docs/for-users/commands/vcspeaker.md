@@ -15,7 +15,8 @@ VCSpeaker を再起動します。
 
 ### settings
 
-VCSpeaker の設定を行います。この設定は、サーバごとに保存されます。
+VCSpeaker の設定を行います。この設定は、サーバごとに保存されます。  
+VCSpeaker を使いはじめる場合、この設定操作を行うことによって登録されます。
 
 ```text
 /vcspeaker settings [channel] [prefix] [speaker] [emotion] [emotion-level] [pitch] [speed] [volume] [auto-join]
@@ -30,6 +31,21 @@ VCSpeaker の設定を行います。この設定は、サーバごとに保存�
 - `[speed]`: 速度 (50% から 200%)
 - `[volume]`: 音量 (50% から 200%)
 - `[auto-join]`: ボイスチャンネルに自動で入退室するかどうか
+
+### remove
+
+VCSpeaker の登録を削除します。  
+コマンド実行後、「はい」を選択することで削除されます。
+
+```text
+/vcspeaker remove
+```
+
+登録を削除すると、サーバに関連する以下の情報も削除されます。
+
+- エイリアス
+- 無視ルール
+- タイトル
 
 ## 注意事項
 

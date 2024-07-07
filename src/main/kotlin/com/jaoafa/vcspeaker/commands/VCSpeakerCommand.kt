@@ -1,11 +1,17 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.stores.IgnoreStore
+import com.jaoafa.vcspeaker.stores.TitleStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.infoColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.warningColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
@@ -19,9 +25,13 @@ import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalBoolea
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
 import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalString
+import com.kotlindiscord.kord.extensions.components.components
+import com.kotlindiscord.kord.extensions.components.publicButton
 import com.kotlindiscord.kord.extensions.extensions.Extension
+import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.entity.channel.TextChannel
+import dev.kord.rest.builder.message.embed
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.system.exitProcess
 
@@ -208,6 +218,105 @@ class VCSpeakerCommand : Extension() {
 
                     log(logger) { guild, user ->
                         "[${guild.name}] Settings Updated: Settings updated by @${user.username}"
+                    }
+                }
+            }
+
+            publicSubCommand("remove", "VCSpeaker の登録を削除します。") {
+                action {
+                    val guildId = guild!!.id
+                    val guildData = GuildStore[guildId]
+
+                    if (guildData == null) {
+                        respond("**:x: このサーバーは登録されていません。**")
+                        return@action
+                    }
+
+                    val confirmUser = user
+
+                    // 削除する前に確認を設ける
+                    respond {
+                        embed {
+                            title = ":wastebasket: Confirm registration removal"
+                            description = "VCSpeaker の登録を削除しますが、よろしいですか？"
+                            authorOf(user)
+                            warningColor()
+                        }
+
+                        components {
+                            publicButton {
+                                label = "はい"
+                                style = ButtonStyle.Primary
+                                deferredAck = true
+                                action buttonAction@{
+                                    // 異なるユーザーが操作できないようにする
+                                    if (user.id != confirmUser.id) {
+                                        respondEmbed(
+                                            ":x: Failed to remove registration",
+                                            "この操作は実行者のみが実行できます。"
+                                        ) {
+                                            authorOf(user)
+
+                                            errorColor()
+                                        }
+
+                                        return@buttonAction
+                                    }
+
+                                    // 各種データを削除
+                                    AliasStore.removeForGuild(guildId)
+                                    IgnoreStore.removeForGuild(guildId)
+                                    TitleStore.removeForGuild(guildId)
+                                    GuildStore.remove(guildData)
+                                    edit {
+                                        embed {
+                                            title = ":wastebasket: Registration removed"
+                                            description = "VCSpeaker の登録を削除しました。"
+
+                                            authorOf(user)
+                                            successColor()
+                                        }
+
+                                        components {}
+                                    }
+
+                                    log(logger) { guild, user ->
+                                        "[${guild.name}] Registration Removed: Removed by @${user.username}"
+                                    }
+                                }
+                            }
+
+                            publicButton {
+                                label = "いいえ"
+                                style = ButtonStyle.Danger
+                                action buttonAction@{
+                                    if (user.id != confirmUser.id) {
+                                        respondEmbed(
+                                            ":x: Failed to remove registration",
+                                            "この操作は実行者のみが実行できます。"
+                                        ) {
+                                            authorOf(user)
+
+                                            errorColor()
+                                        }
+
+                                        return@buttonAction
+                                    }
+
+                                    edit {
+                                        embed {
+                                            title = ":wastebasket: Registration removal canceled"
+                                            description = "VCSpeaker の登録削除をキャンセルしました。"
+
+                                            authorOf(user)
+                                            infoColor()
+                                        }
+
+                                        components {}
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
