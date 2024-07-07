@@ -8,7 +8,7 @@ import dev.kord.common.entity.Snowflake
  * 絵文字エイリアスを置換するクラス
  */
 object EmojiReplacer : BaseReplacer {
-    override val priority = ReplacerPriority.Normal
+    override val priority = ReplacerPriority.High
 
     override suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake) =
         replaceText(tokens, guildId, AliasType.Emoji) { alias, replacedTokens ->
