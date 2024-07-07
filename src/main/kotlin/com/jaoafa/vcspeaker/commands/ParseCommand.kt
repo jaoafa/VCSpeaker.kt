@@ -9,8 +9,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.jaoafa.vcspeaker.tts.TextProcessor
 import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.processors.ReplacerProcessor
 import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.commands.converters.impl.string
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -109,7 +109,7 @@ class ParseCommand : Extension() {
                 }
 
                 // step 2: apply alias
-                val tokens = TextProcessor.replacers.fold(mutableListOf(Token(text))) { tokens, replacer ->
+                val tokens = ReplacerProcessor().replacers.fold(mutableListOf(Token(text))) { tokens, replacer ->
                     replacer.replace(tokens, guildId)
                 }
 

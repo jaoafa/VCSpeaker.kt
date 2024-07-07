@@ -1,44 +1,28 @@
-package com.jaoafa.vcspeaker.tts
+package com.jaoafa.vcspeaker.tts.processors
 
+import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
 import com.jaoafa.vcspeaker.tools.VisionApi
-import com.jaoafa.vcspeaker.tts.TextProcessor.substringByCodePoints
+import com.jaoafa.vcspeaker.tts.Voice
 import com.kotlindiscord.kord.extensions.utils.download
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Message
-import dev.kord.core.entity.effectiveName
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.addFile
 import java.io.File
 import java.nio.file.Path
 
-object MessageProcessor {
-    suspend fun processMessage(message: Message?): String? {
-        if (message == null) return null
+class AttachmentProcessor : BaseProcessor() {
+    override val priority = 30
 
-        val stickers = message.stickers
-        val attachments = message.attachments
-        val content = message.content
-        val replyReadText = if (message.referencedMessage != null) {
-            val replyToName = message.referencedMessage!!.author?.effectiveName ?: "だれか"
-            "$replyToName への返信、"
-        } else {
-            ""
-        }
+    override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
+        val attachments = message?.attachments ?: return content to voice
+        if (attachments.isEmpty()) return content to voice
 
-        if (stickers.isNotEmpty())
-            return replyReadText + stickers.joinToString(" ") { "スタンプ ${it.name}" }
-
-        if (attachments.isNotEmpty()) {
-            val fileText = getReadFileText(message)
-
-            // ファイルのみ送信の場合、返信先とファイル名を読み上げる。ファイル送信と合わせてメッセージがある場合は、返信先 + メッセージ + ファイル名を読み上げる
-            return if (content.isBlank()) replyReadText + fileText else "$replyReadText$content $fileText"
-        }
-
-        return replyReadText + content.ifBlank { null }
+        val fileText = getReadFileText(message) ?: return content to voice
+        return if (content.isBlank()) fileText to voice else "$content $fileText" to voice
     }
 
     /**
@@ -60,7 +44,7 @@ object MessageProcessor {
             return "添付ファイル ${firstAttachment.filename} $moreFileRead"
         }
 
-        if (!File(System.getenv("GOOGLE_APPLICATION_CREDENTIALS")).exists()) {
+        if (!VisionApi.isGoogleAppCredentialsExist()) {
             return "画像ファイル ${firstAttachment.filename} $moreFileRead"
         }
 
@@ -68,8 +52,7 @@ object MessageProcessor {
         val isSpoiler = firstAttachment.isSpoiler
         val binaryArray = firstAttachment.download()
         try {
-            val visionApi = VisionApi()
-            val textAnnotations = visionApi.getTextAnnotations(binaryArray)
+            val textAnnotations = VisionApi.getTextAnnotations(binaryArray)
             // 改行は半角スペースに置換する
             val firstDescription = textAnnotations.firstOrNull()?.description?.replace("\n", " ") ?: ""
             val shortDescription =
@@ -78,7 +61,7 @@ object MessageProcessor {
                 if (firstDescription.length > 1000) firstDescription.substringByCodePoints(0, 1000) + "..." else firstDescription
 
             // 画像解析結果を返信する
-            val editedImage = visionApi.drawTextAnnotations(binaryArray)
+            val editedImage = VisionApi.drawTextAnnotations(binaryArray)
             val filePath = editedImage.outputTempFile(isSpoiler)
             val visionApiCounterStore = VisionApiCounterStore.get()
 
