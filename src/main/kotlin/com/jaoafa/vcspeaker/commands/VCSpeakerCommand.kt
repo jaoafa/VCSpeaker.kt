@@ -237,7 +237,7 @@ class VCSpeakerCommand : Extension() {
                     // 削除する前に確認を設ける
                     respond {
                         embed {
-                            title = ":wastebasket: Remove registration confirmation"
+                            title = ":wastebasket: Confirm registration removal"
                             description = "VCSpeaker の登録を削除しますが、よろしいですか？"
                             authorOf(user)
                             warningColor()
@@ -270,7 +270,7 @@ class VCSpeakerCommand : Extension() {
                                     GuildStore.remove(guildData)
                                     edit {
                                         embed {
-                                            title = ":wastebasket: Removed registration"
+                                            title = ":wastebasket: Registration removed"
                                             description = "VCSpeaker の登録を削除しました。"
 
                                             authorOf(user)
@@ -305,7 +305,7 @@ class VCSpeakerCommand : Extension() {
 
                                     edit {
                                         embed {
-                                            title = ":wastebasket: Remove registration canceled"
+                                            title = ":wastebasket: Registration removal canceled"
                                             description = "VCSpeaker の登録削除をキャンセルしました。"
 
                                             authorOf(user)
