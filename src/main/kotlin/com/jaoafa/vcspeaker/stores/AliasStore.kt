@@ -38,5 +38,10 @@ object AliasStore : StoreStruct<AliasData>(
         data.find { it.guildId == guildId && it.search == from }
 
     fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
+
+    fun removeForGuild(guildId: Snowflake) {
+        data.removeIf { it.guildId == guildId }
+        write()
+    }
 }
 

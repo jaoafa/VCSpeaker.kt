@@ -34,4 +34,9 @@ object IgnoreStore : StoreStruct<IgnoreData>(
     fun find(guildId: Snowflake, text: String) = data.find { it.guildId == guildId && it.search == text }
 
     fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
+
+    fun removeForGuild(guildId: Snowflake) {
+        data.removeIf { it.guildId == guildId }
+        write()
+    }
 }
