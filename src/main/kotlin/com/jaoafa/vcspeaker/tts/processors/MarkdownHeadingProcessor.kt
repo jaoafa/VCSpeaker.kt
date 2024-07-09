@@ -33,16 +33,9 @@ class MarkdownHeadingProcessor : BaseProcessor() {
             else -> voice
         }
 
-        val newContent = markdown.joinToString {
-            // ヘッダー行の場合、フォーマット文字列を削除する
-            if (it.effects.isNotEmpty() && it.effects.first() != LineEffect.Header) {
-                return@joinToString it.inlines.joinToString("") { inline ->
-                    inline.text
-                }.drop(headerLevel).trim()
-            }
-            // ヘッダー行以外の場合、そのまま文字列を結合して返す
-            it.inlines.joinToString("") { inline -> inline.text }
-        }.drop(headerLevel).trim()
+        // テキストとして結合したうえで、ヘッダーのフォーマット文字列を削除する
+        val newContent =
+            markdown.joinToString { it.inlines.joinToString("") { inline -> inline.text } }.drop(headerLevel).trim()
 
         return newContent to newVoice
     }
