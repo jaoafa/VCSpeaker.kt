@@ -343,7 +343,6 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getPageTitle(url: String): String? {
         var byteArray = ByteArray(0)
         val byteLimit = 1024 * 2
-        val docType = "<!DOCTYPE html>"
 
         client.prepareGet(url).execute {
             val channel: ByteReadChannel = it.body()
@@ -357,9 +356,8 @@ object UrlReplacer : BaseReplacer {
 
                 val raw = String(byteArray)
 
-                if (raw.length > docType.length && !raw.startsWith(docType, ignoreCase = true)) break
+                if (!raw.startsWith("<")) break
                 if (raw.contains("</title>")) break
-
             }
         }
 
