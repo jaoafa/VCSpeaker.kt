@@ -19,6 +19,7 @@ import dev.kord.core.entity.channel.thread.ThreadChannel
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -68,6 +69,10 @@ object UrlReplacer : BaseReplacer {
                 ignoreUnknownKeys = true
                 coerceInputValues = true
             })
+        }
+
+        install(HttpTimeout) {
+            requestTimeoutMillis = 10000
         }
     }
 
@@ -337,16 +342,22 @@ object UrlReplacer : BaseReplacer {
      */
     private suspend fun getPageTitle(url: String): String? {
         var byteArray = ByteArray(0)
+        val byteLimit = 1024 * 2
 
         client.prepareGet(url).execute {
             val channel: ByteReadChannel = it.body()
-            if (!channel.isClosedForRead) {
-                val packet = channel.readRemaining(1024 * 2)
 
-                while (!packet.isEmpty) {
-                    val bytes = packet.readBytes()
-                    byteArray += bytes
-                }
+            while (!channel.isClosedForRead) {
+                val bytes = channel.readRemaining(16).readBytes()
+
+                byteArray += bytes
+
+                if (byteArray.size > byteLimit) break
+
+                val raw = String(byteArray)
+
+                if (!raw.startsWith("<")) break
+                if (raw.contains("</title>")) break
             }
         }
 
@@ -652,5 +663,6 @@ object UrlReplacer : BaseReplacer {
     /**
      * 文字列を指定した長さに短縮します。短縮後、末尾に「以下略」を付けます。
      */
-    private fun String.shorten(length: Int) = if (this.length > length) substringByCodePoints(0, length) + " 以下略" else this
+    private fun String.shorten(length: Int) =
+        if (this.length > length) substringByCodePoints(0, length) + " 以下略" else this
 }
