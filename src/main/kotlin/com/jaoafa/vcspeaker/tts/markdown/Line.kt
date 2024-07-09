@@ -30,7 +30,7 @@ data class Line(val inlines: List<Inline>, val effects: Set<LineEffect>) {
 }
 
 enum class LineEffect(val regex: Regex) {
-    Header(Regex("^#{1,3}$")),
+    Header(Regex("^#{1,3} $")),
     Quote(Regex("^>$")),
     BulletList(Regex("^[*-]$")),
     NumberedList(Regex("^\\d+\\.$"))

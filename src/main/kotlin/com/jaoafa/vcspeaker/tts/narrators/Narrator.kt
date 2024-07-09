@@ -126,6 +126,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
                 it.kotlin.createInstance()
             }.sortedBy { it.priority }
 
+        println(processors.joinToString(", ") { it::class.simpleName + "(${it.priority})" })
+
         return processors.fold(text to voice) { (processText, processVoice), processor ->
             val (processedText, processedVoice) = processor.process(message, processText, processVoice)
             if (processor.isCancelled()) return@fold processText to processVoice // キャンセルされた場合は、このProcessorだけをスキップする
