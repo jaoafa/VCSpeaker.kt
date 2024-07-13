@@ -19,7 +19,7 @@ class InlineVoiceProcessor : BaseProcessor() {
             key to value
         }.toMap()
 
-        val newVoice = voice.overwrite(
+        val newVoice = voice.copyNotNull(
             speaker = parameterMap["speaker"]?.let { Speaker.valueOf(it.capitalizeWords()) },
             emotion = parameterMap["emotion"]?.let { Emotion.valueOf(it.capitalizeWords()) },
             emotionLevel = parameterMap["emotion_level"]?.toIntOrNull(),

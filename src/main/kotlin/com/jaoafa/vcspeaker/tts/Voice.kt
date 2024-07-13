@@ -17,7 +17,7 @@ data class Voice(
 ) {
     fun toJson() = Json.encodeToString(serializer(), this)
 
-    fun overwrite(
+    fun copyNotNull(
         speaker: Speaker? = null,
         emotion: Emotion? = null,
         emotionLevel: Int? = null,
