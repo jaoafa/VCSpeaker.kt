@@ -37,6 +37,7 @@ enum class LineEffect(val regex: Regex) {
     Heading1(Regex("^#$")),
     Heading2(Regex("^##$")),
     Heading3(Regex("^###$")),
+    SmallHeading(Regex("^-#$")),
     Quote(Regex("^>$")),
     BulletList(Regex("^[*-]$")),
     NumberedList(Regex("^\\d+\\.$"))
