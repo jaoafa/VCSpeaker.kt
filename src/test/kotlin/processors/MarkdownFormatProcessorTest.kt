@@ -145,6 +145,7 @@ class MarkdownFormatProcessorTest : FunSpec({
                     #### Header 4
                     ##### Header 5
                     ###### Header 6
+                    -# Small header
                     - List item 1
                     - List item 2
                     - List item 3
@@ -161,7 +162,7 @@ class MarkdownFormatProcessorTest : FunSpec({
                 """.trimIndent(), voice
             )
 
-            processedText shouldBe "Header 1 Header 2 Header 3 #### Header 4 ##### Header 5 ###### Header 6 List item 1 List item 2 List item 3 Numbered list item 1 Numbered list item 2 Numbered list item 3 Blockquote Code"
+            processedText shouldBe "Header 1 Header 2 Header 3 #### Header 4 ##### Header 5 ###### Header 6 Small header List item 1 List item 2 List item 3 Numbered list item 1 Numbered list item 2 Numbered list item 3 Blockquote Code"
             processedVoice shouldBe voice
         }
 
