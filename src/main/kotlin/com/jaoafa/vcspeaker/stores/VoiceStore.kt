@@ -1,11 +1,10 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.jaoafa.vcspeaker.tts.Voice
+import com.jaoafa.vcspeaker.tts.api.Speaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Serializable

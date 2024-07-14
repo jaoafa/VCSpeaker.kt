@@ -83,7 +83,7 @@ class VoiceCommand : Extension() {
                         if (it == "none") null else Emotion.valueOf(it)
                     }
 
-                    val newVoice = oldVoice.overwrite(
+                    val newVoice = oldVoice.copyNotNull(
                         speaker = arguments.speaker?.let { Speaker.valueOf(it) },
                         emotion = emotion,
                         emotionLevel = if (emotion != null) arguments.emotionLevel else null,
