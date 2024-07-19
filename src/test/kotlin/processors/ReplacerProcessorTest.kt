@@ -221,7 +221,7 @@ class ReplacerProcessorTest : FunSpec({
     }
 
     // URL が置き換えられたあと、エイリアスは適用されること
-    test("After the URL is replaced, the alias should be applied.") {
+    test("After the URL is replaced, the alias should be applied if any.") {
         mockkObject(UrlReplacer)
         coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
 
