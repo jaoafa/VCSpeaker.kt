@@ -35,7 +35,6 @@ dependencies {
     implementation("dev.kord:kord-voice:0.13.1")
     implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0")
     implementation("dev.arbjerg:lavaplayer:2.2.1")
-    implementation("com.github.aikaterna:lavaplayer-natives:original-SNAPSHOT")
 
     // Ktor
     implementation("io.ktor:ktor-client-cio-jvm:2.3.11")
