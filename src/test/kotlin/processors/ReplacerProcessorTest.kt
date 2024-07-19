@@ -185,7 +185,7 @@ class ReplacerProcessorTest : FunSpec({
     }
 
     // ユーザメンションはエイリアスでの置き換えができないこと
-    test("User mentions cannot be replaced by aliases.") {
+    test("User mentions shouldn't be replaced by aliases.") {
         every { VCSpeaker.kord } returns mockk {
             every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
             coEvery { getGuildOrNull(Snowflake(0)) } returns mockk {
