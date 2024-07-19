@@ -556,7 +556,7 @@ class UrlReplacerTest : FunSpec({
         }
 
         // 存在するツイートで、特殊文字を含む長いツイートの場合
-        test("If the tweet exists but too long to read, read first 70 characters.with special characters.") {
+        test("If the tweet exists but too long to read, read first 70 characters with special characters.") {
             mockkObject(Twitter)
             coEvery { Twitter.getTweet("username", "123456789012345678") } returns Tweet(
                 authorName = "test-user ⚠️",
