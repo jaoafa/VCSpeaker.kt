@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.24"
+    kotlin("jvm") version "2.0.0"
     kotlin("plugin.serialization") version "2.0.0"
     id("io.kotest.multiplatform") version "5.9.1"
     application
@@ -32,7 +32,7 @@ dependencies {
     // Discord Related
     implementation("dev.kord:kord-core:unknown-d-field-fix-SNAPSHOT")
     implementation("dev.kord:kord-core-voice:0.14.0")
-    implementation("dev.kord:kord-voice:0.13.1")
+    implementation("dev.kord:kord-voice:0.14.0")
     implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0")
     implementation("dev.arbjerg:lavaplayer:2.2.1")
 
@@ -61,7 +61,7 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 application {
