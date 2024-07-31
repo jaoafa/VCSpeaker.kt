@@ -120,11 +120,11 @@ jobs:
       - merge-latest
 
     steps:
-      - name: ☕ Setup Zulu JDK 17
+      - name: ☕ Setup Zulu JDK 21
         uses: actions/setup-java@v4.2.1
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
 
       - name: 🐘 Setup Gradle
         uses: gradle/gradle-build-action@v3
