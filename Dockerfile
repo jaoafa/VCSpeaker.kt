@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:21-latest as builder
+FROM azul/zulu-openjdk-alpine:21-latest AS builder
 
 # hadolint ignore=DL3018
 RUN apk add --no-cache git wget unzip
@@ -16,7 +16,7 @@ COPY src src
 
 RUN ./gradlew build
 
-FROM azul/zulu-openjdk-alpine:21-latest as runner
+FROM azul/zulu-openjdk-alpine:21-latest AS runner
 
 WORKDIR /app
 
@@ -32,10 +32,10 @@ RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig cur
 
 COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
 
-ENV VCSKT_CONFIG /data/config.yml
-ENV VCSKT_STORE /data/store/
-ENV VCSKT_CACHE /data/cache/
-ENV GOOGLE_APPLICATION_CREDENTIALS /data/google-credential.json
-ENV TZ Asia/Tokyo
+ENV VCSKT_CONFIG=/data/config.yml
+ENV VCSKT_STORE=/data/store/
+ENV VCSKT_CACHE=/data/cache/
+ENV GOOGLE_APPLICATION_CREDENTIALS=/data/google-credential.json
+ENV TZ=Asia/Tokyo
 
 CMD ["java", "-jar", "/app/vcspeaker-kt.jar"]
