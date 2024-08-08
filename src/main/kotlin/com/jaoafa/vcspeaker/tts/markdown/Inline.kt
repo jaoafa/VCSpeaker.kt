@@ -2,62 +2,102 @@ package com.jaoafa.vcspeaker.tts.markdown
 
 data class InlineMatch(val match: String, val text: String, val range: IntRange, val effect: InlineEffect)
 
-data class Inline(val text: String, val effects: Set<InlineEffect>) {
+data class Inline(val text: String, val effects: MutableSet<InlineEffect>) {
+    val linkRegex = Regex("\\[(?<text>((?!https?://).)+?)]\\(<?(?<url>https?://.+?)>?\\)")
+
     companion object {
         fun from(paragraph: String): List<Inline> {
-            val allInlines = InlineEffect.entries.flatMap { effect ->
-                effect.regex.findAll(paragraph).map { it to effect }
-            }.map { (it, effect) ->
-                val match = try {
-                    it.groups["all"]!!.value
-                } catch (e: Exception) {
-                    it.value
+            //todo remove links
+
+            val inlines = mutableListOf<Inline>()
+            val effects = mutableMapOf<InlineEffect, Int>()
+            var stack = ""
+            var startEffectStack = ""
+            var closeEffectStack = ""
+            var closeFinish = false // some text **bold text** s <- here
+
+            paragraph.forEach { char ->
+                if (markers.keys.joinToString("").contains(char)) { // marker
+                    if (stack.isNotEmpty() && startEffectStack.isNotEmpty()) { // closing marker
+                        closeFinish = true
+                        closeEffectStack += char
+                    } else { // starting marker
+                        if (stack.isNotEmpty()) { // text without effects
+                            inlines.add(Inline(stack, effects.keys.toMutableSet()))
+                            effects.clear()
+                            stack = ""
+                        }
+
+                        startEffectStack += char
+                    }
+                } else { // text
+                    if (closeFinish) {
+                        val closedEffects = mutableListOf<InlineEffect>()
+
+                        for ((marker, effect) in markers) {
+                            if (startEffectStack.endsWith(marker) && closeEffectStack.startsWith(marker)) {
+                                startEffectStack = startEffectStack.removeSuffix(marker)
+                                closeEffectStack = closeEffectStack.removePrefix(marker)
+
+                                closedEffects.add(effect)
+                            }
+                        }
+
+                        inlines.add(Inline(stack + closeEffectStack, closedEffects.toMutableSet()))
+
+                        for (closedEffect in closedEffects) {
+                            val startIndex = effects[closedEffect] ?: continue
+
+                            inlines.forEachIndexed { i, inline ->
+                                if (startIndex <= i) {
+                                    inline.effects += closedEffect
+                                }
+                            }
+                        }
+
+                        closedEffects.forEach { effects.remove(it) != null }
+                        stack = ""
+                        closeEffectStack = ""
+                        closeFinish = false
+                    } else if (stack.isEmpty() && startEffectStack.isNotEmpty()) { // start effect finished
+                        for ((marker, effect) in markers) {
+                            if (startEffectStack.endsWith(marker)) {
+                                effects[effect] = inlines.size
+                            }
+                        }
+                    }
+
+                    stack += char
                 }
-
-                val text = it.groups["text"]?.value ?: ""
-
-                val range = try {
-                    it.groups["all"]!!.range
-                } catch (e: Exception) {
-                    it.range
-                }
-
-                InlineMatch(match, text, range, effect)
-            }.sortedBy { it.range.first }.toMutableList()
-
-            val removedInlines = mutableListOf<InlineMatch>()
-
-            // Remove non-effective inline effects
-            for (testerMatch in listOf(*allInlines.toTypedArray())) { // Clone all inlines to test
-                if (removedInlines.contains(testerMatch)) continue
-
-                val range = testerMatch.range
-
-                fun predicateRemove(match: InlineMatch) =
-                    (range.contains(match.range.first) && !range.contains(match.range.last)) // Crossed each other
-                            || (match.range == (range.first + 1) until range.last && match.text == testerMatch.text) // Remove redundant match
-
-                removedInlines.addAll(allInlines.filter(::predicateRemove))
-                allInlines.removeIf(::predicateRemove)
             }
 
-            // Split paragraph into inlines
-            val inlines = mutableListOf(Inline(paragraph, mutableSetOf()))
+            if (stack.isNotEmpty()) {
+                val closedEffects = mutableListOf<InlineEffect>()
 
-            for (inline in allInlines) {
-                val targetInline = inlines.first { it.text.contains(inline.match) }
-                val (beforeMatch, afterMatch) = targetInline.text.split(inline.match, limit = 2)
+                for ((marker, effect) in markers) {
+                    if (startEffectStack.endsWith(marker) && closeEffectStack.startsWith(marker)) {
+                        startEffectStack = startEffectStack.removeSuffix(marker)
+                        closeEffectStack = closeEffectStack.removePrefix(marker)
 
-                val index = inlines.indexOf(targetInline)
-                inlines.remove(targetInline)
+                        closedEffects.add(effect)
+                    }
+                }
 
-                val effects = targetInline.effects
+                inlines.add(Inline(stack + closeEffectStack, closedEffects.toMutableSet()))
 
-                inlines.addAll(index, listOf(
-                    Inline(beforeMatch, effects),
-                    Inline(inline.text, mutableSetOf(*effects.toTypedArray()).apply { add(inline.effect) }),
-                    Inline(afterMatch, effects)
-                ).filter { it.text.isNotEmpty() })
+                for (closedEffect in closedEffects) {
+                    val startIndex = effects[closedEffect] ?: continue
+
+                    inlines.forEachIndexed { i, inline ->
+                        if (startIndex <= i) {
+                            inline.effects.add(closedEffect)
+                        }
+                    }
+                }
+
+                closedEffects.forEach { effects.remove(it) }
+                stack = ""
+                closeEffectStack = ""
             }
 
             return inlines
@@ -65,12 +105,16 @@ data class Inline(val text: String, val effects: Set<InlineEffect>) {
     }
 }
 
-enum class InlineEffect(val regex: Regex, val replacer: ((String) -> String)? = null) {
-    Link(Regex("\\[(?<text>((?!https?://).)+?)]\\(<?(?<url>https?://.+?)>?\\)")),
-    Code(Regex("`(?<text>.+?)`")),
-    Bold(Regex("\\*\\*(?<text>.+?)\\*\\*")),
-    Italic(Regex("(?=(?<all>(?<literal>[*_])(?<text>((?!\\k<literal>).)+?)\\k<literal>))")),
-    Underline(Regex("__(?<text>.+?)__")),
-    Strikethrough(Regex("~~(?<text>.+?)~~"), { "パー" }),
-    Spoiler(Regex("\\|\\|(?<text>.+?)\\|\\|"), { "ピー" })
+enum class InlineEffect {
+    Code, Bold, Underline, Italic, Strikethrough, Spoiler,
 }
+
+val markers = mapOf(
+    "`" to InlineEffect.Code,
+    "**" to InlineEffect.Bold,
+    "__" to InlineEffect.Underline,
+    "*" to InlineEffect.Italic,
+    "_" to InlineEffect.Italic,
+    "~~" to InlineEffect.Strikethrough,
+    "||" to InlineEffect.Spoiler
+)
