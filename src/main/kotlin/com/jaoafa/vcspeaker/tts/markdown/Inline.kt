@@ -1,77 +1,22 @@
 package com.jaoafa.vcspeaker.tts.markdown
 
-data class InlineMatch(val match: String, val text: String, val range: IntRange, val effect: InlineEffect)
-
 data class Inline(val text: String, val effects: MutableSet<InlineEffect>) {
-    val linkRegex = Regex("\\[(?<text>((?!https?://).)+?)]\\(<?(?<url>https?://.+?)>?\\)")
-
     companion object {
+        private val linkRegex = Regex("\\[(?<text>((?!https?://).)+?)]\\(<?(?<url>https?://.+?)>?\\)")
+
         fun from(paragraph: String): List<Inline> {
-            //todo remove links
+            val linkRemoved = paragraph.replace(linkRegex) {
+                it.groups["text"]?.value ?: it.value
+            }
 
             val inlines = mutableListOf<Inline>()
             val effects = mutableMapOf<InlineEffect, Int>()
             var stack = ""
             var startEffectStack = ""
             var closeEffectStack = ""
-            var closeFinish = false // some text **bold text** s <- here
+            var closeMayFinish = false // some text **bold text** s <- here
 
-            paragraph.forEach { char ->
-                if (markers.keys.joinToString("").contains(char)) { // marker
-                    if (stack.isNotEmpty() && startEffectStack.isNotEmpty()) { // closing marker
-                        closeFinish = true
-                        closeEffectStack += char
-                    } else { // starting marker
-                        if (stack.isNotEmpty()) { // text without effects
-                            inlines.add(Inline(stack, effects.keys.toMutableSet()))
-                            effects.clear()
-                            stack = ""
-                        }
-
-                        startEffectStack += char
-                    }
-                } else { // text
-                    if (closeFinish) {
-                        val closedEffects = mutableListOf<InlineEffect>()
-
-                        for ((marker, effect) in markers) {
-                            if (startEffectStack.endsWith(marker) && closeEffectStack.startsWith(marker)) {
-                                startEffectStack = startEffectStack.removeSuffix(marker)
-                                closeEffectStack = closeEffectStack.removePrefix(marker)
-
-                                closedEffects.add(effect)
-                            }
-                        }
-
-                        inlines.add(Inline(stack + closeEffectStack, closedEffects.toMutableSet()))
-
-                        for (closedEffect in closedEffects) {
-                            val startIndex = effects[closedEffect] ?: continue
-
-                            inlines.forEachIndexed { i, inline ->
-                                if (startIndex <= i) {
-                                    inline.effects += closedEffect
-                                }
-                            }
-                        }
-
-                        closedEffects.forEach { effects.remove(it) != null }
-                        stack = ""
-                        closeEffectStack = ""
-                        closeFinish = false
-                    } else if (stack.isEmpty() && startEffectStack.isNotEmpty()) { // start effect finished
-                        for ((marker, effect) in markers) {
-                            if (startEffectStack.endsWith(marker)) {
-                                effects[effect] = inlines.size
-                            }
-                        }
-                    }
-
-                    stack += char
-                }
-            }
-
-            if (stack.isNotEmpty()) {
+            fun processEffect() {
                 val closedEffects = mutableListOf<InlineEffect>()
 
                 for ((marker, effect) in markers) {
@@ -90,15 +35,48 @@ data class Inline(val text: String, val effects: MutableSet<InlineEffect>) {
 
                     inlines.forEachIndexed { i, inline ->
                         if (startIndex <= i) {
-                            inline.effects.add(closedEffect)
+                            inline.effects += closedEffect
                         }
                     }
                 }
 
-                closedEffects.forEach { effects.remove(it) }
+                closedEffects.forEach { effects.remove(it) != null }
                 stack = ""
                 closeEffectStack = ""
             }
+
+            linkRemoved.forEach { char -> // loop through each character
+                if (markers.keys.joinToString("").contains(char)) { // marker
+                    if (stack.isNotEmpty() && startEffectStack.isNotEmpty()) { // closing marker
+                        closeMayFinish = true
+                        closeEffectStack += char
+                    } else { // starting marker
+                        if (stack.isNotEmpty()) { // text without effects
+                            inlines.add(Inline(stack, effects.keys.toMutableSet()))
+                            effects.clear()
+                            stack = ""
+                        }
+
+                        startEffectStack += char
+                    }
+                } else { // text
+                    if (closeMayFinish) { // close effect finished
+                        processEffect()
+                        closeMayFinish = false
+                    } else if (stack.isEmpty() && startEffectStack.isNotEmpty()) { // start effect finished
+                        for ((marker, effect) in markers) {
+                            if (startEffectStack.endsWith(marker)) {
+                                effects[effect] = inlines.size
+                            }
+                        }
+                    }
+
+                    stack += char
+                }
+            }
+
+            // process remaining text
+            if (stack.isNotEmpty()) processEffect()
 
             return inlines
         }
