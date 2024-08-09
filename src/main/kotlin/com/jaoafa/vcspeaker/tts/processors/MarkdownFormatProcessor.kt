@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tts.processors
 
 import com.jaoafa.vcspeaker.tts.Voice
+import com.jaoafa.vcspeaker.tts.markdown.InlineEffect
 import com.jaoafa.vcspeaker.tts.markdown.LineEffect
 import com.jaoafa.vcspeaker.tts.markdown.toMarkdown
 import dev.kord.core.entity.Message
@@ -22,7 +23,17 @@ class MarkdownFormatProcessor : BaseProcessor() {
             }
         } else voice
 
-        val readableMarkdown = markdown.joinToString(" ") { it.toReadable() }
+        val readableMarkdown = markdown.joinToString(" ") { line ->
+            line.toReadable {
+                if (it.effects.contains(InlineEffect.Spoiler)) {
+                    "ピー"
+                } else if (it.effects.contains(InlineEffect.Strikethrough)) {
+                    "パー"
+                } else {
+                    it.text
+                }
+            }
+        }
 
         return readableMarkdown to newVoice
     }
