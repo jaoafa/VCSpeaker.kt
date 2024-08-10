@@ -1,5 +1,19 @@
 package com.jaoafa.vcspeaker.tts.markdown
 
+enum class InlineEffect {
+    Code, Bold, Underline, Italic, Strikethrough, Spoiler,
+}
+
+val markers = mapOf(
+    "`" to InlineEffect.Code,
+    "**" to InlineEffect.Bold,
+    "__" to InlineEffect.Underline,
+    "*" to InlineEffect.Italic,
+    "_" to InlineEffect.Italic,
+    "~~" to InlineEffect.Strikethrough,
+    "||" to InlineEffect.Spoiler
+)
+
 data class Inline(val text: String, val effects: MutableSet<InlineEffect>) {
     companion object {
         private val linkRegex = Regex("\\[(?<text>((?!https?://).)+?)]\\(<?(?<url>https?://.+?)>?\\)")
@@ -82,17 +96,3 @@ data class Inline(val text: String, val effects: MutableSet<InlineEffect>) {
         }
     }
 }
-
-enum class InlineEffect {
-    Code, Bold, Underline, Italic, Strikethrough, Spoiler,
-}
-
-val markers = mapOf(
-    "`" to InlineEffect.Code,
-    "**" to InlineEffect.Bold,
-    "__" to InlineEffect.Underline,
-    "*" to InlineEffect.Italic,
-    "_" to InlineEffect.Italic,
-    "~~" to InlineEffect.Strikethrough,
-    "||" to InlineEffect.Spoiler
-)
