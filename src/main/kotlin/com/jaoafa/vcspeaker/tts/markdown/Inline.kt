@@ -54,7 +54,7 @@ data class Inline(val text: String, val effects: MutableSet<InlineEffect>) {
                     }
                 }
 
-                closedEffects.forEach { effects.remove(it) != null }
+                closedEffects.forEach { effects.remove(it) }
                 stack = ""
                 closeEffectStack = ""
             }
@@ -78,11 +78,16 @@ data class Inline(val text: String, val effects: MutableSet<InlineEffect>) {
                         processEffect()
                         closeMayFinish = false
                     } else if (stack.isEmpty() && startEffectStack.isNotEmpty()) { // start effect finished
+                        var effectStack = startEffectStack
+
                         for ((marker, effect) in markers) {
-                            if (startEffectStack.endsWith(marker)) {
+                            if (effectStack.endsWith(marker)) {
                                 effects[effect] = inlines.size
+                                effectStack = effectStack.removeSuffix(marker)
                             }
                         }
+
+                        stack += effectStack // ineffective marker
                     }
 
                     stack += char
