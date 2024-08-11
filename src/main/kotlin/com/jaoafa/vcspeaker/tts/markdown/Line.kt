@@ -26,10 +26,8 @@ data class Line(val inlines: List<Inline>, val effects: Set<LineEffect>) {
         }
     }
 
-    fun toReadable() = inlines.joinToString("") {
-        it.effects.fold(it.text) { text, effect ->
-            effect.replacer?.invoke(text) ?: text
-        }
+    fun toReadable(transform: (Inline) -> String) = inlines.joinToString("") {
+        transform(it)
     }
 }
 
