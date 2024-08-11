@@ -94,6 +94,6 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       env: 
-        JAVA_OPTS: "-Xms128m -Xmx2G"  
+        JAVA_OPTS: "-Xms128m -Xmx4G"
       with:
         category: "/language:${{matrix.language}}"
