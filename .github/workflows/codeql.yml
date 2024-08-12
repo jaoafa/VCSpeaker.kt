@@ -90,11 +90,11 @@ jobs:
     - name: Build manually
       if: matrix.build-mode == 'manual'
       run: |
-        ./gradlew build -Dkotlin.daemon.jvmargs='-Xmx6G'
+        ./gradlew build -Dorg.gradle.jvmargs="-Dkotlin.daemon.jvmargs=-Xmx4G"
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       env: 
-        JAVA_OPTS: "-Xms128m -Xmx6G"
+        JAVA_OPTS: "-Xms128m -Xmx4G"
       with:
         category: "/language:${{matrix.language}}"
