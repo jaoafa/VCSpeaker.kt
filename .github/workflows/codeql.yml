@@ -87,13 +87,14 @@ jobs:
     # to build your code.
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-    - if: matrix.build-mode == 'manual'
+    - name: Build manually
+      if: matrix.build-mode == 'manual'
       run: |
-        gradle build
+        ./gradlew build -Dorg.gradle.jvmargs="-Dkotlin.daemon.jvmargs=-Xmx4G"
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       env: 
-        JAVA_OPTS: "-Xms128m -Xmx2G"  
+        JAVA_OPTS: "-Xms128m -Xmx4G"
       with:
         category: "/language:${{matrix.language}}"
