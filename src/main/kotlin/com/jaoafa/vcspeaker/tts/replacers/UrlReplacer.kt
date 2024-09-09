@@ -224,7 +224,7 @@ object UrlReplacer : BaseReplacer {
     /**
      * タイトル要素を取得するための正規表現
      */
-    private val titleRegex = Regex("<title>([^<]+)</title>", RegexOption.IGNORE_CASE)
+    private val titleRegex = Regex("<title.*>([^<]+)</title>", RegexOption.IGNORE_CASE)
 
     /**
      * URLを表す正規表現
@@ -344,7 +344,13 @@ object UrlReplacer : BaseReplacer {
         var byteArray = ByteArray(0)
         val byteLimit = 1024 * 2
 
-        client.prepareGet(url).execute {
+        client.prepareGet(url) {
+            headers {
+                append("User-Agent", "VCSpeaker/0.0.0")
+                append("Accept", "text/html")
+                append("Accept-Language", "ja-JP")
+            }
+        }.execute {
             val channel: ByteReadChannel = it.body()
 
             while (!channel.isClosedForRead) {
@@ -355,6 +361,7 @@ object UrlReplacer : BaseReplacer {
                 if (byteArray.size > byteLimit) break
 
                 val raw = String(byteArray)
+                println(raw)
 
                 if (!raw.startsWith("<")) break
                 if (raw.contains("</title>")) break
