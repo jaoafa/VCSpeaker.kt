@@ -361,7 +361,6 @@ object UrlReplacer : BaseReplacer {
                 if (byteArray.size > byteLimit) break
 
                 val raw = String(byteArray)
-                println(raw)
 
                 if (!raw.startsWith("<")) break
                 if (raw.contains("</title>")) break
