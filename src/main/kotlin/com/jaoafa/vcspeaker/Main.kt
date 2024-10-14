@@ -17,7 +17,9 @@ import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import dev.kord.common.entity.Snowflake
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import java.net.SocketException
 import kotlin.io.path.Path
 import kotlin.reflect.full.createInstance
 
@@ -89,7 +91,7 @@ class Main : CliktCommand() {
             addSpec(EnvSpec)
         }.from.yaml.file(configPath.toFile())
 
-        runBlocking {
+        suspend fun init() {
             VCSpeaker.init(
                 config = config,
                 voicetext = VoiceTextAPI(apiKey = config[TokenSpec.voicetext]),
@@ -140,6 +142,20 @@ class Main : CliktCommand() {
 
             instance.start()
         }
+
+        suspend fun retryLoop() {
+            try {
+                init()
+            } catch (e: SocketException) {
+                logger.error(e) { "Failed to connect to Discord. Retrying after 10 seconds..." }
+                // wait 10 seconds before retrying
+                VCSpeaker.instance.stop()
+                delay(10000)
+                retryLoop()
+            }
+        }
+
+        runBlocking { retryLoop() }
     }
 }
 
