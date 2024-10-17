@@ -37,10 +37,10 @@ dependencies {
     implementation("dev.arbjerg:lavaplayer:2.2.2")
 
     // Ktor
-    implementation("io.ktor:ktor-client-cio-jvm:2.3.12")
-    implementation("io.ktor:ktor-client-cio:2.3.12")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
-    implementation("io.ktor:ktor-client-core:2.3.12")
+    implementation("io.ktor:ktor-client-cio-jvm:3.0.0")
+    implementation("io.ktor:ktor-client-cio:3.0.0")
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.0")
+    implementation("io.ktor:ktor-client-core:3.0.0")
 
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
