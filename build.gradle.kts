@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.20"
+    kotlin("jvm") version "2.0.21"
     kotlin("plugin.serialization") version "2.0.21"
     id("io.kotest.multiplatform") version "5.9.1"
     application
@@ -37,10 +37,10 @@ dependencies {
     implementation("dev.arbjerg:lavaplayer:2.2.2")
 
     // Ktor
-    implementation("io.ktor:ktor-client-cio-jvm:2.3.12")
-    implementation("io.ktor:ktor-client-cio:2.3.12")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
-    implementation("io.ktor:ktor-client-core:2.3.12")
+    implementation("io.ktor:ktor-client-cio-jvm:3.0.0")
+    implementation("io.ktor:ktor-client-cio:3.0.0")
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.0")
+    implementation("io.ktor:ktor-client-core:3.0.0")
 
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
@@ -48,7 +48,7 @@ dependencies {
 
     // Other Libraries
     implementation("io.sentry:sentry:7.12.1")
-    implementation("net.htmlparser.jericho:jericho-html:3.4")
+    implementation("org.jsoup:jsoup:1.18.1")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.50.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.2.0")
