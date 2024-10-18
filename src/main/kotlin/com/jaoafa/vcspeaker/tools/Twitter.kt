@@ -33,7 +33,7 @@ object Twitter {
         }
 
         return if (response.status == HttpStatusCode.OK) {
-            val json: TwitterOEmbedResponse = Json.decodeFromString<TwitterOEmbedResponse>(response.bodyAsText())
+            val json = Json.decodeFromString<TwitterOEmbedResponse>(response.bodyAsText())
             val plainText = Jsoup.parse(json.html)
                 .getElementsByTag("p")[0]
                 .childNodes()
