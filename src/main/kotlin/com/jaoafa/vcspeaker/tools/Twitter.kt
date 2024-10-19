@@ -3,14 +3,16 @@ package com.jaoafa.vcspeaker.tools
 import com.jaoafa.vcspeaker.models.original.twitter.Tweet
 import com.jaoafa.vcspeaker.models.response.twitter.TwitterOEmbedResponse
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
-import net.htmlparser.jericho.Source
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.TextNode
 
 object Twitter {
     private const val BASE_URL = "https://publish.twitter.com/oembed"
@@ -30,26 +32,30 @@ object Twitter {
             parameter("url", tweetUrl)
         }
 
-        return when (response.status) {
-            HttpStatusCode.OK -> {
-                val json: TwitterOEmbedResponse = response.body()
-                val plainText = Source(json.html.replace("<a.*>(.*)</a>", ""))
-                    .getFirstElement("p")
-                    .renderer
-                    .setMaxLineLength(Integer.MAX_VALUE)
-                    .setNewLine(null)
-                    .toString()
-                val readText = getReadText(plainText).trim()
-                Tweet(
-                    json.authorName,
-                    json.html,
-                    plainText,
-                    readText
-                )
-            }
-
-            else -> null
-        }
+        return if (response.status == HttpStatusCode.OK) {
+            val json = Json.decodeFromString<TwitterOEmbedResponse>(response.bodyAsText())
+            val plainText = Jsoup.parse(json.html)
+                .getElementsByTag("p")[0]
+                .childNodes()
+                .mapNotNull {
+                    if (it is TextNode) it.text().ifEmpty { null }
+                    else {
+                        val element = it as Element
+                        when (element.tagName()) {
+                            "a" -> "${element.text()} <${element.attr("abs:href")}>"
+                            "br" -> "\n"
+                            else -> null
+                        }
+                    }
+                }.joinToString("") { it }
+            val readText = getReadText(plainText).trim()
+            Tweet(
+                json.authorName,
+                json.html,
+                plainText,
+                readText
+            )
+        } else null
     }
 
     private fun getReadText(text: String): String {
