@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
 import com.jaoafa.vcspeaker.tools.VisionApi
 import com.jaoafa.vcspeaker.tts.Voice
-import com.kotlindiscord.kord.extensions.utils.download
+import dev.kordex.core.utils.download
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import dev.kord.core.behavior.reply

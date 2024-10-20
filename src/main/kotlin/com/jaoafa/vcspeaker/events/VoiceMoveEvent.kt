@@ -9,9 +9,9 @@ import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.event
-import com.kotlindiscord.kord.extensions.utils.selfMember
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.event
+import dev.kordex.core.utils.selfMember
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 

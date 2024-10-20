@@ -11,13 +11,13 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.kotlindiscord.kord.extensions.annotations.AlwaysPublicResponse
-import com.kotlindiscord.kord.extensions.checks.anyGuild
-import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
-import com.kotlindiscord.kord.extensions.commands.converters.impl.string
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.utils.FilterStrategy
-import com.kotlindiscord.kord.extensions.utils.suggestStringCollection
+import dev.kordex.core.annotations.AlwaysPublicResponse
+import dev.kordex.core.checks.anyGuild
+import dev.kordex.core.commands.application.slash.converters.impl.stringChoice
+import dev.kordex.core.commands.converters.impl.string
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.utils.FilterStrategy
+import dev.kordex.core.utils.suggestStringCollection
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class IgnoreCommand : Extension() {

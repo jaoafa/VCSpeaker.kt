@@ -9,13 +9,13 @@ import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
-import com.kotlindiscord.kord.extensions.ExtensibleBot
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.sentry.SentryAdapter
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import dev.kord.common.entity.Snowflake
+import dev.kordex.core.ExtensibleBot
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.sentry.SentryAdapter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -135,8 +135,8 @@ class Main : CliktCommand() {
             with(sentryEnv ?: config[EnvSpec.sentryEnv]) {
                 if (this != null)
                     instance.getKoin().get<SentryAdapter>().init {
-                        dsn = config[TokenSpec.sentry]
-                        environment = this@with
+                        it.dsn = config[TokenSpec.sentry]
+                        it.environment = this
                     }
             }
 

@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.tts.processors
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
-import com.kotlindiscord.kord.extensions.utils.capitalizeWords
+import dev.kordex.core.utils.capitalizeWords
 import dev.kord.core.entity.Message
 
 class InlineVoiceProcessor : BaseProcessor() {

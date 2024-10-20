@@ -1,9 +1,9 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.event
-import com.kotlindiscord.kord.extensions.utils.isNullOrBot
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.event
+import dev.kordex.core.utils.isNullOrBot
 import dev.kord.common.entity.AuditLogEvent
 import dev.kord.core.behavior.getAuditLogEntries
 import dev.kord.core.event.user.VoiceStateUpdateEvent

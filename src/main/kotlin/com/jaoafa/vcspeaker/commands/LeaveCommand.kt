@@ -5,10 +5,10 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
-import com.kotlindiscord.kord.extensions.checks.anyGuild
-import com.kotlindiscord.kord.extensions.checks.isNotBot
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.utils.respond
+import dev.kordex.core.checks.anyGuild
+import dev.kordex.core.checks.isNotBot
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.utils.respond
 
 class LeaveCommand : Extension() {
     override val name = this::class.simpleName!!

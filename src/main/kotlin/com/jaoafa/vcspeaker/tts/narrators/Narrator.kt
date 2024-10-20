@@ -10,8 +10,8 @@ import com.jaoafa.vcspeaker.tts.TrackType
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
-import com.kotlindiscord.kord.extensions.utils.addReaction
-import com.kotlindiscord.kord.extensions.utils.deleteOwnReaction
+import dev.kordex.core.utils.addReaction
+import dev.kordex.core.utils.deleteOwnReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
@@ -100,6 +100,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
         type: TrackType
     ) {
         val (processText, processVoice) = process(message, text, voice)
+
+        if (processText.isBlank()) return
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.addReaction("👀")

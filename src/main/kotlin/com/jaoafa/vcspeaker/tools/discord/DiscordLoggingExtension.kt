@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.tools.discord
 
-import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
-import com.kotlindiscord.kord.extensions.commands.chat.ChatCommandContext
+import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
+import dev.kordex.core.commands.chat.ChatCommandContext
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.User
 import io.github.oshai.kotlinlogging.KLogger

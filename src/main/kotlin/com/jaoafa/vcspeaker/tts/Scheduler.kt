@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
-import com.kotlindiscord.kord.extensions.utils.addReaction
+import dev.kordex.core.utils.addReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack

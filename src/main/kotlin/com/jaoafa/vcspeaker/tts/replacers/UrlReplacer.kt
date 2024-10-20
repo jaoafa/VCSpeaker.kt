@@ -25,11 +25,10 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import java.net.MalformedURLException
-import kotlin.text.String
 
 /**
  * URLを置換するクラス
@@ -354,7 +353,7 @@ object UrlReplacer : BaseReplacer {
             val channel: ByteReadChannel = it.body()
 
             while (!channel.isClosedForRead) {
-                val bytes = channel.readRemaining(16).readBytes()
+                val bytes = channel.readRemaining(16).readByteArray()
 
                 byteArray += bytes
 
@@ -381,7 +380,7 @@ object UrlReplacer : BaseReplacer {
      * URLから拡張子を取得します。
      */
     private fun getExtension(url: String) = try {
-        val path = Url(url).pathSegments.last()
+        val path = Url(url).segments.last()
         val dotPath = path.split(".")
         if (dotPath.size > 1) dotPath.last() else null
     } catch (e: MalformedURLException) {

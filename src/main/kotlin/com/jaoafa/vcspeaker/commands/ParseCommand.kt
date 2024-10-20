@@ -11,9 +11,9 @@ import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tts.Token
 import com.jaoafa.vcspeaker.tts.processors.ReplacerProcessor
-import com.kotlindiscord.kord.extensions.checks.anyGuild
-import com.kotlindiscord.kord.extensions.commands.converters.impl.string
-import com.kotlindiscord.kord.extensions.extensions.Extension
+import dev.kordex.core.checks.anyGuild
+import dev.kordex.core.commands.converters.impl.string
+import dev.kordex.core.extensions.Extension
 
 class ParseCommand : Extension() {
     override val name = this::class.simpleName!!
