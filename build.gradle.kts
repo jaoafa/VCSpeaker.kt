@@ -32,7 +32,7 @@ dependencies {
     // Discord Related
     implementation("dev.kord:kord-core:unknown-d-field-fix-SNAPSHOT")
     implementation("dev.kord:kord-core-voice:0.14.0")
-    implementation("dev.kord:kord-voice:0.14.0")
+    implementation("dev.kord:kord-voice:0.15.0")
     implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0")
     implementation("dev.arbjerg:lavaplayer:2.2.2")
 
