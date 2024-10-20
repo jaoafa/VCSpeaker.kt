@@ -2,8 +2,8 @@ package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
-import com.kotlindiscord.kord.extensions.utils.FilterStrategy
-import com.kotlindiscord.kord.extensions.utils.suggestStringMap
+import dev.kordex.core.utils.FilterStrategy
+import dev.kordex.core.utils.suggestStringMap
 import dev.kord.core.entity.interaction.AutoCompleteInteraction
 import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
 import dev.kord.rest.builder.message.EmbedBuilder

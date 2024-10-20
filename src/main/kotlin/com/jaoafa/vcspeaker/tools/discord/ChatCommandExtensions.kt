@@ -1,10 +1,10 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.kotlindiscord.kord.extensions.checks.inGuild
-import com.kotlindiscord.kord.extensions.commands.chat.ChatCommand
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.chatCommand
+import dev.kordex.core.checks.inGuild
+import dev.kordex.core.commands.chat.ChatCommand
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.chatCommand
 
 object ChatCommandExtensions {
     private fun ChatCommand<*>.devGuild() {

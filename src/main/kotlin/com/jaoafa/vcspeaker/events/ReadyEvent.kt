@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.events
 
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.event
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.event
 import dev.kord.core.event.gateway.ReadyEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 

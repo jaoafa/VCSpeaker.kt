@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker
 
 import com.jaoafa.vcspeaker.tools.Emoji
 import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
-import com.kotlindiscord.kord.extensions.ExtensibleBot
+import dev.kordex.core.ExtensibleBot
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration.ResamplingQuality
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers

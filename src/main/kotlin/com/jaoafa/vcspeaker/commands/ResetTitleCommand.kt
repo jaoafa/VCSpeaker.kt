@@ -10,9 +10,9 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.kotlindiscord.kord.extensions.checks.anyGuild
-import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalChannel
-import com.kotlindiscord.kord.extensions.extensions.Extension
+import dev.kordex.core.checks.anyGuild
+import dev.kordex.core.commands.converters.impl.optionalChannel
+import dev.kordex.core.extensions.Extension
 import dev.kord.common.entity.ChannelType
 import io.github.oshai.kotlinlogging.KotlinLogging
 

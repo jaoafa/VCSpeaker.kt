@@ -5,8 +5,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getSettings
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.event
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.event
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 

@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.serialization") version "2.0.21"
     id("io.kotest.multiplatform") version "5.9.1"
+    id("com.gradleup.shadow") version "8.3.3"
     application
 }
 
@@ -11,7 +12,7 @@ version = "1.0"
 repositories {
     mavenCentral()
     maven("https://jitpack.io/")
-    maven("https://maven.yuua.dev/")
+    maven("https://repo.kordex.dev/snapshots/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
@@ -30,10 +31,9 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
 
     // Discord Related
-    implementation("dev.kord:kord-core:unknown-d-field-fix-SNAPSHOT")
-    implementation("dev.kord:kord-core-voice:0.14.0")
-    implementation("dev.kord:kord-voice:0.14.0")
-    implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.6.0")
+    implementation("dev.kord:kord-core:0.15.0")
+    implementation("dev.kord:kord-core-voice:0.15.0")
+    implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
     implementation("dev.arbjerg:lavaplayer:2.2.2")
 
     // Ktor
@@ -47,7 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     // Other Libraries
-    implementation("io.sentry:sentry:7.12.1")
+    implementation("io.sentry:sentry:7.14.0")
     implementation("org.jsoup:jsoup:1.18.1")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.50.0")
@@ -66,25 +66,4 @@ kotlin {
 
 application {
     mainClass.set("com.jaoafa.vcspeaker.MainKt")
-}
-
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "com.jaoafa.vcspeaker.MainKt"
-    }
-
-    exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
-
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    archiveBaseName.set("vcspeaker-kt")
-
-    from(sourceSets.main.get().output)
-
-    dependsOn(configurations.runtimeClasspath)
-    from({
-        configurations.runtimeClasspath.get().filter {
-            it.name.endsWith("jar")
-        }.map { zipTree(it) }
-    })
 }

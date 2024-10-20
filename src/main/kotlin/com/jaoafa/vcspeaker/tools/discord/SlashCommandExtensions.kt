@@ -1,12 +1,12 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommand
-import com.kotlindiscord.kord.extensions.commands.application.slash.SlashCommand
-import com.kotlindiscord.kord.extensions.commands.application.slash.publicSubCommand
-import com.kotlindiscord.kord.extensions.components.forms.ModalForm
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
+import dev.kordex.core.commands.application.slash.PublicSlashCommand
+import dev.kordex.core.commands.application.slash.SlashCommand
+import dev.kordex.core.commands.application.slash.publicSubCommand
+import dev.kordex.core.components.forms.ModalForm
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.publicSlashCommand
 
 object SlashCommandExtensions {
     private fun PublicSlashCommand<*, *>.devGuild() {

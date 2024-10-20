@@ -3,10 +3,10 @@ package com.jaoafa.vcspeaker.tools
 import com.jaoafa.vcspeaker.models.original.twitter.Tweet
 import com.jaoafa.vcspeaker.models.response.twitter.TwitterOEmbedResponse
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -33,7 +33,7 @@ object Twitter {
         }
 
         return if (response.status == HttpStatusCode.OK) {
-            val json = Json.decodeFromString<TwitterOEmbedResponse>(response.bodyAsText())
+            val json: TwitterOEmbedResponse = response.body()
             val plainText = Jsoup.parse(json.html)
                 .getElementsByTag("p")[0]
                 .childNodes()

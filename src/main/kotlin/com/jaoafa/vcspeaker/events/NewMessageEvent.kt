@@ -6,11 +6,11 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
-import com.kotlindiscord.kord.extensions.checks.anyGuild
-import com.kotlindiscord.kord.extensions.checks.isNotBot
-import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.extensions.event
-import com.kotlindiscord.kord.extensions.utils.respond
+import dev.kordex.core.checks.anyGuild
+import dev.kordex.core.checks.isNotBot
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.event
+import dev.kordex.core.utils.respond
 import dev.kord.core.event.message.MessageCreateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 

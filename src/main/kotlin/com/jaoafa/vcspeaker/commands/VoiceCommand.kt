@@ -10,10 +10,10 @@ import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashComm
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
-import com.kotlindiscord.kord.extensions.checks.anyGuild
-import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.optionalStringChoice
-import com.kotlindiscord.kord.extensions.commands.converters.impl.optionalInt
-import com.kotlindiscord.kord.extensions.extensions.Extension
+import dev.kordex.core.checks.anyGuild
+import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
+import dev.kordex.core.commands.converters.impl.optionalInt
+import dev.kordex.core.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class VoiceCommand : Extension() {
