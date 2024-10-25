@@ -30,7 +30,7 @@ RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig cur
     unzip -o -d /usr/share/fonts/ipa/ IPAexfont00301.zip "*.ttf" && \
     update-ms-fonts
 
-COPY --from=builder /build/build/libs/vcspeaker-*.jar /app/vcspeaker-kt.jar
+COPY --from=builder /build/build/libs/vcspeaker-kt-all.jar /app
 
 ENV VCSKT_CONFIG=/data/config.yml
 ENV VCSKT_STORE=/data/store/
@@ -38,4 +38,4 @@ ENV VCSKT_CACHE=/data/cache/
 ENV GOOGLE_APPLICATION_CREDENTIALS=/data/google-credential.json
 ENV TZ=Asia/Tokyo
 
-CMD ["java", "-jar", "/app/vcspeaker-kt.jar"]
+CMD ["java", "-jar", "/app/vcspeaker-kt-all.jar"]

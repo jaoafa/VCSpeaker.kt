@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.serialization") version "2.0.21"
@@ -66,4 +68,10 @@ kotlin {
 
 application {
     mainClass.set("com.jaoafa.vcspeaker.MainKt")
+}
+
+tasks.named("shadowJar", ShadowJar::class) {
+    archiveBaseName.set("vcspeaker-kt")
+    archiveClassifier.set("all")
+    archiveVersion.set("")
 }

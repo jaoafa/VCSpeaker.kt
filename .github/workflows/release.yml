@@ -145,7 +145,6 @@ jobs:
       - name: 🐘 Run Gradle command
         run: |
           gradle build
-          mv build/libs/*.jar build/libs/vcspeaker-kt.jar
 
       - name: 🗃️ Publish Release on main
         uses: softprops/action-gh-release@v2
@@ -154,4 +153,4 @@ jobs:
           tag_name: ${{ needs.bump-version.outputs.tag }}
           target_commitish: ${{ github.sha }}
           files: |
-            build/libs/vcspeaker-kt.jar
+            build/libs/vcspeaker-kt-all.jar
