@@ -79,3 +79,41 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
+
+  build-jar:
+    name: 📦 Build Jar
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ☕ Setup Zulu JDK 21
+        uses: actions/setup-java@v4.4.0
+        with:
+          distribution: zulu
+          java-version: 21
+
+      - name: 🐘 Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: release-candidate
+
+      - name: 📥 Checkout ${{ github.repository }}
+        uses: actions/checkout@v4
+
+      - name: ⌛ Restore caches
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: 🐘 Run Gradle command
+        run: |
+          gradle build
+
+      - name: 📦 Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VCSpeaker.kt Shadow Jar
+          path: build/libs/vcspeaker-kt-all.jar
+          overwrite: true
