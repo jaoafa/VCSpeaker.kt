@@ -81,7 +81,7 @@ jobs:
           provenance: false
 
   build-jar:
-    name: 📦 Create Release
+    name: 📦 Build Jar
     runs-on: ubuntu-latest
     needs:
       - bump-version
@@ -94,7 +94,7 @@ jobs:
           java-version: 21
 
       - name: 🐘 Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: release-candidate
 
