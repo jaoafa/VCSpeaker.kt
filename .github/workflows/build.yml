@@ -83,8 +83,6 @@ jobs:
   build-jar:
     name: 📦 Build Jar
     runs-on: ubuntu-latest
-    needs:
-      - bump-version
 
     steps:
       - name: ☕ Setup Zulu JDK 21
