@@ -54,7 +54,7 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.50.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.2.0")
-    implementation("com.github.ajalt.clikt:clikt:4.4.0")
+    implementation("com.github.ajalt.clikt:clikt:5.0.1")
     implementation("com.uchuhimo:konf:1.1.2")
 }
 
