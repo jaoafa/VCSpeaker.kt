@@ -99,7 +99,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
         guild: Guild,
         type: TrackType
     ) {
-        val (processText, processVoice) = process(message, text, voice)
+        val (processText, processVoice) = process(message, text, voice) ?: return
 
         if (processText.isBlank()) return
 
@@ -120,9 +120,9 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * @param message メッセージ
      * @param text 処理するテキスト
      * @param voice 処理する音声
-     * @return 処理後のテキストと音声
+     * @return 処理後のテキストと音声。キャンセルされた場合は null が返却されます。
      */
-    suspend fun process(message: Message? = null, text: String, voice: Voice): Pair<String, Voice> {
+    suspend fun process(message: Message? = null, text: String, voice: Voice): Pair<String, Voice>? {
         val processors = getClassesIn<BaseProcessor>("com.jaoafa.vcspeaker.tts.processors")
             .mapNotNull {
                 it.kotlin.createInstance()
@@ -130,7 +130,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
         return processors.fold(text to voice) { (processText, processVoice), processor ->
             val (processedText, processedVoice) = processor.process(message, processText, processVoice)
-            if (processor.isCancelled()) return@fold processText to processVoice // キャンセルされた場合は、このProcessorだけをスキップする
+            if (processor.isCancelled()) return null // キャンセルされた場合は、即座に null を返却。
             if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、このProcessorを最後とし読み上げる
 
             processedText to processedVoice
