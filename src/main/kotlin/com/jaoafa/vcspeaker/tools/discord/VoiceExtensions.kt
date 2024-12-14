@@ -1,9 +1,10 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.states.State
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
-import com.jaoafa.vcspeaker.tts.SpeakInfo
+import com.jaoafa.vcspeaker.tts.Entry
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
 import com.jaoafa.vcspeaker.tts.narrators.Narrators
@@ -40,6 +41,7 @@ object VoiceExtensions {
     suspend fun BaseVoiceChannelBehavior.join(
         replier: (suspend (String) -> Unit)? = null
     ): Narrator {
+        State.connection.remove(guild.id)
         Narrators -= guild.id // force disconnection
 
         val player = VCSpeaker.lavaplayer.createPlayer()
@@ -49,6 +51,8 @@ object VoiceExtensions {
                 AudioFrame.fromData(player.provide(1, TimeUnit.SECONDS)?.data)
             }
         }
+
+        State.connection.set(guild.id, id)
 
         val narrator = Narrator(guild.id, player, connection)
         Narrators += narrator
@@ -82,6 +86,7 @@ object VoiceExtensions {
     ): Narrator? {
         val narrator = guild.narrator() ?: return null
 
+        State.connection.set(guild.id, id)
         narrator.connection.move(id)
 
         narrator.announce(
@@ -118,6 +123,7 @@ object VoiceExtensions {
         narrator.connection.leave()
         narrator.player.destroy()
 
+        State.connection.remove(guild.id)
         Narrators -= guild.id
 
         narrator.announce(
@@ -134,21 +140,20 @@ object VoiceExtensions {
         }
     }
 
-    // TODO: Separate load and play to avoid blocking the main thread
-    suspend fun AudioPlayer.speak(info: SpeakInfo) {
-        val guildName = info.guild.name
+    suspend fun AudioPlayer.speak(entry: Entry) {
+        val guildName = entry.guild.name
 
         val track = suspendCoroutine {
             VCSpeaker.lavaplayer.loadItemOrdered(
                 this,
-                info.file.path, // already checked
+                entry.file.path, // already checked
                 object : AudioLoadResultHandler {
                     override fun trackLoaded(track: AudioTrack) {
                         logger.info {
-                            "[$guildName] Loaded Track: Audio for ${info.getMessageLogInfo()} has been loaded successfully (${track.identifier})"
+                            "[$guildName] Loaded Track: Audio for ${entry.getMessageLogInfo()} has been loaded successfully (${track.identifier})"
                         }
 
-                        track.userData = info
+                        track.userData = entry
                         it.resume(track)
                     }
 
@@ -161,7 +166,7 @@ object VoiceExtensions {
                     }
 
                     override fun loadFailed(exception: FriendlyException?): Unit = runBlocking {
-                        info.message?.reply {
+                        entry.message?.reply {
                             embed {
                                 title = ":interrobang: Error!"
 
@@ -179,7 +184,7 @@ object VoiceExtensions {
                         }
 
                         logger.error(exception) {
-                            "[$guildName] Failed to Load Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to load."
+                            "[$guildName] Failed to Load Track: Audio track for ${entry.getMessageLogInfo(withText = true)} have failed to load."
                         }
                     }
                 })
@@ -189,11 +194,11 @@ object VoiceExtensions {
             this.playTrack(track)
 
             logger.info {
-                "[$guildName] Playing Track: Audio for ${info.getMessageLogInfo()} is playing now (${track.identifier})"
+                "[$guildName] Playing Track: Audio for ${entry.getMessageLogInfo()} is playing now (${track.identifier})"
             }
         } catch (exception: Exception) {
             logger.error(exception) {
-                "[$guildName] Failed to Play Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to play."
+                "[$guildName] Failed to Play Track: Audio track for ${entry.getMessageLogInfo(withText = true)} have failed to play."
             }
         }
     }

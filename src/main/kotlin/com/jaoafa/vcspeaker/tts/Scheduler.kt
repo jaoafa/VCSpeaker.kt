@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.states.State
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
@@ -9,23 +10,26 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.system.measureTimeMillis
 
 class Scheduler(
+    private val guildId: Snowflake,
     private val player: AudioPlayer
 ) : AudioEventAdapter() {
     private val logger = KotlinLogging.logger { }
 
-    val queue = mutableListOf<SpeakInfo>()
-    var now: SpeakInfo? = null
+    private fun getQueue() = State.queue.get()[guildId] ?: emptyList()
 
     suspend fun queue(
         message: Message? = null, text: String, voice: Voice, guild: Guild, type: TrackType
@@ -85,38 +89,51 @@ class Scheduler(
             CacheStore.read(text, voice)!!
         }
 
-        val info = SpeakInfo(message, guild, text, voice, file, type)
+        val entry = Entry(message, guild, text, voice, file, type)
 
-        if (queue.isEmpty() && now == null) {
-            now = info
-            speak(info)
+        if (getQueue().isEmpty()) {
+            speak(entry)
 
             logger.info {
                 "[$guildName] First Track Starting: Queue is empty. Audio track for $messageInfo skipped queue."
             }
         } else {
-            queue.add(info)
+            State.queue.add(entry)
 
             logger.info {
-                "[$guildName] Track Queued: Audio track for $messageInfo has been queued. Waiting for ${queue.size} track(s) to finish playing."
+                "[$guildName] Track Queued: Audio track for $messageInfo has been queued. Waiting for ${getQueue().size} track(s) to finish playing."
             }
         }
     }
 
-    suspend fun skip() {
-        if (queue.isEmpty()) {
-            now = null
+    fun skip() {
+        if (getQueue().isEmpty()) {
             player.stopTrack()
         } else {
-            val next = queue.removeFirst()
-            now = next
-            speak(next)
+            val next = State.queue.removeFirstOf(guildId)
+            next?.let { speak(it) }
         }
+    }
+
+    fun clear() {
+        CoroutineScope(Dispatchers.Default).launch {
+            getQueue().forEach {
+                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
+                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
+            }
+        }
+
+        State.queue.modify {
+            it.toMutableMap().apply {
+                this[guildId] = emptyList()
+            }
+        }
+        player.stopTrack()
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
         runBlocking {
-            val info = track.userData as SpeakInfo
+            val info = track.userData as Entry
             val message = info.message
             val guildName = info.guild.name
 
@@ -124,26 +141,24 @@ class Scheduler(
                 message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
             }
 
-            if (endReason.mayStartNext && queue.isNotEmpty()) {
-                now = queue.removeFirst()
-                launch { speak(now!!) }
+            if (endReason.mayStartNext && getQueue().isNotEmpty()) {
+                val next = State.queue.removeFirstOf(guildId)
+                launch { speak(next!!) }
 
                 logger.info {
                     "[$guildName] Next Track Starting: Audio track for ${info.getMessageLogInfo()} has been retrieved from the queue."
                 }
             } else {
-                now = null
-
                 logger.info {
                     "[$guildName] Playing Track Finished: All tracks have been played. Waiting for the next track..."
                 }
             }
         }
 
-    private suspend fun speak(info: SpeakInfo): Unit = runBlocking {
+    private fun speak(entry: Entry): Unit = runBlocking {
         launch {
-            if (info.message != null) info.message.addReaction("🔊")
+            if (entry.message != null) entry.message.addReaction("🔊")
         }
-        player.speak(info)
+        player.speak(entry)
     }
 }

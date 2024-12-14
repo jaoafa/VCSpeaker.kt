@@ -4,7 +4,7 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import java.io.File
 
-data class SpeakInfo(
+data class Entry(
     val message: Message? = null,
     val guild: Guild,
     val text: String,

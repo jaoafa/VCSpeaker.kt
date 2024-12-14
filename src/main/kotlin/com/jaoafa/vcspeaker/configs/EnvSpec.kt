@@ -16,6 +16,16 @@ object EnvSpec : ConfigSpec() {
     val cachePolicy by optional<Int>(10)
 
     /**
+     * Enable auto update.
+     */
+    val autoUpdate by optional<Boolean>(false)
+
+    /**
+     * The port for the api server.
+     */
+    val port by optional<Int>(8080)
+
+    /**
      * The guild id for development.
      * VCSpeaker will launch in development mode when this is set.
      */

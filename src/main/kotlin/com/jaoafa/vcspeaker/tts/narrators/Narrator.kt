@@ -17,7 +17,6 @@ import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
-import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.voice.VoiceConnection
 import kotlinx.coroutines.CoroutineScope
@@ -56,7 +55,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
         }
     }
 
-    private val scheduler = Scheduler(player)
+    private val scheduler = Scheduler(guildId, player)
 
     /**
      * システム音声として文章をキューに追加します。
@@ -140,23 +139,12 @@ class Narrator @OptIn(KordVoice::class) constructor(
     /**
      * 読み上げ中のメッセージをスキップします。
      */
-    suspend fun skip() = scheduler.skip()
+    fun skip() = scheduler.skip()
 
     /**
      * キューをクリアします。
      */
-    suspend fun clear() {
-        CoroutineScope(Dispatchers.Default).launch {
-            listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
-                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
-                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
-            }
-        }
-
-        scheduler.queue.clear()
-        scheduler.now = null
-        player.stopTrack()
-    }
+    fun clear() = scheduler.clear()
 
     suspend fun announce(
         voice: String,

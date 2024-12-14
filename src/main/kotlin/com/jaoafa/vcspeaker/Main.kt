@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
+import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.stores.CacheStore
@@ -81,6 +82,18 @@ class Main : CliktCommand() {
         envvar = "VCSKT_ENCODING_QUALITY"
     ).int().restrictTo(1..10)
 
+    private val port by option(
+        "--port",
+        help = "The port for the API server.",
+        envvar = "VCSKT_PORT"
+    ).int()
+
+    private val autoUpdate by option(
+        "--auto-update",
+        help = "Enable auto update.",
+        envvar = "VCSKT_AUTO_UPDATE"
+    ).boolean()
+
     override fun run() {
         logger.info { "Starting VCSpeaker..." }
 
@@ -101,7 +114,9 @@ class Main : CliktCommand() {
                 devGuildId = (devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) },
                 prefix = prefix ?: config[EnvSpec.commandPrefix],
                 resamplingQuality = resamplingQuality ?: config[EnvSpec.resamplingQuality],
-                encodingQuality = encodingQuality ?: config[EnvSpec.encodingQuality]
+                encodingQuality = encodingQuality ?: config[EnvSpec.encodingQuality],
+                port = port ?: config[EnvSpec.port],
+                autoUpdate = autoUpdate ?: config[EnvSpec.autoUpdate]
             )
 
             val instance = ExtensibleBot(token = config[TokenSpec.discord]) {
@@ -140,6 +155,9 @@ class Main : CliktCommand() {
                         it.environment = this
                     }
             }
+
+            if (VCSpeaker.autoUpdate)
+                Server().start(VCSpeaker.port)
 
             instance.start()
         }

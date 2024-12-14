@@ -10,8 +10,12 @@ import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import java.io.File
+import java.util.*
+import kotlin.properties.Delegates
 
 object VCSpeaker {
+    val uuid = UUID.randomUUID()
+
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
@@ -26,6 +30,9 @@ object VCSpeaker {
 
     // 開発環境のコマンドを登録する Guild ID (null で開発環境を無効化)
     var devGuildId: Snowflake? = null
+
+    var port by Delegates.notNull<Int>()
+    var autoUpdate by Delegates.notNull<Boolean>()
 
     // 開発環境かどうか
     fun isDev() = devGuildId != null
@@ -59,7 +66,9 @@ object VCSpeaker {
         devGuildId: Snowflake?,
         prefix: String,
         resamplingQuality: ResamplingQuality,
-        encodingQuality: Int
+        encodingQuality: Int,
+        autoUpdate: Boolean,
+        port: Int
     ) {
         Emoji // init
 
@@ -75,6 +84,8 @@ object VCSpeaker {
             this.cacheFolder = cacheFolder
             this.devGuildId = devGuildId
             this.prefix = prefix
+            this.autoUpdate = autoUpdate
+            this.port = port
         }
 
         lavaplayer.configuration.let {
