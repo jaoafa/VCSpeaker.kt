@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.serialization") version "2.1.0"
-    id("io.kotest.multiplatform") version "5.9.1"
+    id("io.kotest.multiplatform") version "6.0.0-LOCAL"
     id("com.gradleup.shadow") version "8.3.5"
     application
 }
