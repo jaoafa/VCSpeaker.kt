@@ -7,7 +7,7 @@ import io.ktor.server.routing.*
 import kotlin.system.exitProcess
 
 class Server {
-    fun start(port: Int) {
+    fun start(port: Int, wait: Boolean) {
         embeddedServer(Netty, port) {
             routing {
                 get("/") {
@@ -26,6 +26,6 @@ class Server {
                     }
                 }
             }
-        }.start()
+        }.start(wait)
     }
 }

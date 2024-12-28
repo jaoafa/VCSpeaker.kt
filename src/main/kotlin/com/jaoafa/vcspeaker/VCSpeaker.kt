@@ -1,16 +1,17 @@
 package com.jaoafa.vcspeaker
 
+import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.Emoji
 import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
-import dev.kordex.core.ExtensibleBot
-import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration.ResamplingQuality
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kordex.core.ExtensibleBot
 import java.io.File
 import java.util.*
+import kotlin.io.path.Path
 import kotlin.properties.Delegates
 
 object VCSpeaker {
@@ -60,16 +61,20 @@ object VCSpeaker {
      */
     fun init(
         config: Config,
+        options: Options,
         voicetext: VoiceTextAPI,
-        storeFolder: File,
-        cacheFolder: File,
-        devGuildId: Snowflake?,
-        prefix: String,
-        resamplingQuality: ResamplingQuality,
-        encodingQuality: Int,
-        autoUpdate: Boolean,
-        port: Int
     ) {
+        VCSpeaker.run {
+            this.voicetext = voicetext
+            this.config = config
+            this.storeFolder = (options.storePath ?: Path(config[EnvSpec.storeFolder])).toFile()
+            this.cacheFolder = (options.cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile()
+            this.devGuildId = (options.devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) }
+            this.prefix = options.prefix ?: config[EnvSpec.commandPrefix]
+            this.autoUpdate = options.autoUpdate ?: config[EnvSpec.autoUpdate]
+            this.port = options.port ?: config[EnvSpec.port]
+        }
+
         Emoji // init
 
         AudioSourceManagers.registerLocalSource(lavaplayer)
@@ -77,20 +82,9 @@ object VCSpeaker {
         if (!storeFolder.exists()) storeFolder.mkdir()
         if (!cacheFolder.exists()) cacheFolder.mkdir()
 
-        VCSpeaker.run {
-            this.voicetext = voicetext
-            this.config = config
-            this.storeFolder = storeFolder
-            this.cacheFolder = cacheFolder
-            this.devGuildId = devGuildId
-            this.prefix = prefix
-            this.autoUpdate = autoUpdate
-            this.port = port
-        }
-
         lavaplayer.configuration.let {
-            it.resamplingQuality = resamplingQuality
-            it.opusEncodingQuality = encodingQuality
+            it.resamplingQuality = options.resamplingQuality ?: config[EnvSpec.resamplingQuality]
+            it.opusEncodingQuality = options.encodingQuality ?: config[EnvSpec.encodingQuality]
         }
     }
 }
