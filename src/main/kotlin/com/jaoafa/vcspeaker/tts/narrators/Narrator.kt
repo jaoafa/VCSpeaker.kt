@@ -10,8 +10,6 @@ import com.jaoafa.vcspeaker.tts.TrackType
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
-import dev.kordex.core.utils.addReaction
-import dev.kordex.core.utils.deleteOwnReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
@@ -20,6 +18,8 @@ import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.voice.VoiceConnection
+import dev.kordex.core.utils.addReaction
+import dev.kordex.core.utils.deleteOwnReaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -130,6 +130,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
         return processors.fold(text to voice) { (processText, processVoice), processor ->
             val (processedText, processedVoice) = processor.process(message, processText, processVoice)
+            println("Processed by ${processor::class.simpleName}: $processedText [isCancelled=${processor.isCancelled()}, isImmediately=${processor.isImmediately()}]")
             if (processor.isCancelled()) return null // キャンセルされた場合は、即座に null を返却。
             if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、このProcessorを最後とし読み上げる
 

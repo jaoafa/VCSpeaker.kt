@@ -5,7 +5,7 @@ import com.jaoafa.vcspeaker.tts.Voice
 import dev.kord.core.entity.Message
 
 class IgnoreAfterReplaceProcessor : BaseProcessor() {
-    override val priority = 70
+    override val priority = 80
 
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
         val guildId = message?.getGuild()?.id ?: return content to voice

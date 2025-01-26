@@ -8,7 +8,7 @@ import com.jaoafa.vcspeaker.tts.replacers.BaseReplacer
 import dev.kord.core.entity.Message
 
 class ReplacerProcessor : BaseProcessor() {
-    override val priority = 60
+    override val priority = 70
 
     val replacers = getClassesIn<BaseReplacer>("com.jaoafa.vcspeaker.tts.replacers")
         .mapNotNull {
