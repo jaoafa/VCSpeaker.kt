@@ -3,11 +3,11 @@ package com.jaoafa.vcspeaker.tts.processors
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.api.Emotion
 import com.jaoafa.vcspeaker.tts.api.Speaker
-import dev.kordex.core.utils.capitalizeWords
 import dev.kord.core.entity.Message
+import dev.kordex.core.utils.capitalizeWords
 
 class InlineVoiceProcessor : BaseProcessor() {
-    override val priority = 40
+    override val priority = 50
 
     private val syntax = Regex("(speaker|emotion|emotion_level|pitch|speed|volume):\\w+")
 

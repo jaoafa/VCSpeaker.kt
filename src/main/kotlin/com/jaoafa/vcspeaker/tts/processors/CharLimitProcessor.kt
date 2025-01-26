@@ -6,7 +6,7 @@ import com.jaoafa.vcspeaker.tts.Voice
 import dev.kord.core.entity.Message
 
 class CharLimitProcessor : BaseProcessor() {
-    override val priority = 110
+    override val priority = 120
 
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
         val limit = 180

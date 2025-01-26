@@ -4,18 +4,18 @@ import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
 import com.jaoafa.vcspeaker.tools.VisionApi
 import com.jaoafa.vcspeaker.tts.Voice
-import dev.kordex.core.utils.download
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Message
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.addFile
+import dev.kordex.core.utils.download
 import java.io.File
 import java.nio.file.Path
 
 class AttachmentProcessor : BaseProcessor() {
-    override val priority = 30
+    override val priority = 40
 
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
         val attachments = message?.attachments ?: return content to voice
