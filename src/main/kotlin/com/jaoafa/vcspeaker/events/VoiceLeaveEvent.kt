@@ -8,9 +8,9 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
-import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
+import dev.kord.core.event.user.VoiceStateUpdateEvent
 import kotlinx.coroutines.flow.count
 
 class VoiceLeaveEvent : Extension() {

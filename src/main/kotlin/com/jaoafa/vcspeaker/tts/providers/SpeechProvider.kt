@@ -2,8 +2,8 @@ package com.jaoafa.vcspeaker.tts.providers
 
 import com.jaoafa.vcspeaker.tts.providers.soundboard.SoundboardContext
 import com.jaoafa.vcspeaker.tts.providers.soundboard.SoundboardProvider
-import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider
+import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 
 interface SpeechProvider<T : ProviderContext> {
     val id: String

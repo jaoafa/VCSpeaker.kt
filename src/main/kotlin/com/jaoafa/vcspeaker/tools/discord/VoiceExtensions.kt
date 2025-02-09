@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.tools.discord
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.Speech
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator

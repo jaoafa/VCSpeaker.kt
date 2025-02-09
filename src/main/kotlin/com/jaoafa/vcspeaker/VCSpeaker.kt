@@ -2,13 +2,13 @@ package com.jaoafa.vcspeaker
 
 import com.jaoafa.vcspeaker.tools.Emoji
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider
+import dev.kordex.core.ExtensibleBot
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration.ResamplingQuality
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
-import dev.kordex.core.ExtensibleBot
 import java.io.File
 
 object VCSpeaker {

@@ -1,8 +1,8 @@
 package processors
 
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.processors.StickerProcessor
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
+import com.jaoafa.vcspeaker.tts.processors.StickerProcessor
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.StickerItem
 import io.kotest.core.spec.style.FunSpec

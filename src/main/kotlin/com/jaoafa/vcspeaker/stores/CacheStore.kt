@@ -1,14 +1,19 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.tools.hashMd5
 import com.jaoafa.vcspeaker.tools.writeAs
+import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.SpeechProvider
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.security.MessageDigest
 import kotlin.concurrent.timer
 
 @Serializable

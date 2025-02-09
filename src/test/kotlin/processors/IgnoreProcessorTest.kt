@@ -6,9 +6,9 @@ import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.stores.StoreStruct
 import com.jaoafa.vcspeaker.tts.Voice
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import com.jaoafa.vcspeaker.tts.processors.IgnoreAfterReplaceProcessor
 import com.jaoafa.vcspeaker.tts.processors.IgnoreBeforeReplaceProcessor
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec

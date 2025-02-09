@@ -1,9 +1,9 @@
 package com.jaoafa.vcspeaker.tools.discord
 
-import dev.kord.core.entity.Guild
-import dev.kord.core.entity.User
 import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
 import dev.kordex.core.commands.chat.ChatCommandContext
+import dev.kord.core.entity.Guild
+import dev.kord.core.entity.User
 import io.github.oshai.kotlinlogging.KLogger
 
 object DiscordLoggingExtension {

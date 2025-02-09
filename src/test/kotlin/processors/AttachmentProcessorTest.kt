@@ -2,8 +2,8 @@ package processors
 
 import com.jaoafa.vcspeaker.tools.VisionApi
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.processors.AttachmentProcessor
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
+import com.jaoafa.vcspeaker.tts.processors.AttachmentProcessor
 import dev.kord.core.entity.Attachment
 import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec

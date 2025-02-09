@@ -1,12 +1,12 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
-import dev.kord.common.entity.AuditLogEvent
-import dev.kord.core.behavior.getAuditLogEntries
-import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
 import dev.kordex.core.utils.isNullOrBot
+import dev.kord.common.entity.AuditLogEvent
+import dev.kord.core.behavior.getAuditLogEntries
+import dev.kord.core.event.user.VoiceStateUpdateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first

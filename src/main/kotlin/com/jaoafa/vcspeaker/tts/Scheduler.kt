@@ -5,6 +5,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.providerOf
+import dev.kordex.core.utils.addReaction
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -14,7 +15,6 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
-import dev.kordex.core.utils.addReaction
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
