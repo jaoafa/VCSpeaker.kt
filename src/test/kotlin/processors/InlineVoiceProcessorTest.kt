@@ -63,7 +63,7 @@ class InlineVoiceProcessorTest : FunSpec({
         val exception = shouldThrow<IllegalArgumentException> {
             processor.process(message, "test speaker:invalid", voice)
         }
-        exception.message shouldBe "No enum constant com.jaoafa.vcspeaker.tts.api.Speaker.Invalid"
+        exception.message shouldBe "No enum constant com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker.Invalid"
     }
 
     // 無効な感情名が指定された場合、例外がスローされる
@@ -75,7 +75,7 @@ class InlineVoiceProcessorTest : FunSpec({
         val exception = shouldThrow<IllegalArgumentException> {
             processor.process(message, "test emotion:invalid", voice)
         }
-        exception.message shouldBe "No enum constant com.jaoafa.vcspeaker.tts.api.Emotion.Invalid"
+        exception.message shouldBe "No enum constant com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion.Invalid"
     }
 
     // 無効な感情レベルが指定された場合、例外がスローされず、値が無視される
