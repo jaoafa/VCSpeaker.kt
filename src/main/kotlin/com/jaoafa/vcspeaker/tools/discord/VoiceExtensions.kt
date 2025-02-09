@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.tools.discord
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
-import com.jaoafa.vcspeaker.tts.SpeakInfo
+import com.jaoafa.vcspeaker.tts.Speech
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
 import com.jaoafa.vcspeaker.tts.narrators.Narrators
@@ -135,65 +135,68 @@ object VoiceExtensions {
     }
 
     // TODO: Separate load and play to avoid blocking the main thread
-    suspend fun AudioPlayer.speak(info: SpeakInfo) {
-        val guildName = info.guild.name
+    suspend fun AudioPlayer.speak(speech: Speech) {
+        val guildName = speech.guild.name
 
-        val track = suspendCoroutine {
-            VCSpeaker.lavaplayer.loadItemOrdered(
-                this,
-                info.file.path, // already checked
-                object : AudioLoadResultHandler {
-                    override fun trackLoaded(track: AudioTrack) {
-                        logger.info {
-                            "[$guildName] Loaded Track: Audio for ${info.getMessageLogInfo()} has been loaded successfully (${track.identifier})"
+        val tracks: List<AudioTrack> = speech.files.map { file ->
+            suspendCoroutine {
+                VCSpeaker.lavaplayer.loadItemOrdered(
+                    this,
+                    file.path, // already checked
+                    object : AudioLoadResultHandler {
+                        override fun trackLoaded(track: AudioTrack) {
+                            logger.info {
+                                "[$guildName] Loaded Track: Audio for ${speech.describe()} has been loaded successfully (${track.identifier})"
+                            }
+
+                            track.userData = speech
+                            it.resume(track)
                         }
 
-                        track.userData = info
-                        it.resume(track)
-                    }
+                        override fun playlistLoaded(playlist: AudioPlaylist?) {
+                            throw UnexpectedException("This code should not be reached.")
+                        }
 
-                    override fun playlistLoaded(playlist: AudioPlaylist?) {
-                        throw UnexpectedException("This code should not be reached.")
-                    }
+                        override fun noMatches() {
+                            return
+                        }
 
-                    override fun noMatches() {
-                        return
-                    }
+                        override fun loadFailed(exception: FriendlyException?): Unit = runBlocking {
+                            speech.message?.reply {
+                                embed {
+                                    title = ":interrobang: Error!"
 
-                    override fun loadFailed(exception: FriendlyException?): Unit = runBlocking {
-                        info.message?.reply {
-                            embed {
-                                title = ":interrobang: Error!"
-
-                                description = """
+                                    description = """
                                         音声の読み込みに失敗しました。
                                         VCSpeaker の不具合と思われる場合は、[GitHub Issues](https://github.com/jaoafa/VCSpeaker.kt/issues) か、サーバー既定のチャンネルへの報告をお願いします。
                                     """.trimIndent()
 
-                                field("Exception") {
-                                    "```\n${exception?.message ?: "不明"}\n```"
-                                }
+                                    field("Exception") {
+                                        "```\n${exception?.message ?: "不明"}\n```"
+                                    }
 
-                                errorColor()
+                                    errorColor()
+                                }
+                            }
+
+                            logger.error(exception) {
+                                "[$guildName] Failed to Load Track: Audio track for ${speech.describe(withText = true)} have failed to load."
                             }
                         }
-
-                        logger.error(exception) {
-                            "[$guildName] Failed to Load Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to load."
-                        }
-                    }
-                })
+                    })
+            }
         }
 
         try {
-            this.playTrack(track)
+
+            this.playTrack(tracks[0]) //TODO
 
             logger.info {
-                "[$guildName] Playing Track: Audio for ${info.getMessageLogInfo()} is playing now (${track.identifier})"
+                "[$guildName] Playing Track: Audio for ${speech.describe()} is playing now (${tracks[0].identifier})"
             }
         } catch (exception: Exception) {
             logger.error(exception) {
-                "[$guildName] Failed to Play Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to play."
+                "[$guildName] Failed to Play Track: Audio track for ${speech.describe(withText = true)} have failed to play."
             }
         }
     }

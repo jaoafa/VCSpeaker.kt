@@ -9,7 +9,6 @@ import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.getClassesIn
-import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
@@ -95,7 +94,7 @@ class Main : CliktCommand() {
         suspend fun init() {
             VCSpeaker.init(
                 config = config,
-                voicetext = VoiceTextAPI(apiKey = config[TokenSpec.voicetext]),
+                voicetextToken = config[TokenSpec.voicetext],
                 storeFolder = (storePath ?: Path(config[EnvSpec.storeFolder])).toFile(),
                 cacheFolder = (cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile(),
                 devGuildId = (devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) },

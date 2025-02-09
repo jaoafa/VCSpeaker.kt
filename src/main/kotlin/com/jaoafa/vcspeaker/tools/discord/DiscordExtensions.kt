@@ -2,13 +2,6 @@ package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
-import dev.kordex.core.commands.Arguments
-import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
-import dev.kordex.core.commands.chat.ChatCommandContext
-import dev.kordex.core.types.PublicInteractionContext
-import dev.kordex.core.utils.hasPermission
-import dev.kordex.core.utils.respond
-import dev.kordex.core.utils.selfMember
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
@@ -25,6 +18,13 @@ import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
 import dev.kord.rest.builder.message.embed
+import dev.kordex.core.commands.Arguments
+import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
+import dev.kordex.core.commands.chat.ChatCommandContext
+import dev.kordex.core.types.PublicInteractionContext
+import dev.kordex.core.utils.hasPermission
+import dev.kordex.core.utils.respond
+import dev.kordex.core.utils.selfMember
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
 

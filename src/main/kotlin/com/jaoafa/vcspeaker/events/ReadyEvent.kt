@@ -1,8 +1,8 @@
 package com.jaoafa.vcspeaker.events
 
+import dev.kord.core.event.gateway.ReadyEvent
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
-import dev.kord.core.event.gateway.ReadyEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ReadyEvent : Extension() {

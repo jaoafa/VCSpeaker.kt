@@ -1,14 +1,14 @@
 package com.jaoafa.vcspeaker
 
 import com.jaoafa.vcspeaker.tools.Emoji
-import com.jaoafa.vcspeaker.tts.api.VoiceTextAPI
-import dev.kordex.core.ExtensibleBot
+import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration.ResamplingQuality
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kordex.core.ExtensibleBot
 import java.io.File
 
 object VCSpeaker {
@@ -16,7 +16,7 @@ object VCSpeaker {
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
 
-    lateinit var voicetext: VoiceTextAPI
+    lateinit var voicetextToken: String
     lateinit var config: Config
 
     lateinit var storeFolder: File
@@ -48,12 +48,12 @@ object VCSpeaker {
     /**
      * VCSpeaker を初期化します。
      *
-     * @param voicetext [VoiceTextAPI] インスタンス
+     * @param voicetextToken [VoiceTextProvider] インスタンス
      * @param config [Config]
      */
     fun init(
         config: Config,
-        voicetext: VoiceTextAPI,
+        voicetextToken: String,
         storeFolder: File,
         cacheFolder: File,
         devGuildId: Snowflake?,
@@ -69,7 +69,7 @@ object VCSpeaker {
         if (!cacheFolder.exists()) cacheFolder.mkdir()
 
         VCSpeaker.run {
-            this.voicetext = voicetext
+            this.voicetextToken = voicetextToken
             this.config = config
             this.storeFolder = storeFolder
             this.cacheFolder = cacheFolder

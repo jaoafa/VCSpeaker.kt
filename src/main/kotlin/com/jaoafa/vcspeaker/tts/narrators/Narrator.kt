@@ -10,6 +10,9 @@ import com.jaoafa.vcspeaker.tts.TrackType
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
+import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.soundboard.SoundboardContext
+import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
@@ -92,6 +95,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * @param text 読み上げる文章
      * @param voice 読み上げに使用する音声
      */
+    //TODO update docs
     private suspend fun schedule(
         message: Message? = null,
         text: String,
@@ -99,15 +103,32 @@ class Narrator @OptIn(KordVoice::class) constructor(
         guild: Guild,
         type: TrackType
     ) {
-        val (processText, processVoice) = process(message, text, voice) ?: return
+        val sounds = Regex("<sound:\\d+:(\\d+)>").findAll(text).mapNotNull {
+            val id = it.groupValues[1].toLongOrNull() ?: return@mapNotNull null
+            it.value to id
+        }
 
-        if (processText.isBlank()) return
+        val textElements = text.split(*(sounds.map { it.first }.toList().toTypedArray()))
+
+        val contexts = mutableListOf<ProviderContext>()
+
+        textElements.forEachIndexed { i, element ->
+            val (processText, processVoice) = process(message, element, voice) ?: return
+
+            if (processText.isNotBlank())
+                contexts.add(VoiceTextContext(processVoice, processText))
+
+            if (i < sounds.count())
+                contexts.add(SoundboardContext(Snowflake(sounds.elementAt(i).second)))
+        }
+
+        if (contexts.isEmpty()) return
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.addReaction("👀")
         }
 
-        scheduler.queue(message, processText, processVoice, guild, type)
+        scheduler.queue(contexts, message, guild, type)
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.deleteOwnReaction("👀")
@@ -141,12 +162,12 @@ class Narrator @OptIn(KordVoice::class) constructor(
     /**
      * 読み上げ中のメッセージをスキップします。
      */
-    suspend fun skip() = scheduler.skip()
+    fun skip() = scheduler.skip()
 
     /**
      * キューをクリアします。
      */
-    suspend fun clear() {
+    fun clear() {
         CoroutineScope(Dispatchers.Default).launch {
             listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
                 it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))

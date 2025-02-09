@@ -6,11 +6,11 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
-import dev.kordex.core.extensions.Extension
-import dev.kordex.core.extensions.event
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.event
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.count
 

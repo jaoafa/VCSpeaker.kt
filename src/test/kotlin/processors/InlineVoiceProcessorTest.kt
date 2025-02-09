@@ -1,9 +1,9 @@
 package processors
 
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.api.Emotion
-import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.jaoafa.vcspeaker.tts.processors.InlineVoiceProcessor
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.core.entity.Message
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec

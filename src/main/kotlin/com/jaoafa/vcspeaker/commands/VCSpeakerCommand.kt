@@ -17,8 +17,12 @@ import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.api.Emotion
-import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
+import dev.kord.common.entity.ButtonStyle
+import dev.kord.common.entity.ChannelType
+import dev.kord.core.entity.channel.TextChannel
+import dev.kord.rest.builder.message.embed
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
 import dev.kordex.core.commands.converters.impl.optionalBoolean
@@ -28,10 +32,6 @@ import dev.kordex.core.commands.converters.impl.optionalString
 import dev.kordex.core.components.components
 import dev.kordex.core.components.publicButton
 import dev.kordex.core.extensions.Extension
-import dev.kord.common.entity.ButtonStyle
-import dev.kord.common.entity.ChannelType
-import dev.kord.core.entity.channel.TextChannel
-import dev.kord.rest.builder.message.embed
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.system.exitProcess
 

@@ -1,10 +1,10 @@
 package com.jaoafa.vcspeaker.tts
 
-import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
-import dev.kordex.core.utils.addReaction
+import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.providerOf
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -14,6 +14,7 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
+import dev.kordex.core.utils.addReaction
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -24,68 +25,73 @@ class Scheduler(
 ) : AudioEventAdapter() {
     private val logger = KotlinLogging.logger { }
 
-    val queue = mutableListOf<SpeakInfo>()
-    var now: SpeakInfo? = null
+    val queue = mutableListOf<Speech>()
+    var now: Speech? = null
 
-    suspend fun queue(
-        message: Message? = null, text: String, voice: Voice, guild: Guild, type: TrackType
+    suspend fun <T : ProviderContext> queue(
+        contexts: List<T>, message: Message? = null, guild: Guild, type: TrackType
     ) {
         val guildName = guild.name
 
         val messageInfo = "the message by @${message?.author?.username ?: "unknown_member"}"
 
-        val file = if (!CacheStore.exists(text, voice)) {
-            val downloadTime: Long
+        val files = contexts.map { context ->
+            if (!CacheStore.exists(context.hash())) {
+                val provider = providerOf(context)
+                    ?: throw IllegalArgumentException("Provider not found for context: ${context.describe()}")
 
-            val audio: ByteArray
-            try {
-                downloadTime = measureTimeMillis {
-                    audio = VCSpeaker.voicetext.generateSpeech(text, voice)
-                }
-            } catch (exception: Exception) {
-                message?.reply {
-                    embed {
-                        title = ":interrobang: Error!"
+                val downloadTime: Long
 
-                        description = """
+                val audio: ByteArray
+                try {
+                    downloadTime = measureTimeMillis {
+                        audio = provider.provide(context)
+                    }
+                } catch (exception: Exception) {
+                    message?.reply {
+                        embed {
+                            title = ":interrobang: Error!"
+
+                            description = """
                             音声の生成に失敗しました。
                             「${message.content}」はよくわからない文字列ではありませんか？
                         """.trimIndent()
 
-                        field("Exception") {
-                            "```\n${exception.message ?: "不明"}\n```"
+                            field("Exception") {
+                                "```\n${exception.message ?: "不明"}\n```"
+                            }
+
+                            errorColor()
                         }
-
-                        errorColor()
                     }
+
+                    val messageInfoDetail = when (type) {
+                        TrackType.System -> "the system message \"${context.describe()}\""
+                        TrackType.User -> "the message \"${context.describe()}\" by @${message?.author?.username ?: "unknown_member"}"
+                    }
+
+                    logger.error(exception) {
+                        "[$guildName] Failed to Generate Speech: Audio generation for $messageInfoDetail failed."
+                    }
+
+                    return
                 }
 
-                val messageInfoDetail = when (type) {
-                    TrackType.System -> "the system message \"$text\""
-                    TrackType.User -> "the message \"$text\" by @${message?.author?.username ?: "unknown_member"}"
+                logger.info {
+                    "[$guildName] Audio Downloaded: Audio for $messageInfo has been downloaded in $downloadTime ms."
                 }
 
-                logger.error(exception) {
-                    "[$guildName] Failed to Generate Speech: Audio generation for $messageInfoDetail failed."
+                CacheStore.create(context, audio)
+            } else {
+                logger.info {
+                    "[$guildName] Audio Found: Audio for $messageInfo has been found in the cache."
                 }
 
-                return
+                CacheStore.read(context.hash())!!
             }
-
-            logger.info {
-                "[$guildName] Audio Downloaded: Audio for $messageInfo has been downloaded in $downloadTime ms."
-            }
-
-            CacheStore.create(text, voice, audio)
-        } else {
-            logger.info {
-                "[$guildName] Audio Found: Audio for $messageInfo has been found in the cache."
-            }
-
-            CacheStore.read(text, voice)!!
         }
 
-        val info = SpeakInfo(message, guild, text, voice, file, type)
+        val info = Speech(type, guild, message, contexts, files)
 
         if (queue.isEmpty() && now == null) {
             now = info
@@ -103,7 +109,7 @@ class Scheduler(
         }
     }
 
-    suspend fun skip() {
+    fun skip() {
         if (queue.isEmpty()) {
             now = null
             player.stopTrack()
@@ -116,7 +122,7 @@ class Scheduler(
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
         runBlocking {
-            val info = track.userData as SpeakInfo
+            val info = track.userData as Speech
             val message = info.message
             val guildName = info.guild.name
 
@@ -129,7 +135,7 @@ class Scheduler(
                 launch { speak(now!!) }
 
                 logger.info {
-                    "[$guildName] Next Track Starting: Audio track for ${info.getMessageLogInfo()} has been retrieved from the queue."
+                    "[$guildName] Next Track Starting: Audio track for ${info.describe()} has been retrieved from the queue."
                 }
             } else {
                 now = null
@@ -140,7 +146,7 @@ class Scheduler(
             }
         }
 
-    private suspend fun speak(info: SpeakInfo): Unit = runBlocking {
+    private fun speak(info: Speech): Unit = runBlocking {
         launch {
             if (info.message != null) info.message.addReaction("🔊")
         }

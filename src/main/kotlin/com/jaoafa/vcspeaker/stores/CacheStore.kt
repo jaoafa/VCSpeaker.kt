@@ -2,19 +2,19 @@ package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.writeAs
-import com.jaoafa.vcspeaker.tts.Voice
+import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.getProvider
+import com.jaoafa.vcspeaker.tts.providers.providerOf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.security.MessageDigest
 import kotlin.concurrent.timer
 
 @Serializable
 data class CacheData(
+    val providerId: String,
     val hash: String,
-    val voice: Voice,
     val lastUsed: Long
 )
 
@@ -23,49 +23,50 @@ object CacheStore : StoreStruct<CacheData>(
     CacheData.serializer(),
     { Json.decodeFromString(this) }
 ) {
-    private fun hash(text: String, voice: Voice) = MessageDigest
-        .getInstance("MD5")
-        .digest((text + voice.toJson()).toByteArray())
-        .fold("") { str, it -> str + "%02x".format(it) }
+    private fun cacheFile(hash: String, ext: String) = VCSpeaker.cacheFolder.resolve(File("${hash}.$ext"))
 
-    private fun cacheFile(hash: String) = VCSpeaker.cacheFolder.resolve(File("audio-${hash}.wav"))
+    fun exists(hash: String) = data.find { it.hash == hash } != null
 
-    fun exists(text: String, voice: Voice) = data.find { it.hash == hash(text, voice) && it.voice == voice } != null
+    fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
+        val provider = providerOf(context) ?: throw IllegalArgumentException("Provider not found")
+        val hash = context.hash()
+        val file = cacheFile(hash, provider.format).apply { writeBytes(byteArray) }
 
-    fun create(text: String, voice: Voice, byteArray: ByteArray): File {
-        val hash = hash(text, voice)
-        val file = cacheFile(hash).apply { writeBytes(byteArray) }
-
-        data += CacheData(hash, voice, System.currentTimeMillis())
-
-        sync()
+        syncing {
+            data += CacheData(provider.id, hash, System.currentTimeMillis())
+        }
 
         return file
     }
 
-    fun read(text: String, voice: Voice): File? {
-        val hash = hash(text, voice)
-        val cache = data.find { it.hash == hash && it.voice == voice } ?: return null
+    fun read(hash: String): File? {
+        val cache = data.find { it.hash == hash } ?: return null
 
-        // update lastUsed
-        data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
+        syncing { // update lastUsed
+            data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
+        }
 
-        sync()
+        val format = getProvider(cache.providerId)?.format ?: return null
 
-        return cacheFile(hash)
+        return cacheFile(hash, format)
     }
 
 
-    private fun sync() {
+    private fun syncing(operation: () -> Unit) {
+        operation()
         VCSpeaker.Files.caches.writeAs(ListSerializer(CacheData.serializer()), data)
     }
 
     fun initiateAuditJob(interval: Int) {
         timer("CacheAudit", false, 0, (1000 * 60 * 60 * 24 * interval).toLong()) {
-            data.sortByDescending { it.lastUsed }
-            data.drop(100).forEach { cacheFile(it.hash).delete() }
-            data = data.take(100).toMutableList()
-            sync()
+            syncing {
+                data.sortByDescending { it.lastUsed }
+                data.drop(100).forEach {
+                    val provider = getProvider(it.providerId) ?: return@forEach
+                    cacheFile(it.hash, provider.format).delete()
+                }
+                data = data.take(100).toMutableList()
+            }
         }
     }
 

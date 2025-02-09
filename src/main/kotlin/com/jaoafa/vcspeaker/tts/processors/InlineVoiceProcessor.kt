@@ -1,8 +1,8 @@
 package com.jaoafa.vcspeaker.tts.processors
 
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.api.Emotion
-import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.core.entity.Message
 import dev.kordex.core.utils.capitalizeWords
 

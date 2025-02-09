@@ -1,19 +1,19 @@
 package com.jaoafa.vcspeaker.tts
 
+import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import java.io.File
 
-data class SpeakInfo(
-    val message: Message? = null,
+data class Speech(
+    val type: TrackType,
     val guild: Guild,
-    val text: String,
-    val voice: Voice,
-    val file: File,
-    val type: TrackType
+    val message: Message? = null,
+    val contexts: List<ProviderContext>,
+    val files: List<File>
 ) {
-    fun getMessageLogInfo(withText: Boolean = false): String {
-        val optionalText = if (withText) "\"$text\"" else ""
+    fun describe(withText: Boolean = false): String {
+        val optionalText = if (withText) " \"${contexts.map { it.describe() }}\"" else ""
 
         return when (type) {
             TrackType.System -> "the system message$optionalText"
