@@ -169,14 +169,13 @@ class Narrator @OptIn(KordVoice::class) constructor(
      */
     fun clear() {
         CoroutineScope(Dispatchers.Default).launch {
-            listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
+            listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.current()).forEach {
                 it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
                 it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
             }
         }
 
         scheduler.queue.clear()
-        scheduler.now = null
         player.stopTrack()
     }
 

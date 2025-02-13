@@ -2,7 +2,7 @@ package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.*
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.AliasReplacer
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
@@ -58,8 +58,8 @@ class AliasReplacerTest : FunSpec({
             )
         )
 
-        val tokens = mutableListOf(Token("Hello, world!"))
-        val expectedTokens = mutableListOf(Token("Hello, "), Token("Kotlin", "Text Alias「world」→「Kotlin」"), Token("!"))
+        val tokens = mutableListOf(TextToken("Hello, world!"))
+        val expectedTokens = mutableListOf(TextToken("Hello, "), TextToken("Kotlin", "Text Alias「world」→「Kotlin」"), TextToken("!"))
 
         val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
 
@@ -83,7 +83,7 @@ class AliasReplacerTest : FunSpec({
             )
         )
 
-        val tokens = mutableListOf(Token("Hello, world!"))
+        val tokens = mutableListOf(TextToken("Hello, world!"))
 
         val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
 

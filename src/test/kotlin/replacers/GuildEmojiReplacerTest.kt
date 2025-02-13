@@ -5,7 +5,7 @@ import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.IgnoreData
 import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.stores.StoreStruct
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.GuildEmojiReplacer
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
@@ -51,11 +51,11 @@ class GuildEmojiReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <:world:123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <:world:123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("world", "Guild Emoji `<:world:123456789012345678>` →「world」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("world", "Guild Emoji `<:world:123456789012345678>` →「world」"),
+            TextToken("!")
         )
 
         val processedTokens = GuildEmojiReplacer.replace(tokens, Snowflake(0))
@@ -70,11 +70,11 @@ class GuildEmojiReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <a:world:123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <a:world:123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("world", "Guild Emoji `<a:world:123456789012345678>` →「world」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("world", "Guild Emoji `<a:world:123456789012345678>` →「world」"),
+            TextToken("!")
         )
 
         val processedTokens = GuildEmojiReplacer.replace(tokens, Snowflake(0))

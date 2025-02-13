@@ -24,7 +24,8 @@ class Scheduler(
     private val logger = KotlinLogging.logger { }
 
     val queue = mutableListOf<Speech>()
-    var now: Speech? = null // Todo remove
+
+    fun current(): Speech? = queue.firstOrNull()
 
     suspend fun <T : ProviderContext> queue(
         contexts: List<T>, message: Message? = null, guild: Guild, type: TrackType
@@ -59,26 +60,25 @@ class Scheduler(
             }
 
             logger.error(exception) {
-                "[$guildName] Failed to Generate Speech: Audio generation for $messageInfoDetail failed."
+                "[$guildName] Failed to Generate Speech: Generating the speech for $messageInfoDetail failed."
             }
 
             return
         }
 
-        val info = Speech(type, guild, message, contexts, tracks)
+        val speech = Speech(type, guild, message, contexts, tracks)
 
-        if (queue.isEmpty() && now == null) {
-            now = info
-            beginSpeech(info)
+        queue.add(speech)
+
+        if (queue.size == 1) {
+            beginSpeech(speech)
 
             logger.info {
-                "[$guildName] First Track Starting: Queue is empty. Audio track for $messageInfo skipped queue."
+                "[$guildName] Speech Starting: The queue is empty. The speech for $messageInfo skipped the queue."
             }
         } else {
-            queue.add(info)
-
             logger.info {
-                "[$guildName] Track Queued: Audio track for $messageInfo has been queued. Waiting for ${queue.size} track(s) to finish playing."
+                "[$guildName] Speech Queued: The speech for $messageInfo has been queued. Waiting for ${queue.size} speech(es) to finish playing."
             }
         }
     }
@@ -88,24 +88,16 @@ class Scheduler(
             player.stopTrack()
         } else {
             val next = queue.removeFirst()
-            now = next
             beginSpeech(next)
         }
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
         runBlocking {
-            if (now == null) {
-                logger.info {
-                    "Playing Track Finished: No track is playing. Waiting for the next track..."
-                }
-                return@runBlocking
-            }
+            val message = current()!!.message
+            val guildName = current()!!.guild.name
 
-            val message = now!!.message
-            val guildName = now!!.guild.name
-
-            val nextTrack = now!!.next()
+            val nextTrack = current()!!.next()
 
             if (endReason.mayStartNext && nextTrack != null) {
                 launch { player.playTrack(nextTrack) }
@@ -116,18 +108,18 @@ class Scheduler(
                 message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
             }
 
-            if (endReason.mayStartNext && queue.isNotEmpty()) {
-                now = queue.removeFirst()
-                launch { beginSpeech(now!!) }
+            queue.removeFirst()
+            val next = current()
+
+            if (endReason.mayStartNext && next != null) {
+                launch { beginSpeech(next) }
 
                 logger.info {
-                    "[$guildName] Next Track Starting: Audio track for ${now?.describe()} has been retrieved from the queue."
+                    "[$guildName] Next Speech Starting: The speech for ${next.describe()} has been started."
                 }
             } else {
-                now = null
-
                 logger.info {
-                    "[$guildName] Playing Track Finished: All tracks have been played. Waiting for the next track..."
+                    "[$guildName] Speech Finished: All tracks have been played. Waiting for the next speech..."
                 }
             }
         }

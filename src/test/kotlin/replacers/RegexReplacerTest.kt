@@ -2,7 +2,7 @@ package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.*
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.RegexReplacer
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
@@ -59,9 +59,9 @@ class RegexReplacerTest : FunSpec({
             )
         )
 
-        val tokens = mutableListOf(Token("Hello, world!"))
+        val tokens = mutableListOf(TextToken("Hello, world!"))
         val expectedTokens =
-            mutableListOf(Token("Hello, "), Token("Kotlin", "Regex Alias `w.+d` →「Kotlin」"), Token("!"))
+            mutableListOf(TextToken("Hello, "), TextToken("Kotlin", "Regex Alias `w.+d` →「Kotlin」"), TextToken("!"))
 
         val processedTokens = RegexReplacer.replace(tokens, Snowflake(0))
 
@@ -85,7 +85,7 @@ class RegexReplacerTest : FunSpec({
             )
         )
 
-        val tokens = mutableListOf(Token("Hello, world!"))
+        val tokens = mutableListOf(TextToken("Hello, world!"))
 
         val processedTokens = RegexReplacer.replace(tokens, Snowflake(0))
 

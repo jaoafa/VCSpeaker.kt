@@ -9,7 +9,7 @@ import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.asChannelOf
@@ -36,14 +36,14 @@ import java.net.MalformedURLException
 object UrlReplacer : BaseReplacer {
     override val priority = ReplacerPriority.High
 
-    override suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake): MutableList<Token> {
+    override suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake): MutableList<TextToken> {
         suspend fun replaceUrl(vararg replacers: suspend (String, Snowflake) -> String) =
             replacers.fold(tokens.joinToString("") { it.text }) { replacedText, replacer ->
                 replacer(replacedText, guildId)
             }
 
         return mutableListOf(
-            Token(
+            TextToken(
                 replaceUrl(
                     ::replaceMessageUrl,
                     ::replaceChannelUrl,
