@@ -6,6 +6,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import dev.kord.common.entity.MessageType
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.checks.isNotBot
@@ -29,7 +30,11 @@ class NewMessageEvent : Extension() {
                 if (!GuildStore.getTextChannels().contains(event.message.channelId)) return@action
                 if (event.message.content.startsWith(VCSpeaker.prefix)) return@action
 
-                logger.info { "Message Received: ${event.message.type}" }
+                val type = event.message.type
+
+                if (type == MessageType.ChatInputCommand) return@action
+
+                logger.info { "Message Received: $type" }
 
                 val guild = event.getGuildOrNull() ?: return@action
 
