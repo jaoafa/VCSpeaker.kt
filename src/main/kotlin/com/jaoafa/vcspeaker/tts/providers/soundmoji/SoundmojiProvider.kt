@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.tts.providers.soundboard
+package com.jaoafa.vcspeaker.tts.providers.soundmoji
 
 import com.jaoafa.vcspeaker.tools.hashMd5
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
@@ -10,22 +10,22 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 
-data class SoundboardContext(
+data class SoundmojiContext(
     val id: Snowflake
 ) : ProviderContext {
-    override fun describe() = "Soundboard: $id"
+    override fun describe() = "Soundmoji: $id"
 
-    override fun hash() = hashMd5(SoundboardProvider.id + id.toString())
+    override fun hash() = hashMd5(SoundmojiProvider.id + id.toString())
 }
 
-object SoundboardProvider : SpeechProvider<SoundboardContext> {
-    override val id = "soundboard"
+object SoundmojiProvider : SpeechProvider<SoundmojiContext> {
+    override val id = "soundmoji"
     override val format = "mp3"
 
     private const val BASE_URL = "https://cdn.discordapp.com/soundboard-sounds/"
     private val client = HttpClient(CIO)
 
-    override suspend fun provide(context: SoundboardContext): ByteArray {
+    override suspend fun provide(context: SoundmojiContext): ByteArray {
         val response = client.get(BASE_URL + context.id)
 
         return when (response.status) {

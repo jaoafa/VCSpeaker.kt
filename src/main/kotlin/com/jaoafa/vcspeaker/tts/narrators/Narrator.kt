@@ -11,7 +11,7 @@ import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
-import com.jaoafa.vcspeaker.tts.providers.soundboard.SoundboardContext
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
@@ -119,7 +119,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
                 contexts.add(VoiceTextContext(processVoice, processText))
 
             if (i < sounds.count())
-                contexts.add(SoundboardContext(Snowflake(sounds.elementAt(i).second)))
+                contexts.add(SoundmojiContext(Snowflake(sounds.elementAt(i).second)))
         }
 
         if (contexts.isEmpty()) return
