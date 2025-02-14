@@ -19,7 +19,20 @@ data class GuildData(
 object GuildStore : StoreStruct<GuildData>(
     VCSpeaker.Files.guilds.path,
     GuildData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            val list = Json.decodeFromString<List<GuildData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(GuildData.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        }
+    )
 ) {
     operator fun get(guildId: Snowflake) = data.find { it.guildId == guildId }
 

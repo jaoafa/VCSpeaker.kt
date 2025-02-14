@@ -1,22 +1,21 @@
 package com.jaoafa.vcspeaker
 
+import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.Emoji
-import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider
-import dev.kordex.core.ExtensibleBot
-import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration.ResamplingQuality
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kordex.core.ExtensibleBot
 import java.io.File
+import kotlin.io.path.Path
 
 object VCSpeaker {
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
 
-    lateinit var voicetextToken: String
     lateinit var config: Config
 
     lateinit var storeFolder: File
@@ -48,19 +47,20 @@ object VCSpeaker {
     /**
      * VCSpeaker を初期化します。
      *
-     * @param voicetextToken [VoiceTextProvider] インスタンス
      * @param config [Config]
      */
     fun init(
         config: Config,
-        voicetextToken: String,
-        storeFolder: File,
-        cacheFolder: File,
-        devGuildId: Snowflake?,
-        prefix: String,
-        resamplingQuality: ResamplingQuality,
-        encodingQuality: Int
+        options: Options,
     ) {
+        VCSpeaker.run {
+            this.config = config
+            this.storeFolder = (options.storePath ?: Path(config[EnvSpec.storeFolder])).toFile()
+            this.cacheFolder = (options.cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile()
+            this.devGuildId = (options.devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) }
+            this.prefix = options.prefix ?: config[EnvSpec.commandPrefix]
+        }
+
         Emoji // init
 
         AudioSourceManagers.registerLocalSource(lavaplayer)
@@ -68,18 +68,9 @@ object VCSpeaker {
         if (!storeFolder.exists()) storeFolder.mkdir()
         if (!cacheFolder.exists()) cacheFolder.mkdir()
 
-        VCSpeaker.run {
-            this.voicetextToken = voicetextToken
-            this.config = config
-            this.storeFolder = storeFolder
-            this.cacheFolder = cacheFolder
-            this.devGuildId = devGuildId
-            this.prefix = prefix
-        }
-
         lavaplayer.configuration.let {
-            it.resamplingQuality = resamplingQuality
-            it.opusEncodingQuality = encodingQuality
+            it.resamplingQuality = options.resamplingQuality ?: config[EnvSpec.resamplingQuality]
+            it.opusEncodingQuality = options.encodingQuality ?: config[EnvSpec.encodingQuality]
         }
     }
 }

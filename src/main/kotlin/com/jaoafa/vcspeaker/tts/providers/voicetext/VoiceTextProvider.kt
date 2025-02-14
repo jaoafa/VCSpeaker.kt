@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tts.providers.voicetext
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.tools.hashMd5
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
@@ -45,7 +46,7 @@ object VoiceTextProvider : SpeechProvider<VoiceTextContext> {
             Json.parseToJsonElement(voice.toJson()).jsonObject.toMap().forEach { (t, u) ->
                 parameter(t, u.jsonPrimitive.content.lowercase())
             }
-            basicAuth(VCSpeaker.voicetextToken, "")
+            basicAuth(VCSpeaker.config[TokenSpec.voicetext], "")
         }
 
         return when (response.status) {

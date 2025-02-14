@@ -1,19 +1,12 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tools.hashMd5
-import com.jaoafa.vcspeaker.tools.writeAs
-import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
-import com.jaoafa.vcspeaker.tts.providers.SpeechProvider
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.security.MessageDigest
 import kotlin.concurrent.timer
 
 @Serializable
@@ -26,7 +19,25 @@ data class CacheData(
 object CacheStore : StoreStruct<CacheData>(
     VCSpeaker.Files.caches.path,
     CacheData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            file.renameTo(File(file.parent + "/deprecated_${file.name}"))
+
+            VCSpeaker.cacheFolder.listFiles()?.forEach {
+                it.renameTo(File(it.parent + "/deprecated_${it.name}"))
+            }
+
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(CacheData.serializer()),
+                    TypedStore(1, mutableListOf())
+                )
+            )
+        }
+    )
 ) {
     private fun cacheFile(hash: String, ext: String) = VCSpeaker.cacheFolder.resolve(File("${hash}.$ext"))
 
@@ -59,7 +70,7 @@ object CacheStore : StoreStruct<CacheData>(
 
     private fun syncing(operation: () -> Unit) {
         operation()
-        VCSpeaker.Files.caches.writeAs(ListSerializer(CacheData.serializer()), data)
+        write()
     }
 
     fun initiateAuditJob(interval: Int) {
@@ -73,10 +84,5 @@ object CacheStore : StoreStruct<CacheData>(
                 data = data.take(100).toMutableList()
             }
         }
-    }
-
-    init {
-        val cacheFolder = VCSpeaker.cacheFolder
-        if (!cacheFolder.exists()) cacheFolder.mkdir()
     }
 }

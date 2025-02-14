@@ -256,7 +256,7 @@ class AliasCommand : Extension() {
                                 title = ":information_source: Aliases"
 
                                 description = chunkedAliases.joinToString("\n") {
-                                    it.toDisplayWithEmoji()
+                                    it.describeWithEmoji()
                                 }
 
                                 successColor()
