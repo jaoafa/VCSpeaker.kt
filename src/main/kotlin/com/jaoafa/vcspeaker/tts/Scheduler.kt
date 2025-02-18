@@ -23,12 +23,27 @@ class Scheduler(
 ) : AudioEventAdapter() {
     private val logger = KotlinLogging.logger { }
 
+    /**
+     * 再生中・再生待ちの Speech の Queue.
+     * 0 番目が現在再生中の Speech です。
+     */
     val queue = mutableListOf<Speech>()
 
+    /**
+     * 現在再生中の Speech を取得します。
+     */
     fun current(): Speech? = queue.firstOrNull()
 
+    /**
+     * Queue に Speech を追加します。
+     *
+     * @param contexts [ProviderContext] のリスト
+     * @param message メッセージ
+     * @param guild サーバー
+     * @param actor 読み上げの種類
+     */
     suspend fun <T : ProviderContext> queue(
-        contexts: List<T>, message: Message? = null, guild: Guild, type: TrackType
+        contexts: List<T>, message: Message? = null, guild: Guild, actor: SpeechActor
     ) {
         val guildName = guild.name
 
@@ -54,9 +69,9 @@ class Scheduler(
                 }
             }
 
-            val messageInfoDetail = when (type) {
-                TrackType.System -> "the system message \"${message?.content}\""
-                TrackType.User -> "the message \"${message?.content}\" by @${message?.author?.username ?: "unknown_member"}"
+            val messageInfoDetail = when (actor) {
+                SpeechActor.System -> "the system message \"${message?.content}\""
+                SpeechActor.User -> "the message \"${message?.content}\" by @${message?.author?.username ?: "unknown_member"}"
             }
 
             logger.error(exception) {
@@ -66,7 +81,7 @@ class Scheduler(
             return
         }
 
-        val speech = Speech(type, guild, message, contexts, tracks)
+        val speech = Speech(actor, guild, message, contexts, tracks)
 
         queue.add(speech)
 
@@ -99,6 +114,7 @@ class Scheduler(
 
             val nextTrack = current()!!.next()
 
+            // Speech 内に次の Track が存在し、かつ再生が可能な場合、次の Track を再生
             if (endReason.mayStartNext && nextTrack != null) {
                 launch { player.playTrack(nextTrack) }
                 return@runBlocking
@@ -111,6 +127,7 @@ class Scheduler(
             queue.removeFirst()
             val next = current()
 
+            // Speech 無いのすべての Track を再生し終わった場合、次の Speech を再生
             if (endReason.mayStartNext && next != null) {
                 launch { beginSpeech(next) }
 
@@ -124,6 +141,11 @@ class Scheduler(
             }
         }
 
+    /**
+     * 音声を再生します。
+     *
+     * @param speech 音声
+     */
     private fun beginSpeech(speech: Speech): Unit = runBlocking {
         launch {
             if (speech.message != null) speech.message.addReaction("🔊")

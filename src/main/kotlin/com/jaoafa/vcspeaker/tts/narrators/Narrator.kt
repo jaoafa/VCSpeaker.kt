@@ -6,7 +6,7 @@ import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
-import com.jaoafa.vcspeaker.tts.TrackType
+import com.jaoafa.vcspeaker.tts.SpeechActor
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
@@ -71,7 +71,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             text = text,
             voice = GuildStore.getOrDefault(guildId).voice,
             guild = VCSpeaker.kord.getGuild(guildId),
-            type = TrackType.System
+            actor = SpeechActor.System
         )
 
     /**
@@ -85,23 +85,24 @@ class Narrator @OptIn(KordVoice::class) constructor(
             text = message.content,
             voice = VoiceStore.byIdOrDefault(message.author!!.id),
             guild = message.getGuild(),
-            type = TrackType.User
+            actor = SpeechActor.User
         )
 
     /**
      * 読み上げをキューに追加します。
      *
-     * @param message 読み上げるメッセージ
+     * @param message 読み上げる対象メッセージ
      * @param text 読み上げる文章
      * @param voice 読み上げに使用する音声
+     * @param guild サーバー
+     * @param actor 読み上げの種類
      */
-    //TODO update docs
     private suspend fun schedule(
         message: Message? = null,
         text: String,
         voice: Voice,
         guild: Guild,
-        type: TrackType
+        actor: SpeechActor
     ) {
         val sounds = Regex("<sound:\\d+:(\\d+)>").findAll(text).mapNotNull {
             val id = it.groupValues[1].toLongOrNull() ?: return@mapNotNull null
@@ -128,7 +129,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             message?.addReaction("👀")
         }
 
-        scheduler.queue(contexts, message, guild, type)
+        scheduler.queue(contexts, message, guild, actor)
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.deleteOwnReaction("👀")

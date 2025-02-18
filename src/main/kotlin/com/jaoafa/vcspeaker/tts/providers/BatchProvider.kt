@@ -18,6 +18,11 @@ import kotlin.system.measureTimeMillis
 class BatchProvider(private val contexts: List<ProviderContext>) {
     private val logger = KotlinLogging.logger { }
 
+    /**
+     * 与えられた [ProviderContext] のリストから [AudioTrack] のリストを生成します。
+     *
+     * @return [AudioTrack] のリスト
+     */
     suspend fun start(): List<AudioTrack> {
         val startTime = System.currentTimeMillis()
 
@@ -28,6 +33,7 @@ class BatchProvider(private val contexts: List<ProviderContext>) {
                 val provider = providerOf(context)
                     ?: throw IllegalArgumentException("Provider not found for context: ${context.describe()}")
 
+                // Context -> Audio -> AudioTrack までロードして、即時再生できる状態にする
                 launch {
                     val file = if (CacheStore.exists(context.hash())) {
                         logger.info { "Cache Found: Audio for ${context.describe()} already exists" }

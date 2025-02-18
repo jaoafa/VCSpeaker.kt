@@ -10,6 +10,11 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 
+/**
+ * Soundmoji を再生する際のパラメーターを保持するクラスです。
+ *
+ * @param id Soundmoji の ID
+ */
 data class SoundmojiContext(
     val id: Snowflake
 ) : ProviderContext {
@@ -18,6 +23,9 @@ data class SoundmojiContext(
     override fun hash() = hashMd5(SoundmojiProvider.id + id.toString())
 }
 
+/**
+ * Discord Soundmoji の再生機能を提供するクラスです。
+ */
 object SoundmojiProvider : SpeechProvider<SoundmojiContext> {
     override val id = "soundmoji"
     override val format = "mp3"

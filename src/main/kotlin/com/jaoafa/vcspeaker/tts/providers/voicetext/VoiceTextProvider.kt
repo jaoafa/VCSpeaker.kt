@@ -17,6 +17,12 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
+/**
+ * VoiceText で音声を生成する際のパラメーターを保持するクラスです。
+ *
+ * @param voice 音声
+ * @param text テキスト
+ */
 data class VoiceTextContext(
     val voice: Voice,
     val text: String
@@ -26,6 +32,9 @@ data class VoiceTextContext(
     override fun hash() = hashMd5(id + text + voice.toJson())
 }
 
+/**
+ * VoiceText による音声合成を提供するクラスです。
+ */
 object VoiceTextProvider : SpeechProvider<VoiceTextContext> {
     override val id = "voicetext"
     override val format = "wav"
