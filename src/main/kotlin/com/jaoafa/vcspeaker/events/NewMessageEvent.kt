@@ -56,8 +56,7 @@ class NewMessageEvent : Extension() {
                 guild.narrator()?.scheduleAsUser(message)
 
                 logger.info {
-                    "[${guild.name}] Message Received: Adding the message by @${message.author?.username} to the queue.\n" +
-                            "Message: ${message.content}"
+                    "[${guild.name}] Message Received: Adding the message by @${message.author?.username} to the queue."
                 }
             }
         }

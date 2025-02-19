@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.io.IOException
 
 /**
  * Soundmoji を再生する際のパラメーターを保持するクラスです。
@@ -39,7 +40,7 @@ object SoundmojiProvider : SpeechProvider<SoundmojiContext> {
         return when (response.status) {
             HttpStatusCode.OK -> response.body<ByteArray>()
 
-            else -> throw Exception("Failed to fetch soundboard $context: ${response.status}")
+            else -> throw IOException("Failed to fetch soundboard $context: ${response.status}")
         }
     }
 }

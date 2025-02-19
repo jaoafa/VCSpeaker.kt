@@ -15,8 +15,10 @@ import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.IOException
 
 class Scheduler(
     private val player: AudioPlayer
@@ -51,6 +53,44 @@ class Scheduler(
 
         val tracks = try {
             BatchProvider(contexts).start()
+        } catch (exception: HttpRequestTimeoutException) {
+            message?.reply {
+                embed {
+                    title = ":interrobang: Error!"
+
+                    description = """
+                        メッセージを読み上げられません。
+                        リクエストがタイムアウトしました。
+                    """.trimIndent()
+
+                    errorColor()
+                }
+            }
+
+            logger.error(exception) {
+                "[$guildName] Request Timed Out."
+            }
+
+            return
+        } catch (exception: IOException) {
+            message?.reply {
+                embed {
+                    title = ":interrobang: Error!"
+
+                    description = """
+                        メッセージを読み上げられません。
+                        リクエストが失敗しました。
+                    """.trimIndent()
+
+                    errorColor()
+                }
+            }
+
+            logger.error(exception) {
+                "[$guildName] Request Failed."
+            }
+
+            return
         } catch (exception: Exception) {
             message?.reply {
                 embed {
@@ -62,7 +102,7 @@ class Scheduler(
                     """.trimIndent()
 
                     field("Exception") {
-                        "```\n${exception.message ?: "不明"}\n```"
+                        "```\n${exception::class.simpleName}:\n${exception.message ?: "不明"}\n```"
                     }
 
                     errorColor()

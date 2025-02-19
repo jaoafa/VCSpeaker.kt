@@ -13,6 +13,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -61,7 +62,7 @@ object VoiceTextProvider : SpeechProvider<VoiceTextContext> {
         return when (response.status) {
             HttpStatusCode.OK -> response.body<ByteArray>()
 
-            else -> throw Exception(
+            else -> throw IOException(
                 Json.decodeFromString(
                     VoiceTextError.serializer(),
                     response.bodyAsText()

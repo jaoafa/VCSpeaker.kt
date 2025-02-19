@@ -52,11 +52,11 @@ interface ProviderContext {
  * @return [SpeechProvider] のインスタンス
  * @throws IllegalArgumentException [ProviderContext] に対応する [SpeechProvider] が見つからない場合
  */
-fun <T : ProviderContext> providerOf(context: T): SpeechProvider<T>? {
+fun <T : ProviderContext> providerOf(context: T): SpeechProvider<T> {
     return when (context) {
         is SoundmojiContext -> SoundmojiProvider as SpeechProvider<T>
         is VoiceTextContext -> VoiceTextProvider as SpeechProvider<T>
-        else -> null
+        else -> throw IllegalArgumentException("Provider not found for given context: ${context.describe()}")
     }
 }
 
@@ -64,7 +64,7 @@ fun <T : ProviderContext> providerOf(context: T): SpeechProvider<T>? {
  * 与えられた ID に対応する [SpeechProvider] を取得します。
  *
  * @param id [SpeechProvider] の ID
- * @return [SpeechProvider] のインスタンス
+ * @return [SpeechProvider] のインスタンス。対応する [SpeechProvider] が存在しない場合は null
  */
 fun getProvider(id: String): SpeechProvider<*>? {
     return when (id) {

@@ -21,6 +21,10 @@ class BatchProvider(private val contexts: List<ProviderContext>) {
     /**
      * 与えられた [ProviderContext] のリストから [AudioTrack] のリストを生成します。
      *
+     * @throws IllegalArgumentException Context に対応する Provider が存在しない場合
+     * @throws HttpRequestTimeoutException リクエストがタイムアウトした場合
+     * @throws IOException リクエストが失敗した場合
+     *
      * @return [AudioTrack] のリスト
      */
     suspend fun start(): List<AudioTrack> {
@@ -31,7 +35,6 @@ class BatchProvider(private val contexts: List<ProviderContext>) {
 
             for ((i, context) in contexts.withIndex()) {
                 val provider = providerOf(context)
-                    ?: throw IllegalArgumentException("Provider not found for context: ${context.describe()}")
 
                 // Context -> Audio -> AudioTrack までロードして、即時再生できる状態にする
                 launch {
