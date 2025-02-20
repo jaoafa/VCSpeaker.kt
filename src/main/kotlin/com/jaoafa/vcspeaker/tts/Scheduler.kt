@@ -82,6 +82,10 @@ class Scheduler(
                         リクエストが失敗しました。
                     """.trimIndent()
 
+                    field("Exception") {
+                        "```\n${exception::class.simpleName}:\n${exception.message ?: "不明"}\n```"
+                    }
+
                     errorColor()
                 }
             }
