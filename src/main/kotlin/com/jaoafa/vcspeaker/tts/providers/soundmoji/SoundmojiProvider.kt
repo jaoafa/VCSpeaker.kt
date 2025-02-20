@@ -1,6 +1,5 @@
 package com.jaoafa.vcspeaker.tts.providers.soundmoji
 
-import com.jaoafa.vcspeaker.tools.hashMd5
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.SpeechProvider
 import dev.kord.common.entity.Snowflake
@@ -21,7 +20,7 @@ data class SoundmojiContext(
 ) : ProviderContext {
     override fun describe() = "Soundmoji: $id"
 
-    override fun hash() = hashMd5(SoundmojiProvider.id + id.toString())
+    override fun identity() = SoundmojiProvider.id + id.toString()
 }
 
 /**

@@ -24,10 +24,10 @@ object CacheStore : StoreStruct<CacheData>(
     version = 1,
     migrators = mapOf(
         1 to { file ->
-            file.renameTo(File(file.parent + "/deprecated_${file.name}"))
+            file.delete()
 
             VCSpeaker.cacheFolder.listFiles()?.forEach {
-                it.renameTo(File(it.parent + "/deprecated_${it.name}"))
+                it.delete()
             }
 
             file.writeText(
@@ -44,7 +44,7 @@ object CacheStore : StoreStruct<CacheData>(
     fun exists(hash: String) = data.find { it.hash == hash } != null
 
     fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
-        val provider = providerOf(context) ?: throw IllegalArgumentException("Provider not found")
+        val provider = providerOf(context)
         val hash = context.hash()
         val file = cacheFile(hash, provider.format).apply { writeBytes(byteArray) }
 

@@ -4,6 +4,12 @@ import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiProvider
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
+import java.security.MessageDigest
+
+fun hashMd5(content: String) = MessageDigest
+    .getInstance("MD5")
+    .digest(content.toByteArray())
+    .fold("") { str, it -> str + "%02x".format(it) }
 
 /**
  * 音声データを提供するプロバイダーを表すインターフェースです。
@@ -27,7 +33,8 @@ interface SpeechProvider<T : ProviderContext> {
 
 /**
  * 音声データの生成・取得に必要な情報を表すインターフェースです。
- * ProviderContext によって取得される音声は、必ず一意である必要があります。(Cache に使用するため)
+ * 音声はキャッシュされるため、ある ProviderContext に対して取得される音声は、必ず一意に定まる必要があります。
+ * 同一の ProviderContext のときに、異なる実行によって異なる音声が出力されてはいけません。
  */
 interface ProviderContext {
     /**
@@ -38,11 +45,18 @@ interface ProviderContext {
     fun describe(): String
 
     /**
-     * このコンテキストの MD5 ハッシュを返します。
+     * このコンテキストの Identity を返します。
      *
-     * @return ハッシュ
+     * @return Identity
      */
-    fun hash(): String
+    fun identity(): String
+
+    /**
+     * このコンテキストのハッシュ値を返します。
+     *
+     * @return ハッシュ値
+     */
+    fun hash() = hashMd5(identity())
 }
 
 /**
