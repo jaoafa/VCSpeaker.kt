@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
-import dev.kordex.core.utils.addReaction
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -14,6 +14,7 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
+import dev.kordex.core.utils.addReaction
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
@@ -156,10 +157,17 @@ class Scheduler(
             val message = current()!!.message
             val guildName = current()!!.guild.name
 
-            val nextTrack = current()!!.next()
+            val next = current()!!.next()
 
             // Speech 内に次の Track が存在し、かつ再生が可能な場合、次の Track を再生
-            if (endReason.mayStartNext && nextTrack != null) {
+            if (endReason.mayStartNext && next != null) {
+                val (nextTrack, nextContext) = next
+
+                if (nextContext is SoundmojiContext)
+                    player.volume = 20
+                else player.volume = 100
+
+
                 launch { player.playTrack(nextTrack) }
                 return@runBlocking
             }
@@ -169,14 +177,14 @@ class Scheduler(
             }
 
             queue.removeFirst()
-            val next = current()
+            val nextSpeech = current()
 
             // Speech 無いのすべての Track を再生し終わった場合、次の Speech を再生
-            if (endReason.mayStartNext && next != null) {
-                launch { beginSpeech(next) }
+            if (endReason.mayStartNext && nextSpeech != null) {
+                launch { beginSpeech(nextSpeech) }
 
                 logger.info {
-                    "[$guildName] Next Speech Starting: The speech for ${next.describe()} has been started."
+                    "[$guildName] Next Speech Starting: The speech for ${nextSpeech.describe()} has been started."
                 }
             } else {
                 logger.info {

@@ -25,15 +25,15 @@ data class Speech(
     private var index: Int = 0
 
     /**
-     * 次の [AudioTrack] を取得します。
+     * 次の [AudioTrack] と [ProviderContext] を取得します。
      *
-     * @return [AudioTrack] が存在しない場合は null
+     * @return [Pair<AudioTrack, ProviderContext>], 存在しない場合は null
      */
-    fun next(): AudioTrack? {
+    fun next(): Pair<AudioTrack, ProviderContext>? {
         index++
 
         if (index >= tracks.size) return null
-        return tracks[index]
+        return tracks[index] to contexts[index]
     }
 
     fun describe(withText: Boolean = false): String {

@@ -12,7 +12,7 @@ class InlineVoiceProcessor : BaseProcessor() {
     private val syntax = Regex("(speaker|emotion|emotion_level|pitch|speed|volume):\\w+")
 
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
-        val parameters = syntax.findAll(content).map { it.value }
+        val parameters = syntax.findAll(message?.content ?: content).map { it.value }
 
         val parameterMap = parameters.map {
             val (key, value) = it.split(":")

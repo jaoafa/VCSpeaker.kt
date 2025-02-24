@@ -7,6 +7,7 @@ import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
 import com.jaoafa.vcspeaker.tts.narrators.Narrators
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
@@ -127,6 +128,10 @@ object VoiceExtensions {
         val guildName = speech.guild.name
 
         try {
+            if (speech.contexts[0] is SoundmojiContext)
+                this.volume = 20
+            else this.volume = 100
+
             this.playTrack(speech.tracks[0])
 
             logger.info {
