@@ -9,7 +9,7 @@ import com.jaoafa.vcspeaker.models.response.youtube.YouTubeOEmbedResponse
 import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.UrlReplacer
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
@@ -72,9 +72,9 @@ class UrlReplacerTest : FunSpec({
                         every { id } returns Snowflake(123456789012345678)
                     }
 
-                    val tokens = mutableListOf(Token(text))
+                    val tokens = mutableListOf(TextToken(text))
                     val expectedTokens =
-                        mutableListOf(Token("test ${channelTypeText}「test-channel」で送信したメッセージのリンク"))
+                        mutableListOf(TextToken("test ${channelTypeText}「test-channel」で送信したメッセージのリンク"))
 
                     val processedTokens = UrlReplacer.replace(
                         tokens, Snowflake(123456789012345678)
@@ -117,9 +117,9 @@ class UrlReplacerTest : FunSpec({
                 }
 
                 val tokens =
-                    mutableListOf(Token("test https://discord.com/channels/123456789012345678/876543210987654321/123789456012345678"))
+                    mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123789456012345678"))
                 val expectedTokens =
-                    mutableListOf(Token("test ${channelTypeText}「test-thread-parent-channel」のスレッド「test-thread-channel」で送信したメッセージのリンク"))
+                    mutableListOf(TextToken("test ${channelTypeText}「test-thread-parent-channel」のスレッド「test-thread-channel」で送信したメッセージのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(0)
@@ -142,8 +142,8 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens =
-                mutableListOf(Token("test https://discord.com/channels/123456789012345678/876543210987654321/123789456012345678"))
-            val expectedTokens = mutableListOf(Token("test どこかのチャンネルで送信したメッセージのリンク"))
+                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123789456012345678"))
+            val expectedTokens = mutableListOf(TextToken("test どこかのチャンネルで送信したメッセージのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -184,8 +184,8 @@ class UrlReplacerTest : FunSpec({
                         every { id } returns Snowflake(123456789012345678)
                     }
 
-                    val tokens = mutableListOf(Token(text))
-                    val expectedTokens = mutableListOf(Token("test ${channelTypeText}「test-channel」へのリンク"))
+                    val tokens = mutableListOf(TextToken(text))
+                    val expectedTokens = mutableListOf(TextToken("test ${channelTypeText}「test-channel」へのリンク"))
 
                     val processedTokens = UrlReplacer.replace(
                         tokens, Snowflake(0)
@@ -228,9 +228,9 @@ class UrlReplacerTest : FunSpec({
                 }
 
                 val tokens =
-                    mutableListOf(Token("test https://discord.com/channels/123456789012345678/876543210987654321"))
+                    mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321"))
                 val expectedTokens =
-                    mutableListOf(Token("test ${channelTypeText}「test-thread-parent-channel」のスレッド「test-thread-channel」へのリンク"))
+                    mutableListOf(TextToken("test ${channelTypeText}「test-thread-parent-channel」のスレッド「test-thread-channel」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(0)
@@ -252,8 +252,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/channels/123456789012345678/876543210987654321"))
-            val expectedTokens = mutableListOf(Token("test どこかのチャンネルへのリンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321"))
+            val expectedTokens = mutableListOf(TextToken("test どこかのチャンネルへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -291,8 +291,8 @@ class UrlReplacerTest : FunSpec({
                     every { id } returns Snowflake(123456789012345678)
                 }
 
-                val tokens = mutableListOf(Token(text))
-                val expectedTokens = mutableListOf(Token("test イベント「test-event」へのリンク"))
+                val tokens = mutableListOf(TextToken(text))
+                val expectedTokens = mutableListOf(TextToken("test イベント「test-event」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(123456789012345678)
@@ -323,8 +323,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123789456012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/events/123456789012345678/876543210987654321"))
-            val expectedTokens = mutableListOf(Token("test サーバ「test-guild」のイベント「test-event」へのリンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
+            val expectedTokens = mutableListOf(TextToken("test サーバ「test-guild」のイベント「test-event」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(123789456012345678)
@@ -349,8 +349,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123789456012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/events/123456789012345678/876543210987654321"))
-            val expectedTokens = mutableListOf(Token("test サーバ「test-guild」のイベントへのリンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
+            val expectedTokens = mutableListOf(TextToken("test サーバ「test-guild」のイベントへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(123789456012345678)
@@ -371,8 +371,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/events/123456789012345678/876543210987654321"))
-            val expectedTokens = mutableListOf(Token("test どこかのサーバのイベントへのリンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
+            val expectedTokens = mutableListOf(TextToken("test どこかのサーバのイベントへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -420,8 +420,8 @@ class UrlReplacerTest : FunSpec({
                     every { id } returns Snowflake(123456789012345678)
                 }
 
-                val tokens = mutableListOf(Token(text))
-                val expectedTokens = mutableListOf(Token("test イベント「test-event」へのリンク"))
+                val tokens = mutableListOf(TextToken(text))
+                val expectedTokens = mutableListOf(TextToken("test イベント「test-event」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(123456789012345678)
@@ -456,8 +456,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123789456012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/invite/abcdef?event=123456789012345678"))
-            val expectedTokens = mutableListOf(Token("test サーバ「test-guild」のイベント「test-event」へのリンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/invite/abcdef?event=123456789012345678"))
+            val expectedTokens = mutableListOf(TextToken("test サーバ「test-guild」のイベント「test-event」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(123789456012345678)
@@ -480,8 +480,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123789456012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/invite/abcdef?event=123456789012345678"))
-            val expectedTokens = mutableListOf(Token("test どこかのサーバのイベントへのリンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/invite/abcdef?event=123456789012345678"))
+            val expectedTokens = mutableListOf(TextToken("test どこかのサーバのイベントへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(123789456012345678)
@@ -518,8 +518,8 @@ class UrlReplacerTest : FunSpec({
                     every { id } returns Snowflake(123456789012345678)
                 }
 
-                val tokens = mutableListOf(Token(text))
-                val expectedTokens = mutableListOf(Token("test test-user のツイート「test-readtext」へのリンク"))
+                val tokens = mutableListOf(TextToken(text))
+                val expectedTokens = mutableListOf(TextToken("test test-user のツイート「test-readtext」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(0)
@@ -544,9 +544,9 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://twitter.com/username/status/123456789012345678"))
+            val tokens = mutableListOf(TextToken("test https://twitter.com/username/status/123456789012345678"))
             val expectedTokens =
-                mutableListOf(Token("test test-user のツイート「longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglo 以下略」へのリンク"))
+                mutableListOf(TextToken("test test-user のツイート「longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglo 以下略」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -570,9 +570,9 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://twitter.com/username/status/123456789012345678"))
+            val tokens = mutableListOf(TextToken("test https://twitter.com/username/status/123456789012345678"))
             val expectedTokens =
-                mutableListOf(Token("test test-user のツイート「𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐 以下略」へのリンク"))
+                mutableListOf(TextToken("test test-user のツイート「𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐𝚐 以下略」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -591,8 +591,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://twitter.com/username/status/123456789012345678"))
-            val expectedTokens = mutableListOf(Token("test ユーザー「username」のツイートへのリンク"))
+            val tokens = mutableListOf(TextToken("test https://twitter.com/username/status/123456789012345678"))
+            val expectedTokens = mutableListOf(TextToken("test ユーザー「username」のツイートへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -633,8 +633,8 @@ class UrlReplacerTest : FunSpec({
                     every { id } returns Snowflake(123456789012345678)
                 }
 
-                val tokens = mutableListOf(Token(text))
-                val expectedTokens = mutableListOf(Token("test チャンネル「test-channel」への招待リンク"))
+                val tokens = mutableListOf(TextToken(text))
+                val expectedTokens = mutableListOf(TextToken("test チャンネル「test-channel」への招待リンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(123456789012345678)
@@ -664,8 +664,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123789456012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/invite/abcdef"))
-            val expectedTokens = mutableListOf(Token("test サーバ「test-guild」のチャンネル「test-channel」への招待リンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/invite/abcdef"))
+            val expectedTokens = mutableListOf(TextToken("test サーバ「test-guild」のチャンネル「test-channel」への招待リンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(123789456012345678)
@@ -684,8 +684,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://discord.com/invite/abcdef"))
-            val expectedTokens = mutableListOf(Token("test どこかのサーバへの招待リンク"))
+            val tokens = mutableListOf(TextToken("test https://discord.com/invite/abcdef"))
+            val expectedTokens = mutableListOf(TextToken("test どこかのサーバへの招待リンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -716,8 +716,8 @@ class UrlReplacerTest : FunSpec({
                     every { id } returns Snowflake(123456789012345678)
                 }
 
-                val tokens = mutableListOf(Token(text))
-                val expectedTokens = mutableListOf(Token("test Steamアイテム「test-app」へのリンク"))
+                val tokens = mutableListOf(TextToken(text))
+                val expectedTokens = mutableListOf(TextToken("test Steamアイテム「test-app」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(0)
@@ -737,8 +737,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://store.steampowered.com/app/1234567890"))
-            val expectedTokens = mutableListOf(Token("test Steamアイテムへのリンク"))
+            val tokens = mutableListOf(TextToken("test https://store.steampowered.com/app/1234567890"))
+            val expectedTokens = mutableListOf(TextToken("test Steamアイテムへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -791,9 +791,9 @@ class UrlReplacerTest : FunSpec({
                     every { id } returns Snowflake(123456789012345678)
                 }
 
-                val tokens = mutableListOf(Token(text))
+                val tokens = mutableListOf(TextToken(text))
                 val expectedTokens =
-                    mutableListOf(Token("test YouTubeの「test-user」による${type}「test-video」へのリンク"))
+                    mutableListOf(TextToken("test YouTubeの「test-user」による${type}「test-video」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(0)
@@ -827,9 +827,9 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://www.youtube.com/watch?v=abcdefg"))
+            val tokens = mutableListOf(TextToken("test https://www.youtube.com/watch?v=abcdefg"))
             val expectedTokens =
-                mutableListOf(Token("test YouTubeの「test-usertest-u 以下略」による動画「test-videotest-video 以下略」へのリンク"))
+                mutableListOf(TextToken("test YouTubeの「test-usertest-u 以下略」による動画「test-videotest-video 以下略」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -877,9 +877,9 @@ class UrlReplacerTest : FunSpec({
                     every { id } returns Snowflake(123456789012345678)
                 }
 
-                val tokens = mutableListOf(Token(text))
+                val tokens = mutableListOf(TextToken(text))
                 val expectedTokens =
-                    mutableListOf(Token("test YouTubeの「test-user」によるプレイリスト「test-playlist」へのリンク"))
+                    mutableListOf(TextToken("test YouTubeの「test-user」によるプレイリスト「test-playlist」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
                     tokens, Snowflake(0)
@@ -899,8 +899,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123456789012345678)
             }
 
-            val tokens = mutableListOf(Token("test https://www.google.com/search?q=example"))
-            val expectedTokens = mutableListOf(Token("test Google検索「example」へのリンク"))
+            val tokens = mutableListOf(TextToken("test https://www.google.com/search?q=example"))
+            val expectedTokens = mutableListOf(TextToken("test Google検索「example」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -917,8 +917,8 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens =
-                mutableListOf(Token("test https://www.google.com/search?q=%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF"))
-            val expectedTokens = mutableListOf(Token("test Google検索「こんにちは」へのリンク"))
+                mutableListOf(TextToken("test https://www.google.com/search?q=%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF"))
+            val expectedTokens = mutableListOf(TextToken("test Google検索「こんにちは」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -937,8 +937,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(0)
             }
 
-            val tokens = mutableListOf(Token("https://example.com"))
-            val expectedTokens = mutableListOf(Token("Webページ「Example Domain」へのリンク"))
+            val tokens = mutableListOf(TextToken("https://example.com"))
+            val expectedTokens = mutableListOf(TextToken("Webページ「Example Domain」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -957,9 +957,9 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(0)
             }
 
-            val tokens = mutableListOf(Token("Please visit https://example.com for more information."))
+            val tokens = mutableListOf(TextToken("Please visit https://example.com for more information."))
             val expectedTokens =
-                mutableListOf(Token("Please visit Webページ「Example Domain」へのリンク for more information."))
+                mutableListOf(TextToken("Please visit Webページ「Example Domain」へのリンク for more information."))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -980,9 +980,9 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens =
-                mutableListOf(Token("https://example.com explains why https://www.iana.org/help/example-domains is reserved."))
+                mutableListOf(TextToken("https://example.com explains why https://www.iana.org/help/example-domains is reserved."))
             val expectedTokens =
-                mutableListOf(Token("Webページ「Example Domain」へのリンク explains why Webページ「Example Domains」へのリンク is reserved."))
+                mutableListOf(TextToken("Webページ「Example Domain」へのリンク explains why Webページ「Example Domains」へのリンク is reserved."))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1004,8 +1004,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(0)
             }
 
-            val tokens = mutableListOf(Token("test https://example.com/test.jpg"))
-            val expectedTokens = mutableListOf(Token("test JPEGファイルへのリンク"))
+            val tokens = mutableListOf(TextToken("test https://example.com/test.jpg"))
+            val expectedTokens = mutableListOf(TextToken("test JPEGファイルへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1025,8 +1025,8 @@ class UrlReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("test https://example.com/test.hoge"))
-        val expectedTokens = mutableListOf(Token("test hogeファイルへのリンク"))
+        val tokens = mutableListOf(TextToken("test https://example.com/test.hoge"))
+        val expectedTokens = mutableListOf(TextToken("test hogeファイルへのリンク"))
 
         val processedTokens = UrlReplacer.replace(
             tokens, Snowflake(0)
@@ -1045,8 +1045,8 @@ class UrlReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("test https://example.com/test"))
-        val expectedTokens = mutableListOf(Token("test Webページのリンク"))
+        val tokens = mutableListOf(TextToken("test https://example.com/test"))
+        val expectedTokens = mutableListOf(TextToken("test Webページのリンク"))
 
         val processedTokens = UrlReplacer.replace(
             tokens, Snowflake(0)

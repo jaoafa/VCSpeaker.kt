@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
 import com.jaoafa.vcspeaker.stores.AliasType
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 
 /**
@@ -10,7 +10,7 @@ import dev.kord.common.entity.Snowflake
 object RegexReplacer : BaseReplacer {
     override val priority = ReplacerPriority.Low
 
-    override suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake) =
+    override suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake) =
         replaceText(tokens, guildId, AliasType.Regex) { alias, replacedTokens ->
             buildList {
                 val regex = Regex(alias.search)
@@ -26,7 +26,7 @@ object RegexReplacer : BaseReplacer {
                     val splitTexts = text.split(regex)
 
                     val additions = splitTexts.mixin {
-                        Token(alias.replace, "Regex Alias `${alias.search}` →「${alias.replace}」")
+                        TextToken(alias.replace, "Regex Alias `${alias.search}` →「${alias.replace}」")
                     }
 
                     addAll(additions)

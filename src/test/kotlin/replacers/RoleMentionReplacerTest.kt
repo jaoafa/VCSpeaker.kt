@@ -1,7 +1,7 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.RoleMentionReplacer
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.ClientResources
@@ -46,11 +46,11 @@ class RoleMentionReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <@&123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <@&123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("@test-role", "Mentionable `123456789012345678` →「test-role」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("@test-role", "Mentionable `123456789012345678` →「test-role」"),
+            TextToken("!")
         )
 
         val processedTokens = RoleMentionReplacer.replace(
@@ -72,11 +72,11 @@ class RoleMentionReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <@&123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <@&123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("@不明なロール", "Mentionable `123456789012345678` →「不明なロール」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("@不明なロール", "Mentionable `123456789012345678` →「不明なロール」"),
+            TextToken("!")
         )
 
         val processedTokens = RoleMentionReplacer.replace(

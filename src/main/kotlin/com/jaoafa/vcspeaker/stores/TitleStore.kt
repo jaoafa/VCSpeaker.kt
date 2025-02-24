@@ -17,7 +17,20 @@ data class TitleData(
 object TitleStore : StoreStruct<TitleData>(
     VCSpeaker.Files.titles.path,
     TitleData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            val list = Json.decodeFromString<List<TitleData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(TitleData.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        }
+    )
 ) {
     fun find(channelId: Snowflake) = data.find { it.channelId == channelId }
 

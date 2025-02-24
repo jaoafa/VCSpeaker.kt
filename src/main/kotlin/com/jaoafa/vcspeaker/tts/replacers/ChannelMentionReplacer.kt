@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 
 /**
@@ -9,7 +9,7 @@ import dev.kord.common.entity.Snowflake
 object ChannelMentionReplacer : BaseReplacer {
     override val priority = ReplacerPriority.Normal
 
-    override suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake) =
+    override suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake) =
         replaceMentionable(tokens, Regex("<#(\\d+)>"), "#") { kord, id ->
             kord.getChannel(id)?.data?.name?.value ?: "不明なチャンネル"
         }

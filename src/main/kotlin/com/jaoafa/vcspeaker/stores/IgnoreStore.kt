@@ -29,7 +29,20 @@ data class IgnoreData(
 object IgnoreStore : StoreStruct<IgnoreData>(
     VCSpeaker.Files.ignores.path,
     IgnoreData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            val list = Json.decodeFromString<List<IgnoreData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(IgnoreData.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        }
+    )
 ) {
     fun find(guildId: Snowflake, text: String) = data.find { it.guildId == guildId && it.search == text }
 

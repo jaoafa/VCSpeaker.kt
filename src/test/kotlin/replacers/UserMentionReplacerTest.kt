@@ -1,7 +1,7 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.UserMentionReplacer
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.ClientResources
@@ -44,11 +44,11 @@ class UserMentionReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <@123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <@123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("@test-user", "Mentionable `123456789012345678` →「test-user」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("@test-user", "Mentionable `123456789012345678` →「test-user」"),
+            TextToken("!")
         )
 
         val processedTokens = UserMentionReplacer.replace(
@@ -70,11 +70,11 @@ class UserMentionReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <@123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <@123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("@不明なユーザー", "Mentionable `123456789012345678` →「不明なユーザー」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("@不明なユーザー", "Mentionable `123456789012345678` →「不明なユーザー」"),
+            TextToken("!")
         )
 
         val processedTokens = UserMentionReplacer.replace(

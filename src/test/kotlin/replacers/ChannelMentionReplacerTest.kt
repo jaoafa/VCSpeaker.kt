@@ -1,7 +1,7 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.ChannelMentionReplacer
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.ClientResources
@@ -46,11 +46,11 @@ class ChannelMentionReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <#123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <#123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("#test-channel", "Mentionable `123456789012345678` →「test-channel」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("#test-channel", "Mentionable `123456789012345678` →「test-channel」"),
+            TextToken("!")
         )
 
         val processedTokens = ChannelMentionReplacer.replace(
@@ -72,11 +72,11 @@ class ChannelMentionReplacerTest : FunSpec({
             every { id } returns Snowflake(0)
         }
 
-        val tokens = mutableListOf(Token("Hello, <#123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <#123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("#不明なチャンネル", "Mentionable `123456789012345678` →「不明なチャンネル」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("#不明なチャンネル", "Mentionable `123456789012345678` →「不明なチャンネル」"),
+            TextToken("!")
         )
 
         val processedTokens = ChannelMentionReplacer.replace(

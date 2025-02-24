@@ -6,10 +6,13 @@ import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
-import com.jaoafa.vcspeaker.tts.TrackType
+import com.jaoafa.vcspeaker.tts.SpeechActor
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
+import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
+import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
@@ -68,7 +71,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             text = text,
             voice = GuildStore.getOrDefault(guildId).voice,
             guild = VCSpeaker.kord.getGuild(guildId),
-            type = TrackType.System
+            actor = SpeechActor.System
         )
 
     /**
@@ -82,32 +85,51 @@ class Narrator @OptIn(KordVoice::class) constructor(
             text = message.content,
             voice = VoiceStore.byIdOrDefault(message.author!!.id),
             guild = message.getGuild(),
-            type = TrackType.User
+            actor = SpeechActor.User
         )
 
     /**
      * 読み上げをキューに追加します。
      *
-     * @param message 読み上げるメッセージ
+     * @param message 読み上げる対象メッセージ
      * @param text 読み上げる文章
      * @param voice 読み上げに使用する音声
+     * @param guild サーバー
+     * @param actor 読み上げの種類
      */
     private suspend fun schedule(
         message: Message? = null,
         text: String,
         voice: Voice,
         guild: Guild,
-        type: TrackType
+        actor: SpeechActor
     ) {
-        val (processText, processVoice) = process(message, text, voice) ?: return
+        val sounds = Regex("<sound:\\d+:(\\d+)>").findAll(text).mapNotNull {
+            val id = it.groupValues[1].toLongOrNull() ?: return@mapNotNull null
+            it.value to id
+        }
 
-        if (processText.isBlank()) return
+        val textElements = text.split(*(sounds.map { it.first }.toList().toTypedArray()))
+
+        val contexts = mutableListOf<ProviderContext>()
+
+        textElements.forEachIndexed { i, element ->
+            val (processText, processVoice) = process(message, element, voice) ?: return
+
+            if (processText.isNotBlank())
+                contexts.add(VoiceTextContext(processVoice, processText))
+
+            if (i < sounds.count())
+                contexts.add(SoundmojiContext(Snowflake(sounds.elementAt(i).second)))
+        }
+
+        if (contexts.isEmpty()) return
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.addReaction("👀")
         }
 
-        scheduler.queue(message, processText, processVoice, guild, type)
+        scheduler.queue(contexts, message, guild, actor)
 
         CoroutineScope(Dispatchers.Default).launch {
             message?.deleteOwnReaction("👀")
@@ -141,21 +163,20 @@ class Narrator @OptIn(KordVoice::class) constructor(
     /**
      * 読み上げ中のメッセージをスキップします。
      */
-    suspend fun skip() = scheduler.skip()
+    fun skip() = scheduler.skip()
 
     /**
      * キューをクリアします。
      */
-    suspend fun clear() {
+    fun clear() {
         CoroutineScope(Dispatchers.Default).launch {
-            listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.now).forEach {
+            listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.current()).forEach {
                 it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
                 it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
             }
         }
 
         scheduler.queue.clear()
-        scheduler.now = null
         player.stopTrack()
     }
 

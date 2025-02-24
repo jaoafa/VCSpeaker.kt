@@ -24,15 +24,29 @@ data class AliasData(
     val replace: String
 ) {
     private val searchDisplay = if (type == AliasType.Regex) " `$search` " else "「$search」"
-    fun toDisplay() = "${type.displayName}${searchDisplay}→「$replace」<@$userId>"
 
-    fun toDisplayWithEmoji() = "${type.emoji} ${toDisplay()}"
+    private fun describe() = "${type.displayName}${searchDisplay}→「$replace」<@$userId>"
+
+    fun describeWithEmoji() = "${type.emoji} ${describe()}"
 }
 
 object AliasStore : StoreStruct<AliasData>(
     VCSpeaker.Files.aliases.path,
     AliasData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            val list = Json.decodeFromString<List<AliasData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(AliasData.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        }
+    )
 ) {
     fun find(guildId: Snowflake, from: String) =
         data.find { it.guildId == guildId && it.search == from }

@@ -1,10 +1,10 @@
 package com.jaoafa.vcspeaker.tts
 
-import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
-import dev.kordex.core.utils.addReaction
+import com.jaoafa.vcspeaker.tts.providers.BatchProvider
+import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -14,136 +14,194 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
+import dev.kordex.core.utils.addReaction
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.system.measureTimeMillis
+import kotlinx.io.IOException
 
 class Scheduler(
     private val player: AudioPlayer
 ) : AudioEventAdapter() {
     private val logger = KotlinLogging.logger { }
 
-    val queue = mutableListOf<SpeakInfo>()
-    var now: SpeakInfo? = null
+    /**
+     * 再生中・再生待ちの Speech の Queue.
+     * 0 番目が現在再生中の Speech です。
+     */
+    val queue = mutableListOf<Speech>()
 
-    suspend fun queue(
-        message: Message? = null, text: String, voice: Voice, guild: Guild, type: TrackType
+    /**
+     * 現在再生中の Speech を取得します。
+     */
+    fun current(): Speech? = queue.firstOrNull()
+
+    /**
+     * Queue に Speech を追加します。
+     *
+     * @param contexts [ProviderContext] のリスト
+     * @param message メッセージ
+     * @param guild サーバー
+     * @param actor 読み上げの種類
+     */
+    suspend fun <T : ProviderContext> queue(
+        contexts: List<T>, message: Message? = null, guild: Guild, actor: SpeechActor
     ) {
         val guildName = guild.name
 
         val messageInfo = "the message by @${message?.author?.username ?: "unknown_member"}"
 
-        val file = if (!CacheStore.exists(text, voice)) {
-            val downloadTime: Long
+        val tracks = try {
+            BatchProvider(contexts).start()
+        } catch (exception: HttpRequestTimeoutException) {
+            message?.reply {
+                embed {
+                    title = ":interrobang: Error!"
 
-            val audio: ByteArray
-            try {
-                downloadTime = measureTimeMillis {
-                    audio = VCSpeaker.voicetext.generateSpeech(text, voice)
+                    description = """
+                        メッセージを読み上げられません。
+                        リクエストがタイムアウトしました。
+                    """.trimIndent()
+
+                    errorColor()
                 }
-            } catch (exception: Exception) {
-                message?.reply {
-                    embed {
-                        title = ":interrobang: Error!"
+            }
 
-                        description = """
-                            音声の生成に失敗しました。
-                            「${message.content}」はよくわからない文字列ではありませんか？
-                        """.trimIndent()
+            logger.error(exception) {
+                "[$guildName] Request Timed Out."
+            }
 
-                        field("Exception") {
-                            "```\n${exception.message ?: "不明"}\n```"
-                        }
+            return
+        } catch (exception: IOException) {
+            message?.reply {
+                embed {
+                    title = ":interrobang: Error!"
 
-                        errorColor()
+                    description = """
+                        メッセージを読み上げられません。
+                        リクエストが失敗しました。
+                    """.trimIndent()
+
+                    field("Exception") {
+                        "```\n${exception::class.simpleName}:\n${exception.message ?: "不明"}\n```"
                     }
-                }
 
-                val messageInfoDetail = when (type) {
-                    TrackType.System -> "the system message \"$text\""
-                    TrackType.User -> "the message \"$text\" by @${message?.author?.username ?: "unknown_member"}"
+                    errorColor()
                 }
-
-                logger.error(exception) {
-                    "[$guildName] Failed to Generate Speech: Audio generation for $messageInfoDetail failed."
-                }
-
-                return
             }
 
-            logger.info {
-                "[$guildName] Audio Downloaded: Audio for $messageInfo has been downloaded in $downloadTime ms."
+            logger.error(exception) {
+                "[$guildName] Request Failed."
             }
 
-            CacheStore.create(text, voice, audio)
-        } else {
-            logger.info {
-                "[$guildName] Audio Found: Audio for $messageInfo has been found in the cache."
+            return
+        } catch (exception: Exception) {
+            message?.reply {
+                embed {
+                    title = ":interrobang: Error!"
+
+                    description = """
+                        メッセージを読み上げられません。
+                        「${message.content}」がよくわからない文字列であるか、音声の生成に失敗した可能性があります。
+                    """.trimIndent()
+
+                    field("Exception") {
+                        "```\n${exception::class.simpleName}:\n${exception.message ?: "不明"}\n```"
+                    }
+
+                    errorColor()
+                }
             }
 
-            CacheStore.read(text, voice)!!
+            val messageInfoDetail = when (actor) {
+                SpeechActor.System -> "the system message \"${message?.content}\""
+                SpeechActor.User -> "the message \"${message?.content}\" by @${message?.author?.username ?: "unknown_member"}"
+            }
+
+            logger.error(exception) {
+                "[$guildName] Failed to Generate Speech: Generating the speech for $messageInfoDetail failed."
+            }
+
+            return
         }
 
-        val info = SpeakInfo(message, guild, text, voice, file, type)
+        val speech = Speech(actor, guild, message, contexts, tracks)
 
-        if (queue.isEmpty() && now == null) {
-            now = info
-            speak(info)
+        queue.add(speech)
+
+        if (queue.size == 1) {
+            beginSpeech(speech)
 
             logger.info {
-                "[$guildName] First Track Starting: Queue is empty. Audio track for $messageInfo skipped queue."
+                "[$guildName] Speech Starting: The queue is empty. The speech for $messageInfo skipped the queue."
             }
         } else {
-            queue.add(info)
-
             logger.info {
-                "[$guildName] Track Queued: Audio track for $messageInfo has been queued. Waiting for ${queue.size} track(s) to finish playing."
+                "[$guildName] Speech Queued: The speech for $messageInfo has been queued. Waiting for ${queue.size} speech(es) to finish playing."
             }
         }
     }
 
-    suspend fun skip() {
+    fun skip() {
         if (queue.isEmpty()) {
-            now = null
             player.stopTrack()
         } else {
             val next = queue.removeFirst()
-            now = next
-            speak(next)
+            beginSpeech(next)
         }
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
         runBlocking {
-            val info = track.userData as SpeakInfo
-            val message = info.message
-            val guildName = info.guild.name
+            val message = current()!!.message
+            val guildName = current()!!.guild.name
+
+            val next = current()!!.next()
+
+            // Speech 内に次の Track が存在し、かつ再生が可能な場合、次の Track を再生
+            if (endReason.mayStartNext && next != null) {
+                val (nextTrack, nextContext) = next
+
+                if (nextContext is SoundmojiContext)
+                    player.volume = 20
+                else player.volume = 100
+
+
+                launch { player.playTrack(nextTrack) }
+                return@runBlocking
+            }
 
             launch {
                 message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
             }
 
-            if (endReason.mayStartNext && queue.isNotEmpty()) {
-                now = queue.removeFirst()
-                launch { speak(now!!) }
+            queue.removeFirst()
+            val nextSpeech = current()
+
+            // Speech 無いのすべての Track を再生し終わった場合、次の Speech を再生
+            if (endReason.mayStartNext && nextSpeech != null) {
+                launch { beginSpeech(nextSpeech) }
 
                 logger.info {
-                    "[$guildName] Next Track Starting: Audio track for ${info.getMessageLogInfo()} has been retrieved from the queue."
+                    "[$guildName] Next Speech Starting: The speech for ${nextSpeech.describe()} has been started."
                 }
             } else {
-                now = null
-
                 logger.info {
-                    "[$guildName] Playing Track Finished: All tracks have been played. Waiting for the next track..."
+                    "[$guildName] Speech Finished: All tracks have been played. Waiting for the next speech..."
                 }
             }
         }
 
-    private suspend fun speak(info: SpeakInfo): Unit = runBlocking {
+    /**
+     * 音声を再生します。
+     *
+     * @param speech 音声
+     */
+    private fun beginSpeech(speech: Speech): Unit = runBlocking {
         launch {
-            if (info.message != null) info.message.addReaction("🔊")
+            if (speech.message != null) speech.message.addReaction("🔊")
         }
-        player.speak(info)
+        player.speak(speech)
     }
 }

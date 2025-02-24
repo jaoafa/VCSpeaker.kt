@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.tts.api
+package com.jaoafa.vcspeaker.tts.providers.voicetext
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

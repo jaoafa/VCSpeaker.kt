@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 
 /**
@@ -9,7 +9,7 @@ import dev.kord.common.entity.Snowflake
 object GuildEmojiReplacer : BaseReplacer {
     override val priority = ReplacerPriority.Normal
 
-    override suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake) = buildList {
+    override suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake) = buildList {
         val regex = Regex("<a?:(\\w+):(\\d+)>")
         for (token in tokens) {
             val text = token.text
@@ -27,7 +27,7 @@ object GuildEmojiReplacer : BaseReplacer {
                 val match = matches[index]
                 val emojiName = match.groupValues[1]
 
-                Token(emojiName, "Guild Emoji `${match.value}` →「$emojiName」")
+                TextToken(emojiName, "Guild Emoji `${match.value}` →「$emojiName」")
             }
 
             addAll(additions)

@@ -2,7 +2,7 @@ package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.*
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.EmojiReplacer
 import com.jaoafa.vcspeaker.tts.replacers.RegexReplacer
 import dev.kord.common.entity.Snowflake
@@ -59,11 +59,11 @@ class EmojiReplacerTest : FunSpec({
             )
         )
 
-        val tokens = mutableListOf(Token("Hello, <:world:123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <:world:123456789012345678>!"))
         val expectedTokens = mutableListOf(
-            Token("Hello, "),
-            Token("world", "Emoji Alias「<:world:123456789012345678>」→「world」"),
-            Token("!")
+            TextToken("Hello, "),
+            TextToken("world", "Emoji Alias「<:world:123456789012345678>」→「world」"),
+            TextToken("!")
         )
 
         val processedTokens = EmojiReplacer.replace(tokens, Snowflake(0))
@@ -88,7 +88,7 @@ class EmojiReplacerTest : FunSpec({
             )
         )
 
-        val tokens = mutableListOf(Token("Hello, <:world:123456789012345678>!"))
+        val tokens = mutableListOf(TextToken("Hello, <:world:123456789012345678>!"))
 
         val processedTokens = RegexReplacer.replace(tokens, Snowflake(0))
 

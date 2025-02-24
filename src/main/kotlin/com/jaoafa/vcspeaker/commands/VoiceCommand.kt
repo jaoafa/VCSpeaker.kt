@@ -8,8 +8,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.jaoafa.vcspeaker.tts.api.Emotion
-import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
 import dev.kordex.core.commands.converters.impl.optionalInt
