@@ -47,7 +47,8 @@ object VCSpeaker {
     /**
      * VCSpeaker を初期化します。
      *
-     * @param config [Config]
+     * @param config 設定ファイルから読み込んだ [Config] オブジェクト
+     * @param options CLI 引数から読み込んだ [Options] オブジェクト
      */
     fun init(
         config: Config,

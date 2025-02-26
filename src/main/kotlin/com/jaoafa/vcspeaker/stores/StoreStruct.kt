@@ -3,11 +3,13 @@ package com.jaoafa.vcspeaker.stores
 import com.jaoafa.vcspeaker.tools.readOrCreateAs
 import com.jaoafa.vcspeaker.tools.writeAs
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.sentry.Sentry
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import java.io.File
+import kotlin.system.exitProcess
 
 @Serializable
 data class TypedStore<T>(
@@ -83,7 +85,19 @@ open class StoreStruct<T>(
             if (index <= fileVersion) return@forEach
 
             logger.info { "Running migration to v$index for ${file.name}" }
-            migrator(file)
+
+            val backup = file.readText()
+
+            try {
+                migrator(file)
+            } catch (exception: Exception) {
+                logger.error(exception) { "Failed to migrate ${file.name} to v$index. Rolling back..." }
+                file.writeText(backup)
+
+                Sentry.captureException(exception)
+
+                exitProcess(1)
+            }
         }
     }
 }
