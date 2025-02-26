@@ -39,14 +39,13 @@ object CacheStore : StoreStruct<CacheData>(
         }
     )
 ) {
-    private fun cacheFile(hash: String, ext: String) = VCSpeaker.cacheFolder.resolve(File("${hash}.$ext"))
+    private fun <T : ProviderContext> cacheFile(context: T) =
+        VCSpeaker.cacheFolder.resolve(File("${context.hash()}.${providerOf(context).format}"))
 
-    fun exists(hash: String) = data.find { it.hash == hash } != null
-
-    fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
+    private fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
         val provider = providerOf(context)
         val hash = context.hash()
-        val file = cacheFile(hash, provider.format).apply { writeBytes(byteArray) }
+        val file = cacheFile(context).apply { writeBytes(byteArray) }
 
         syncing {
             data += CacheData(provider.id, hash, System.currentTimeMillis())
@@ -55,16 +54,30 @@ object CacheStore : StoreStruct<CacheData>(
         return file
     }
 
-    fun read(hash: String): File? {
-        val cache = data.find { it.hash == hash } ?: return null
+    private fun <T : ProviderContext> read(context: T): File? {
+        val cache = data.find { it.hash == context.hash() } ?: return null
 
         syncing { // update lastUsed
             data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
         }
 
-        val format = getProvider(cache.providerId)?.format ?: return null
+        return cacheFile(context)
+    }
 
-        return cacheFile(hash, format)
+    suspend fun <T : ProviderContext> readOrCreate(
+        context: T,
+        onNoCache: suspend () -> ByteArray,
+        onCached: () -> Unit
+    ): File {
+        val file = cacheFile(context)
+
+        return if (file.exists()) {
+            onCached()
+            read(context)!!
+        } else {
+            file.writeText("")
+            create(context, onNoCache())
+        }
     }
 
 
@@ -79,7 +92,7 @@ object CacheStore : StoreStruct<CacheData>(
                 data.sortByDescending { it.lastUsed }
                 data.drop(100).forEach {
                     val provider = getProvider(it.providerId) ?: return@forEach
-                    cacheFile(it.hash, provider.format).delete()
+                    VCSpeaker.cacheFolder.resolve(File("${it.hash}.${provider.format}")).delete()
                 }
                 data = data.take(100).toMutableList()
             }

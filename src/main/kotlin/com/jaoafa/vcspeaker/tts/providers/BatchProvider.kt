@@ -30,27 +30,38 @@ class BatchProvider(private val contexts: List<ProviderContext>) {
     suspend fun start(): List<AudioTrack> {
         val startTime = System.currentTimeMillis()
 
-        val tracks = coroutineScope {
+        val (tracks, links) = coroutineScope {
             val trackList = MutableList<AudioTrack?>(contexts.size) { null }
 
+            val duplicateLinks = mutableMapOf<Int, Int>()
+
             for ((i, context) in contexts.withIndex()) {
+                if (contexts.take(i).contains(context)) {
+                    val refIndex = contexts.indexOf(context)
+                    duplicateLinks[i] = refIndex
+
+                    logger.info {
+                        "Duplicate Found: Duplicate of ${context.describe()} found at index $refIndex"
+                    }
+
+                    continue
+                }
+
                 val provider = providerOf(context)
 
                 // Context -> Audio -> AudioTrack までロードして、即時再生できる状態にする
                 launch {
-                    val file = if (CacheStore.exists(context.hash())) {
-                        logger.info { "Cache Found: Audio for ${context.describe()} already exists" }
-                        CacheStore.read(context.hash())!!
-                    } else {
+                    val file = CacheStore.readOrCreate(context, onNoCache = {
                         val audio: ByteArray
                         val downloadTime = measureTimeMillis {
                             audio = provider.provide(context)
                         }
-
                         logger.info { "Audio Downloaded: Downloading the audio for ${context.describe()} took $downloadTime ms" }
 
-                        CacheStore.create(context, audio)
-                    }
+                        audio
+                    }, onCached = {
+                        logger.info { "Cache Found: Audio for ${context.describe()} already exists" }
+                    })
 
                     val track = suspendCoroutine { continuation ->
                         VCSpeaker.lavaplayer.loadItemOrdered(
@@ -78,7 +89,12 @@ class BatchProvider(private val contexts: List<ProviderContext>) {
                 }
             }
 
-            return@coroutineScope trackList
+            return@coroutineScope trackList to duplicateLinks
+        }
+
+        for ((i, refIndex) in links) {
+            tracks[i] = tracks[refIndex]?.makeClone()
+                ?: throw UnexpectedException("Failed to clone audio track")
         }
 
         if (tracks.any { it == null })
