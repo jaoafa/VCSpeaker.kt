@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.1.10"
     kotlin("plugin.serialization") version "2.1.10"
     id("io.kotest.multiplatform") version "6.0.0-LOCAL"
     id("com.gradleup.shadow") version "8.3.5"
@@ -39,22 +39,22 @@ dependencies {
     implementation("dev.arbjerg:lavaplayer:2.2.2")
 
     // Ktor
-    implementation("io.ktor:ktor-client-cio-jvm:3.0.3")
-    implementation("io.ktor:ktor-client-cio:3.0.3")
-    implementation("io.ktor:ktor-client-content-negotiation:3.0.3")
-    implementation("io.ktor:ktor-client-core:3.0.3")
+    implementation("io.ktor:ktor-client-cio-jvm:3.1.0")
+    implementation("io.ktor:ktor-client-cio:3.1.0")
+    implementation("io.ktor:ktor-client-content-negotiation:3.1.0")
+    implementation("io.ktor:ktor-client-core:3.1.0")
 
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
     // Other Libraries
-    implementation("io.sentry:sentry:7.18.0")
+    implementation("io.sentry:sentry:8.2.0")
     implementation("org.jsoup:jsoup:1.18.3")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.47.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.0")
-    implementation("com.github.ajalt.clikt:clikt:5.0.2")
+    implementation("com.github.ajalt.clikt:clikt:5.0.3")
     implementation("com.uchuhimo:konf:1.1.2")
 }
 
