@@ -19,7 +19,20 @@ data class VisionApiCounterData(
 object VisionApiCounterStore : StoreStruct<VisionApiCounterData>(
     VCSpeaker.Files.visionApiCounter.path,
     VisionApiCounterData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            val list = Json.decodeFromString<List<VisionApiCounterData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(VisionApiCounterData.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        }
+    )
 ) {
     // 月当たり 1000 units だけど余裕をもって
     const val VISION_API_LIMIT = 950

@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.tts
 
-import com.jaoafa.vcspeaker.tts.api.Emotion
-import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

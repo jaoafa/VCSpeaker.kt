@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -16,7 +16,20 @@ data class VoiceData(
 object VoiceStore : StoreStruct<VoiceData>(
     VCSpeaker.Files.voices.path,
     VoiceData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            val list = Json.decodeFromString<List<VoiceData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(VoiceData.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        }
+    )
 ) {
     fun byId(userId: Snowflake) = data.find { it.userId == userId }?.voice
 

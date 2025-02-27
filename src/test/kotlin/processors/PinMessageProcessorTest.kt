@@ -1,8 +1,8 @@
 package processors
 
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.api.Speaker
 import com.jaoafa.vcspeaker.tts.processors.PinMessageProcessor
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.MessageType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message

@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.AliasData
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
-import com.jaoafa.vcspeaker.tts.Token
+import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import kotlinx.coroutines.runBlocking
@@ -15,14 +15,14 @@ import kotlinx.coroutines.runBlocking
 interface BaseReplacer {
     val priority: ReplacerPriority
 
-    suspend fun replace(tokens: MutableList<Token>, guildId: Snowflake): MutableList<Token>
+    suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake): MutableList<TextToken>
 
     fun replaceText(
-        tokens: MutableList<Token>,
+        tokens: MutableList<TextToken>,
         guildId: Snowflake,
         type: AliasType,
-        transform: (AliasData, MutableList<Token>) -> MutableList<Token>
-    ): MutableList<Token> {
+        transform: (AliasData, MutableList<TextToken>) -> MutableList<TextToken>
+    ): MutableList<TextToken> {
         val aliases = AliasStore.filter(guildId).filter { it.type == type }
 
         val replacedText = aliases.fold(tokens) { replacedTokens, alias ->
@@ -33,12 +33,12 @@ interface BaseReplacer {
     }
 
     suspend fun replaceMentionable(
-        tokens: MutableList<Token>,
+        tokens: MutableList<TextToken>,
         regex: Regex,
         mentionPrefix: String,
         nameSupplier: suspend (Kord, Snowflake) -> String
-    ): MutableList<Token> {
-        val newTokens = mutableListOf<Token>()
+    ): MutableList<TextToken> {
+        val newTokens = mutableListOf<TextToken>()
 
         for (token in tokens) {
             val text = token.text
@@ -57,7 +57,7 @@ interface BaseReplacer {
                 val id = Snowflake(match.groupValues[1]) // 0 is for whole match
                 val name = nameSupplier(VCSpeaker.kord, id)
 
-                Token("$mentionPrefix$name", "Mentionable `$id` →「$name」")
+                TextToken("$mentionPrefix$name", "Mentionable `$id` →「$name」")
             }
 
             newTokens.addAll(additions)
@@ -67,10 +67,10 @@ interface BaseReplacer {
     }
 
 
-    fun List<String>.mixin(provider: suspend (Int) -> Token) = buildList {
+    fun List<String>.mixin(provider: suspend (Int) -> TextToken) = buildList {
         // ["text1", "text2", "text3"] -> [Token1, provider(0), Token2, provider(1), Token3]
         for (index in 0..(this@mixin.size * 2 - 2)) {
-            if (index % 2 == 0) add(Token(this@mixin[index / 2]))
+            if (index % 2 == 0) add(TextToken(this@mixin[index / 2]))
             else add(runBlocking { provider((index - 1) / 2) })
         }
     }

@@ -1,30 +1,20 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
-import com.jaoafa.vcspeaker.tts.SpeakInfo
+import com.jaoafa.vcspeaker.tts.Speech
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
 import com.jaoafa.vcspeaker.tts.narrators.Narrators
 import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.kord.common.annotation.KordVoice
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.connect
-import dev.kord.core.behavior.reply
-import dev.kord.rest.builder.message.embed
 import dev.kord.voice.AudioFrame
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
-import java.rmi.UnexpectedException
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 object VoiceExtensions {
     private val logger = KotlinLogging.logger { }
@@ -134,66 +124,22 @@ object VoiceExtensions {
         }
     }
 
-    // TODO: Separate load and play to avoid blocking the main thread
-    suspend fun AudioPlayer.speak(info: SpeakInfo) {
-        val guildName = info.guild.name
-
-        val track = suspendCoroutine {
-            VCSpeaker.lavaplayer.loadItemOrdered(
-                this,
-                info.file.path, // already checked
-                object : AudioLoadResultHandler {
-                    override fun trackLoaded(track: AudioTrack) {
-                        logger.info {
-                            "[$guildName] Loaded Track: Audio for ${info.getMessageLogInfo()} has been loaded successfully (${track.identifier})"
-                        }
-
-                        track.userData = info
-                        it.resume(track)
-                    }
-
-                    override fun playlistLoaded(playlist: AudioPlaylist?) {
-                        throw UnexpectedException("This code should not be reached.")
-                    }
-
-                    override fun noMatches() {
-                        return
-                    }
-
-                    override fun loadFailed(exception: FriendlyException?): Unit = runBlocking {
-                        info.message?.reply {
-                            embed {
-                                title = ":interrobang: Error!"
-
-                                description = """
-                                        音声の読み込みに失敗しました。
-                                        VCSpeaker の不具合と思われる場合は、[GitHub Issues](https://github.com/jaoafa/VCSpeaker.kt/issues) か、サーバー既定のチャンネルへの報告をお願いします。
-                                    """.trimIndent()
-
-                                field("Exception") {
-                                    "```\n${exception?.message ?: "不明"}\n```"
-                                }
-
-                                errorColor()
-                            }
-                        }
-
-                        logger.error(exception) {
-                            "[$guildName] Failed to Load Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to load."
-                        }
-                    }
-                })
-        }
+    fun AudioPlayer.speak(speech: Speech) {
+        val guildName = speech.guild.name
 
         try {
-            this.playTrack(track)
+            if (speech.contexts[0] is SoundmojiContext)
+                this.volume = 20
+            else this.volume = 100
+
+            this.playTrack(speech.tracks[0])
 
             logger.info {
-                "[$guildName] Playing Track: Audio for ${info.getMessageLogInfo()} is playing now (${track.identifier})"
+                "[$guildName] Playing Track: Audio for ${speech.describe()} is playing now (${speech.tracks[0].identifier})"
             }
         } catch (exception: Exception) {
             logger.error(exception) {
-                "[$guildName] Failed to Play Track: Audio track for ${info.getMessageLogInfo(withText = true)} have failed to play."
+                "[$guildName] Failed to Play Track: Audio track for ${speech.describe(withText = true)} have failed to play."
             }
         }
     }

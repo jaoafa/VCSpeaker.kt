@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -19,7 +19,20 @@ data class GuildData(
 object GuildStore : StoreStruct<GuildData>(
     VCSpeaker.Files.guilds.path,
     GuildData.serializer(),
-    { Json.decodeFromString(this) }
+    { Json.decodeFromString(this) },
+
+    version = 1,
+    migrators = mapOf(
+        1 to { file ->
+            val list = Json.decodeFromString<List<GuildData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(GuildData.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        }
+    )
 ) {
     operator fun get(guildId: Snowflake) = data.find { it.guildId == guildId }
 

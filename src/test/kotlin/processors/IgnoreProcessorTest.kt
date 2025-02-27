@@ -6,7 +6,7 @@ import com.jaoafa.vcspeaker.stores.IgnoreStore
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.stores.StoreStruct
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.api.Speaker
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import com.jaoafa.vcspeaker.tts.processors.IgnoreAfterReplaceProcessor
 import com.jaoafa.vcspeaker.tts.processors.IgnoreBeforeReplaceProcessor
 import dev.kord.common.entity.Snowflake

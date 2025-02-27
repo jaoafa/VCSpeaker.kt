@@ -14,7 +14,7 @@ version = "1.0"
 repositories {
     mavenCentral()
     maven("https://jitpack.io/")
-    maven("https://repo.kordex.dev/snapshots/")
+    maven("https://snapshots-repo.kordex.dev")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
