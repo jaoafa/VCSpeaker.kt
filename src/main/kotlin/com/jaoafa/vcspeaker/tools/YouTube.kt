@@ -14,6 +14,8 @@ object YouTube {
     private const val BASE_URL = "https://www.youtube.com/oembed"
 
     private val client = HttpClient(CIO) {
+        VCSpeakerUserAgent()
+
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true

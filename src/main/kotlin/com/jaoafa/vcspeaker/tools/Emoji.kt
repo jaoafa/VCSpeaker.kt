@@ -18,7 +18,9 @@ object Emoji {
     private var emojis = runBlocking {
         logger.info { "Loading emojis..." }
 
-        val client = HttpClient(CIO)
+        val client = HttpClient(CIO) {
+            VCSpeakerUserAgent()
+        }
 
         val response = client.get("https://unicode.org/Public/emoji/latest/emoji-test.txt")
         val lines = response.bodyAsText().lines().filter { !it.startsWith("#") && it.isNotEmpty() }

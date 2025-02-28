@@ -16,6 +16,8 @@ object Steam {
     private const val BASE_URL = "https://store.steampowered.com/api/appdetails"
 
     private val client = HttpClient(CIO) {
+        VCSpeakerUserAgent()
+
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true

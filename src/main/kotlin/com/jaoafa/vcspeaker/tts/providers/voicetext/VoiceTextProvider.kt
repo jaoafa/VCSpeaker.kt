@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.tts.providers.voicetext
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.configs.TokenSpec
+import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.SpeechProvider
@@ -40,7 +41,9 @@ object VoiceTextProvider : SpeechProvider<VoiceTextContext> {
     override val format = "wav"
 
     private const val BASE_URL = "https://api.voicetext.jp/v1/tts"
-    private val client = HttpClient(CIO)
+    private val client = HttpClient(CIO) {
+        VCSpeakerUserAgent()
+    }
 
     override suspend fun provide(context: VoiceTextContext): ByteArray {
         return generateSpeech(context.text, context.voice)

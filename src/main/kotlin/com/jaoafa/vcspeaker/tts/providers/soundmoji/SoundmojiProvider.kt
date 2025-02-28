@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tts.providers.soundmoji
 
+import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.SpeechProvider
 import dev.kord.common.entity.Snowflake
@@ -31,7 +32,9 @@ object SoundmojiProvider : SpeechProvider<SoundmojiContext> {
     override val format = "mp3"
 
     private const val BASE_URL = "https://cdn.discordapp.com/soundboard-sounds/"
-    private val client = HttpClient(CIO)
+    private val client = HttpClient(CIO) {
+        VCSpeakerUserAgent()
+    }
 
     override suspend fun provide(context: SoundmojiContext): ByteArray {
         val response = client.get(BASE_URL + context.id)
