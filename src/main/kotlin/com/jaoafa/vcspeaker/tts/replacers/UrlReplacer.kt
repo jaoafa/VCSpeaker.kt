@@ -348,7 +348,6 @@ object UrlReplacer : BaseReplacer {
 
         client.prepareGet(url) {
             headers {
-                append("User-Agent", "VCSpeaker/0.0.0")
                 append("Accept", "text/html")
                 append("Accept-Language", "ja-JP")
             }
