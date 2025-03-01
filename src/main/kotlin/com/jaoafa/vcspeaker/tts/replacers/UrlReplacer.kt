@@ -7,6 +7,7 @@ import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
+import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import com.jaoafa.vcspeaker.tools.YouTube
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isThread
 import com.jaoafa.vcspeaker.tts.TextToken
@@ -63,6 +64,8 @@ object UrlReplacer : BaseReplacer {
     }
 
     private val client = HttpClient(CIO) {
+        VCSpeakerUserAgent()
+
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -345,7 +348,6 @@ object UrlReplacer : BaseReplacer {
 
         client.prepareGet(url) {
             headers {
-                append("User-Agent", "VCSpeaker/0.0.0")
                 append("Accept", "text/html")
                 append("Accept-Language", "ja-JP")
             }
