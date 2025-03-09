@@ -7,7 +7,7 @@ import dev.kord.core.entity.Message
 import dev.kordex.core.utils.capitalizeWords
 
 class InlineVoiceProcessor : BaseProcessor() {
-    override val priority = 50
+    override val priority = 60
 
     private val syntax = Regex("(speaker|emotion|emotion_level|pitch|speed|volume):\\w+")
 
