@@ -46,7 +46,7 @@ data class Inviter(
     @SerialName("avatar_decoration_data")
     val avatarDecorationData: AvatarDecorationData? = null,
     @SerialName("banner_color")
-    val bannerColor: Long? = null,
+    val bannerColor: String? = null,
 )
 
 @Serializable
