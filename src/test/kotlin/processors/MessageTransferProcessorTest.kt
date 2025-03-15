@@ -29,7 +29,7 @@ class MessageTransferProcessorTest : FunSpec({
     }
 
     // 引用メッセージが投稿され、そのメッセージ・チャンネル情報が取得可能でスレッドチャンネルであり、50文字以上の内容である場合、50文字までを読み上げる
-    test("If a quoted message is posted and its message and channel information can be obtained and it is a thread channel and its content is more than 50 characters, read up to 50 characters.") {
+    test("If a forwarded message is posted in a thread channel and its message and channel information can be obtained, read the message. If the content exceeds 50 characters, read only the first 50 characters.") {
         val message = mockk<Message>()
 
         every { message.type } returns MessageType.Default
@@ -57,12 +57,12 @@ class MessageTransferProcessorTest : FunSpec({
 
         val (processedText, processedVoice) = MessageTransferProcessor().process(message, "", voice)
 
-        processedText shouldBe "スレッド「parent」のスレッド「thread」で送信したメッセージ、「aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 以下略」の引用"
+        processedText shouldBe "スレッド「parent」のスレッド「thread」で送信したメッセージ、「${"a".repeat(50)} 以下略」の引用"
         processedVoice shouldBe voice
     }
 
     // 引用メッセージが投稿され、そのメッセージ・チャンネル情報が取得可能であり、スレッドチャンネルではない通常スレッドであり、50文字以上の内容である場合、50文字までを読み上げる
-    test("If a quoted message is posted and its message and channel information can be obtained and it is a normal thread channel and its content is more than 50 characters, read up to 50 characters.") {
+    test("If a forwarded message is posted in a thread channel of a text channel and its message and channel information can be obtained, read the message. If the content exceeds 50 characters, read only the first 50 characters.") {
         val message = mockk<Message>()
 
         every { message.type } returns MessageType.Default
@@ -88,12 +88,12 @@ class MessageTransferProcessorTest : FunSpec({
 
         val (processedText, processedVoice) = MessageTransferProcessor().process(message, "", voice)
 
-        processedText shouldBe "テキストチャンネル「text」で送信したメッセージ、「aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 以下略」の引用"
+        processedText shouldBe "テキストチャンネル「text」で送信したメッセージ、「${"a".repeat(50)} 以下略」の引用"
         processedVoice shouldBe voice
     }
 
     // 引用メッセージが投稿され、そのメッセージ・チャンネル情報が取得可能であり、50文字以下の内容である場合、そのまま読み上げる
-    test("If a quoted message is posted and its message and channel information can be obtained and its content is 50 characters or less, read it as is.") {
+    test("If a forwarded message is posted in a text channel and its message and channel information can be obtained, read the message. If the content is 50 characters or less, read it as is.") {
         val message = mockk<Message>()
 
         every { message.type } returns MessageType.Default
@@ -119,12 +119,12 @@ class MessageTransferProcessorTest : FunSpec({
 
         val (processedText, processedVoice) = MessageTransferProcessor().process(message, "", voice)
 
-        processedText shouldBe "テキストチャンネル「text」で送信したメッセージ、「aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa」の引用"
+        processedText shouldBe "テキストチャンネル「text」で送信したメッセージ、「${"a".repeat(50)}」の引用"
         processedVoice shouldBe voice
     }
 
     // 引用メッセージが投稿され、チャンネル情報は取得できるが、メッセージ情報が取得できない場合、そのチャンネルの情報のみを読み上げる
-    test("If a quoted message is posted and its channel information can be obtained but its message information cannot be obtained, read only the channel information.") {
+    test("If a forwarded message is posted and its channel information can be obtained but its message information cannot be obtained, read only the channel information.") {
         val message = mockk<Message>()
 
         every { message.type } returns MessageType.Default
@@ -153,7 +153,7 @@ class MessageTransferProcessorTest : FunSpec({
     }
 
     // 引用メッセージが投稿され、チャンネル情報が取得できない場合、その旨を読み上げる
-    test("If a quoted message is posted and its channel information cannot be obtained, read that fact.") {
+    test("If a forwarded message is posted and its channel information cannot be obtained, read that fact.") {
         val message = mockk<Message>()
 
         every { message.type } returns MessageType.Default
@@ -175,7 +175,7 @@ class MessageTransferProcessorTest : FunSpec({
     }
 
     // 引用メッセージではない場合、そのまま読み上げる
-    test("If it is not a quoted message, read it as is.") {
+    test("If the received message is not a forwarded message, read it as is.") {
         val message = mockk<Message>()
         every { message.type } returns MessageType.Default
         every { message.flags } returns null
