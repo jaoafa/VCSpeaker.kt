@@ -209,7 +209,7 @@ object DiscordExtensions {
                     addReaction(emoji)
                 } catch (e: KtorRequestException) {
                     if (e.httpResponse.status.value == 403)
-                        logger.warn { "Reaction to the message $id blocked. Ignoring..." }
+                        logger.warn { "Reaction Denied: ${e.message}. Message ID: $id. Ignoring..." }
                     else throw e
                 }
             }
