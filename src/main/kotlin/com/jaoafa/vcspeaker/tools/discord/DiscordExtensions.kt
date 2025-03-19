@@ -2,19 +2,13 @@ package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
-import dev.kordex.core.commands.Arguments
-import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
-import dev.kordex.core.commands.chat.ChatCommandContext
-import dev.kordex.core.types.PublicInteractionContext
-import dev.kordex.core.utils.hasPermission
-import dev.kordex.core.utils.respond
-import dev.kordex.core.utils.selfMember
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.MemberBehavior
+import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.asChannelOf
@@ -25,8 +19,17 @@ import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
 import dev.kord.rest.builder.message.embed
+import dev.kord.rest.request.KtorRequestException
+import dev.kordex.core.commands.Arguments
+import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
+import dev.kordex.core.commands.chat.ChatCommandContext
+import dev.kordex.core.types.PublicInteractionContext
+import dev.kordex.core.utils.*
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 typealias Options = Arguments
 
@@ -34,6 +37,8 @@ typealias Options = Arguments
  * Discord 関連の拡張関数をまとめたオブジェクト。
  */
 object DiscordExtensions {
+    private val logger = KotlinLogging.logger { }
+
     fun Guild.getSettings() = GuildStore.getOrDefault(this.id)
 
     /**
@@ -194,6 +199,28 @@ object DiscordExtensions {
             0
         } else {
             (goLiveMemberCount.toDouble() / memberCount * 100).toInt()
+        }
+    }
+
+    fun MessageBehavior.addReactionSafe(emoji: String) {
+        runBlocking {
+            launch {
+                try {
+                    addReaction(emoji)
+                } catch (e: KtorRequestException) {
+                    if (e.httpResponse.status.value == 403)
+                        logger.warn { "Reaction Denied: ${e.message}. Message ID: $id. Ignoring..." }
+                    else throw e
+                }
+            }
+        }
+    }
+
+    fun MessageBehavior.deleteOwnReactionSafe(emoji: String) {
+        runBlocking {
+            launch {
+                deleteOwnReaction(emoji)
+            }
         }
     }
 }

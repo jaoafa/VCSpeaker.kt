@@ -18,6 +18,8 @@ object Twitter {
     private const val BASE_URL = "https://publish.twitter.com/oembed"
 
     private val client = HttpClient(CIO) {
+        VCSpeakerUserAgent()
+
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true

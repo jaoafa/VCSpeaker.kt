@@ -15,7 +15,7 @@ import java.io.File
 import java.nio.file.Path
 
 class AttachmentProcessor : BaseProcessor() {
-    override val priority = 40
+    override val priority = 50
 
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
         val attachments = message?.attachments ?: return content to voice

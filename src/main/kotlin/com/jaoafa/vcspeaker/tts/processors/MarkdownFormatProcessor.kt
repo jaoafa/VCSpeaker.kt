@@ -7,7 +7,7 @@ import com.jaoafa.vcspeaker.tts.markdown.toMarkdown
 import dev.kord.core.entity.Message
 
 class MarkdownFormatProcessor : BaseProcessor() {
-    override val priority = 90
+    override val priority = 100
 
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
         val markdown = content.toMarkdown()

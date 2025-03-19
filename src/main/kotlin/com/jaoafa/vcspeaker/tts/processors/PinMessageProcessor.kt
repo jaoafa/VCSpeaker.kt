@@ -6,7 +6,7 @@ import dev.kord.core.entity.Message
 import dev.kord.core.entity.effectiveName
 
 class PinMessageProcessor : BaseProcessor() {
-    override val priority = 20
+    override val priority = 30
 
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
         if (message?.type != MessageType.ChannelPinnedMessage) return content to voice

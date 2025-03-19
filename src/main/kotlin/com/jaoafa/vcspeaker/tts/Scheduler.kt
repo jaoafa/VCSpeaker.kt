@@ -1,5 +1,7 @@
 package com.jaoafa.vcspeaker.tts
 
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.deleteOwnReactionSafe
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
@@ -12,9 +14,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
-import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.message.embed
-import dev.kordex.core.utils.addReaction
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
@@ -172,9 +172,7 @@ class Scheduler(
                 return@runBlocking
             }
 
-            launch {
-                message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
-            }
+            message?.deleteOwnReactionSafe("🔊")
 
             queue.removeFirst()
             val nextSpeech = current()
@@ -199,9 +197,8 @@ class Scheduler(
      * @param speech 音声
      */
     private fun beginSpeech(speech: Speech): Unit = runBlocking {
-        launch {
-            if (speech.message != null) speech.message.addReaction("🔊")
-        }
+        if (speech.message != null) speech.message.addReactionSafe("🔊")
+
         player.speak(speech)
     }
 }

@@ -3,7 +3,9 @@ package com.jaoafa.vcspeaker.tts.narrators
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.deleteOwnReactionSafe
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
 import com.jaoafa.vcspeaker.tts.SpeechActor
@@ -18,14 +20,8 @@ import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
-import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.voice.VoiceConnection
-import dev.kordex.core.utils.addReaction
-import dev.kordex.core.utils.deleteOwnReaction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlin.reflect.full.createInstance
 
 /**
@@ -125,15 +121,11 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
         if (contexts.isEmpty()) return
 
-        CoroutineScope(Dispatchers.Default).launch {
-            message?.addReaction("👀")
-        }
+        message?.addReactionSafe("👀")
 
         scheduler.queue(contexts, message, guild, actor)
 
-        CoroutineScope(Dispatchers.Default).launch {
-            message?.deleteOwnReaction("👀")
-        }
+        message?.deleteOwnReactionSafe("👀")
     }
 
     /**
@@ -169,11 +161,9 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * キューをクリアします。
      */
     fun clear() {
-        CoroutineScope(Dispatchers.Default).launch {
-            listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.current()).forEach {
-                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("🔊"))
-                it.message?.deleteOwnReaction(ReactionEmoji.Unicode("👀"))
-            }
+        listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.current()).forEach {
+            it.message?.deleteOwnReactionSafe("🔊")
+            it.message?.deleteOwnReactionSafe("👀")
         }
 
         scheduler.queue.clear()
