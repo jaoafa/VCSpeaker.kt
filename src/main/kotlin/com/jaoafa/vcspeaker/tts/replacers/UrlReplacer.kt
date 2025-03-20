@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
+import com.jaoafa.vcspeaker.StringUtils.lengthByCodePoints
 import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
@@ -535,7 +536,7 @@ object UrlReplacer : BaseReplacer {
 
             val tweetContent = tweet.readText.substringByCodePoints(
                 0,
-                70.coerceAtMost(tweet.readText.length)
+                70.coerceAtMost(tweet.readText.lengthByCodePoints().toInt())
             ) + if (tweet.readText.length > 70) " 以下略" else ""
             val replaceTo = "${tweet.authorName.removeEmojis()}のツイート「$tweetContent」へのリンク"
 
