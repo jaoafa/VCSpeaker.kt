@@ -17,10 +17,21 @@ object KordStarter {
     private val logger = KotlinLogging.logger {}
 
     private suspend fun init(options: Options, config: Config) {
-        VCSpeaker.init(
-            config = config,
-            options = options
-        )
+        val manifest = javaClass
+            .classLoader
+            .getResourceAsStream("META-INF/MANIFEST.MF")
+            ?.bufferedReader()
+            ?.readText() ?: throw IllegalStateException("META-INF/MANIFEST.MF not found")
+
+        val entryPrefix = "VCSpeaker-Version: "
+        val version = manifest.lines().firstOrNull { it.startsWith(entryPrefix) }
+            ?.removePrefix(entryPrefix) ?: "local-run-${System.currentTimeMillis()}"
+
+        logger.info {
+            "Starting VCSpeaker $version"
+        }
+
+        VCSpeaker.init(version, config, options)
 
         val instance = ExtensibleBot(token = config[TokenSpec.discord]) {
             applicationCommands {}

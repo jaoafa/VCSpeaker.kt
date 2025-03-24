@@ -12,6 +12,8 @@ import java.io.File
 import kotlin.io.path.Path
 
 object VCSpeaker {
+    lateinit var version: String
+
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
@@ -51,10 +53,12 @@ object VCSpeaker {
      * @param options CLI 引数から読み込んだ [Options] オブジェクト
      */
     fun init(
+        version: String,
         config: Config,
         options: Options,
     ) {
         VCSpeaker.run {
+            this.version = version
             this.config = config
             this.storeFolder = (options.storePath ?: Path(config[EnvSpec.storeFolder])).toFile()
             this.cacheFolder = (options.cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile()

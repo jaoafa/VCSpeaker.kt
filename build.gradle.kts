@@ -9,7 +9,6 @@ plugins {
 }
 
 group = "com.jaoafa"
-version = "1.0"
 
 repositories {
     mavenCentral()
@@ -70,8 +69,24 @@ application {
     mainClass.set("com.jaoafa.vcspeaker.MainKt")
 }
 
+val buildVersion = project.version.toString().let {
+    if (it != "unspecified") it
+    else "local-build-${System.currentTimeMillis()}"
+}
+
+tasks.jar {
+    manifest {
+        attributes(
+            "VCSpeaker-Version" to buildVersion
+        )
+    }
+}
+
 tasks.named("shadowJar", ShadowJar::class) {
-    archiveBaseName.set("vcspeaker-kt")
+    archiveBaseName.set("vcspeaker")
     archiveClassifier.set("all")
-    archiveVersion.set("")
+
+    println("Creating jar as version $buildVersion")
+
+    archiveVersion.set(buildVersion)
 }
