@@ -10,11 +10,15 @@ COPY gradle gradle
 COPY gradlew build.gradle.kts gradle.properties settings.gradle.kts ./
 
 RUN chmod a+x gradlew
+
 RUN ./gradlew build || return 0
+RUN rm -rf ./build/libs/*.jar
 
 COPY src src
 
-RUN ./gradlew build
+ARG VERSION=local-docker
+
+RUN ./gradlew build -Pversion=${VERSION}
 
 FROM azul/zulu-openjdk-alpine:21-latest AS runner
 
@@ -30,7 +34,7 @@ RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig cur
     unzip -o -d /usr/share/fonts/ipa/ IPAexfont00301.zip "*.ttf" && \
     update-ms-fonts
 
-COPY --from=builder /build/build/libs/vcspeaker-kt-all.jar /app
+COPY --from=builder /build/build/libs/vcspeaker-*-all.jar /app
 
 ENV VCSKT_CONFIG=/data/config.yml
 ENV VCSKT_STORE=/data/store/
@@ -38,4 +42,7 @@ ENV VCSKT_CACHE=/data/cache/
 ENV GOOGLE_APPLICATION_CREDENTIALS=/data/google-credential.json
 ENV TZ=Asia/Tokyo
 
-CMD ["java", "-jar", "/app/vcspeaker-kt-all.jar"]
+RUN FILE_NAME=$(find . -name "vcspeaker-*-all.jar" -print -quit) && \
+    mv ${FILE_NAME} vcspeaker.jar
+
+CMD ["java", "-jar", "/app/vcspeaker.jar"]

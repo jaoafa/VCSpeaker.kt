@@ -37,6 +37,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: bump-version
 
+    env:
+      version: ${{ needs.bump-version.outputs.version }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -79,10 +82,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
+          build-args: |
+            VERSION=${{ env.version }}
 
   build-jar:
     name: 📦 Build Jar
     runs-on: ubuntu-latest
+    needs: bump-version
+
+    env:
+      version: ${{ needs.bump-version.outputs.version }}
 
     steps:
       - name: ☕ Setup Zulu JDK 21
@@ -109,11 +118,11 @@ jobs:
 
       - name: 🐘 Run Gradle command
         run: |
-          gradle build
+          gradle build -Pversion=${{ env.version }}
 
       - name: 📦 Upload the artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VCSpeaker.kt Shadow Jar
-          path: build/libs/vcspeaker-kt-all.jar
+          name: VCSpeaker.kt ${{ env.version }} Shadow Jar
+          path: build/libs/vcspeaker-${{ env.version }}-all.jar
           overwrite: true
