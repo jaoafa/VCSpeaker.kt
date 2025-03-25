@@ -16,7 +16,7 @@ class ReadyEvent : Extension() {
                 logger.info { "Ready! Logged in as ${event.self.tag}." }
 
                 event.kord.editPresence {
-                    watching("users talk | VCSpeaker ${VCSpeaker.version}")
+                    watching("users talk | VCSpeaker.kt ${VCSpeaker.version}")
                 }
             }
         }
