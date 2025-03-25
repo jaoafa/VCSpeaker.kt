@@ -28,7 +28,7 @@ object KordStarter {
             ?.removePrefix(entryPrefix) ?: "local-run-${System.currentTimeMillis()}"
 
         logger.info {
-            "Starting VCSpeaker $version"
+            "Starting VCSpeaker.kt $version"
         }
 
         VCSpeaker.init(version, config, options)
