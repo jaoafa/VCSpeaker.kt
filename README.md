@@ -33,7 +33,11 @@ In development environments, the following rules apply:
   Example: `local-run-1742826473762`
 - If you build a JAR file locally, the version will be `local-build-<TIMESTAMP>`.  
   Example: `local-build-1742826473762`
+- If you build a docker image locally, the version will be `local-docker`.  
+  Example: `local-docker`
 
+Every version, other than local run, will have its version in `MANIFEST.MF` as the entry `VCSpeaker-Version`.  
+Version information can be obtained from `VCSpeaker.version` in the code.  
 You can specify a custom version by building with the `-Pversion` option:
 
 ```shell
