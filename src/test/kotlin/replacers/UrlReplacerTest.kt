@@ -980,9 +980,26 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens =
-                mutableListOf(TextToken("https://example.com explains why https://www.iana.org/help/example-domains is reserved."))
+                mutableListOf(TextToken("https://www.iana.org/help/example-domains explains why https://example.com is reserved."))
             val expectedTokens =
-                mutableListOf(TextToken("Webページ「Example Domain」へのリンク explains why Webページ「Example Domains」へのリンク is reserved."))
+                mutableListOf(TextToken("Webページ「Example Domains」へのリンク explains why Webページ「Example Domain」へのリンク is reserved."))
+
+            val processedTokens = UrlReplacer.replace(
+                tokens, Snowflake(0)
+            )
+
+            processedTokens shouldBe expectedTokens
+        }
+
+        // 存在しないドメイン
+        test("If the domain does not exist, read it as non-existent website.") {
+            val message = mockk<Message>()
+            coEvery { message.getGuild() } returns mockk {
+                every { id } returns Snowflake(0)
+            }
+
+            val tokens = mutableListOf(TextToken("test https://example.invalid")) // RFC 2606
+            val expectedTokens = mutableListOf(TextToken("test 存在しないWebページへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
