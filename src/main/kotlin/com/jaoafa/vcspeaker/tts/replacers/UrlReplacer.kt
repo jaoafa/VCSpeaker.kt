@@ -21,6 +21,7 @@ import dev.kord.core.entity.channel.thread.ThreadChannel
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -382,12 +383,14 @@ object UrlReplacer : BaseReplacer {
     /**
      * URLから拡張子を取得します。
      */
-    private fun getExtension(url: String) = try {
-        val path = Url(url).segments.last()
-        val dotPath = path.split(".")
-        if (dotPath.size > 1) dotPath.last() else null
-    } catch (e: MalformedURLException) {
-        null
+    private fun getExtension(url: String): String? {
+        try {
+            val path = Url(url).segments.lastOrNull() ?: return null
+            val dotPath = path.split(".")
+            return if (dotPath.size > 1) dotPath.last() else null
+        } catch (e: MalformedURLException) {
+            return null
+        }
     }
 
     /**
@@ -628,9 +631,12 @@ object UrlReplacer : BaseReplacer {
         urlRegex.replaceAll(text) { replacedText, matchResult ->
             val url = matchResult.value
 
-            val title = getPageTitle(url)?.shorten(30) ?: return@replaceAll replacedText
-
-            val replaceTo = "Webページ「$title」へのリンク"
+            val replaceTo = try {
+                val title = getPageTitle(url)?.shorten(30) ?: return@replaceAll replacedText
+                "Webページ「$title」へのリンク"
+            } catch (_: ConnectTimeoutException) {
+                "存在しないWebページへのリンク"
+            }
 
             replacedText.replace(matchResult.value, replaceTo)
         }
