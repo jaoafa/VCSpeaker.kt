@@ -27,6 +27,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.io.readByteArray
@@ -635,6 +636,8 @@ object UrlReplacer : BaseReplacer {
                 val title = getPageTitle(url)?.shorten(30) ?: return@replaceAll replacedText
                 "Webページ「$title」へのリンク"
             } catch (_: ConnectTimeoutException) {
+                "存在しないWebページへのリンク"
+            } catch (_: UnresolvedAddressException) {
                 "存在しないWebページへのリンク"
             }
 
