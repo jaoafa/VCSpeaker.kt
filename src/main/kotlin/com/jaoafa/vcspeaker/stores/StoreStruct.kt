@@ -23,6 +23,16 @@ data class AnyStore(
     val list: JsonElement
 )
 
+/**
+ * StoreStructは、配列データを保存するための構造体です。
+ *
+ * @param path データを保存するパス
+ * @param serializer データの Serializer
+ * @param deserializer データの Deserializer; 文字列を受け取り、[TypedStore] を返す関数です
+ * @param version データ構造のバージョン
+ * @param migrators Migrator 関数; Key をバージョンとし, v (Key - 1) のデータを v Key に移行します
+ * @param auditor Auditor 関数; null の場合は何も変更されません。null でない場合、初期化時と [StoreStruct.write] 実行時にデータを監査します
+ */
 open class StoreStruct<T>(
     path: String,
     private val serializer: KSerializer<T>,
