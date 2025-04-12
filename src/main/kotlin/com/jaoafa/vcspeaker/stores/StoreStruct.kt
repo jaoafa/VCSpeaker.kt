@@ -24,7 +24,7 @@ data class AnyStore(
 )
 
 /**
- * StoreStructは、配列データを保存するための構造体です。
+ * StoreStruct は、配列データを保存するための構造体です。
  *
  * @param path データを保存するパス
  * @param serializer データの Serializer
