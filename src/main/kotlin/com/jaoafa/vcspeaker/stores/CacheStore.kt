@@ -69,13 +69,13 @@ object CacheStore : StoreStruct<CacheData>(
         onNoCache: suspend () -> ByteArray,
         onCached: () -> Unit
     ): File {
-        val file = cacheFile(context)
+        val file = read(context)
 
-        return if (file.exists()) {
+        return if (file != null) {
             onCached()
-            read(context)!!
+            file
         } else {
-            file.writeText("")
+            cacheFile(context).writeText("")
             create(context, onNoCache())
         }
     }
