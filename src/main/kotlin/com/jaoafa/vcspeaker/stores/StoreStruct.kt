@@ -28,7 +28,8 @@ open class StoreStruct<T>(
     private val serializer: KSerializer<T>,
     deserializer: String.() -> TypedStore<T>, // To avoid type inference error. DO NOT REMOVE.
     private val version: Int = 0,
-    private val migrators: Map<Int, (File) -> Unit> = emptyMap()
+    private val migrators: Map<Int, (File) -> Unit> = emptyMap(),
+    private val auditor: ((MutableList<T>) -> MutableList<T>)? = null
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -37,15 +38,21 @@ open class StoreStruct<T>(
     var data: MutableList<T> = kotlin.run {
         runMigration()
 
-        file.readOrCreateAs(
+        val dataCandidate = file.readOrCreateAs(
             TypedStore.serializer(serializer),
             TypedStore(version, mutableListOf()),
             deserializer
         ).list.toMutableList()
+
+        auditData(dataCandidate).also {
+            write(it)
+        }
     }
 
     fun create(element: T): T {
         data.add(element)
+        data = auditData(data)
+
         write()
 
         return element
@@ -53,6 +60,8 @@ open class StoreStruct<T>(
 
     fun remove(element: T): Boolean {
         val result = data.remove(element)
+        data = auditData(data)
+
         write()
 
         return result
@@ -63,13 +72,15 @@ open class StoreStruct<T>(
             remove(from)
             add(to)
         }
+
+        data = auditData(data)
         write()
 
         return to
     }
 
-    fun write() {
-        file.writeAs(TypedStore.serializer(serializer), TypedStore(version, this.data))
+    fun write(modifiedData: MutableList<T>? = null) {
+        file.writeAs(TypedStore.serializer(serializer), TypedStore(version, modifiedData ?: this.data))
     }
 
     private fun runMigration() {
@@ -100,4 +111,7 @@ open class StoreStruct<T>(
             }
         }
     }
+
+    private fun auditData(dataCandidate: MutableList<T>): MutableList<T> =
+        auditor?.let { it(dataCandidate) } ?: dataCandidate
 }

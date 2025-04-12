@@ -46,7 +46,10 @@ object AliasStore : StoreStruct<AliasData>(
                 )
             )
         }
-    )
+    ),
+    auditor = { data ->
+        data.sortedByDescending { it.search.length }.toMutableList()
+    }
 ) {
     fun find(guildId: Snowflake, from: String) =
         data.find { it.guildId == guildId && it.search == from }
