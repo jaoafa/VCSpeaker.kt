@@ -37,7 +37,23 @@ object CacheStore : StoreStruct<CacheData>(
                 )
             )
         }
-    )
+    ),
+    auditor = { data ->
+        data.filter {
+            val provider = getProvider(it.providerId)
+
+            if (provider == null) {
+                VCSpeaker.cacheFolder.listFiles()?.forEach { file ->
+                    if (file.nameWithoutExtension == it.hash) file.delete()
+                }
+                return@filter false
+            }
+
+            val fileExists = VCSpeaker.cacheFolder.resolve(File("${it.hash}.${provider.format}")).exists()
+
+            return@filter fileExists
+        }.toMutableList()
+    }
 ) {
     private fun <T : ProviderContext> cacheFile(context: T) =
         VCSpeaker.cacheFolder.resolve(File("${context.hash()}.${providerOf(context).format}"))
