@@ -125,7 +125,7 @@ object VoiceExtensions {
     }
 
     fun AudioPlayer.speak(speech: Speech) {
-        val guildName = speech.guild.name
+        val guildName = speech.guildName
 
         try {
             if (speech.contexts[0] is SoundmojiContext)

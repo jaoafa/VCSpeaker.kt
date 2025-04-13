@@ -126,7 +126,7 @@ class Scheduler(
             return
         }
 
-        val speech = Speech(actor, guild, message, contexts, tracks)
+        val speech = Speech(actor, guild.name, message, contexts, tracks)
 
         queue.add(speech)
 
@@ -155,7 +155,7 @@ class Scheduler(
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
         runBlocking {
             val message = current()!!.message
-            val guildName = current()!!.guild.name
+            val guildName = current()!!.guildName
 
             val next = current()!!.next()
 
