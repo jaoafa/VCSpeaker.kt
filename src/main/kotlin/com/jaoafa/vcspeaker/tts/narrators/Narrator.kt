@@ -55,7 +55,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
         }
     }
 
-    private val scheduler = Scheduler(player)
+    val scheduler = Scheduler(player)
 
     /**
      * システム音声として文章をキューに追加します。

@@ -1,23 +1,26 @@
 package com.jaoafa.vcspeaker.tts
 
+import com.jaoafa.vcspeaker.tools.discord.MessageSerializer
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
+import kotlinx.serialization.Serializable
 
 /**
  * メッセージの読み上げ情報を保持するクラスです。
  * 文章内のコンポーネントが複数の SpeechProvider に依存する場合、複数の [ProviderContext] を持つことができます。
  *
  * @param actor 読み上げの種類
- * @param guild サーバー
+ * @param guildName サーバー名
  * @param message メッセージ
  * @param contexts [ProviderContext] のリスト
  * @param tracks [AudioTrack] のリスト
  */
+@Serializable
 data class Speech(
     val actor: SpeechActor,
-    val guild: Guild,
+    val guildName: String,
+    @Serializable(with = MessageSerializer::class)
     val message: Message? = null,
     val contexts: List<ProviderContext>,
     val tracks: List<AudioTrack>

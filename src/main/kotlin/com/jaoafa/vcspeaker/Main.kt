@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
+import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
@@ -70,6 +71,12 @@ class Options : OptionGroup("Main Options:") {
         help = "The Lavaplayer opus encoding quality.",
         envvar = "VCSKT_ENCODING_QUALITY"
     ).int().restrictTo(1..10)
+
+    val apiPort by option(
+        "--api-port",
+        help = "The port for the API server.",
+        envvar = "VCSKT_API_PORT"
+    ).int().default(2000)
 }
 
 class Entrypoint : CliktCommand() {
@@ -89,6 +96,7 @@ class Entrypoint : CliktCommand() {
         }.from.yaml.file(options.configPath.toFile())
 
         runBlocking {
+            Server.start(options.apiPort)
             KordStarter.start(options, config)
         }
     }
