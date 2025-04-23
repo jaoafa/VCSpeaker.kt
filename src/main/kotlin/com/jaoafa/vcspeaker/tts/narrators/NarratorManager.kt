@@ -3,12 +3,12 @@ package com.jaoafa.vcspeaker.tts.narrators
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
 
-object Narrators {
+object NarratorManager {
     val list = mutableListOf<Narrator>()
 
     operator fun get(guildId: Snowflake) = list.find { it.guildId == guildId }
 
-    fun GuildBehavior.narrator() = get(id)
+    fun GuildBehavior.getNarrator() = get(id)
 
     operator fun plusAssign(narrator: Narrator) {
         this -= narrator.guildId

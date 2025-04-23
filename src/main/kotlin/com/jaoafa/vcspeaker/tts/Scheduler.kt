@@ -22,15 +22,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
 
 class Scheduler(
-    private val player: AudioPlayer
-) : AudioEventAdapter() {
-    private val logger = KotlinLogging.logger { }
-
+    private val player: AudioPlayer,
     /**
      * 再生中・再生待ちの Speech の Queue.
      * 0 番目が現在再生中の Speech です。
      */
-    val queue = mutableListOf<Speech>()
+    val queue: MutableList<Speech> = mutableListOf()
+) : AudioEventAdapter() {
+    private val logger = KotlinLogging.logger { }
 
     /**
      * 現在再生中の Speech を取得します。

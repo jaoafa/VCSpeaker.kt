@@ -2,12 +2,15 @@ package com.jaoafa.vcspeaker.api
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.types.Error
-import io.ktor.server.plugins.contentnegotiation.*
+import com.jaoafa.vcspeaker.state.State
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlin.system.exitProcess
@@ -17,6 +20,8 @@ enum class ServerType {
 }
 
 object Server {
+    private val logger = KotlinLogging.logger {}
+
     val selfId = System.currentTimeMillis()
     var latestId: Long? = null
     var currentId: Long? = null
@@ -29,7 +34,7 @@ object Server {
     }
 
     fun start(port: Int) {
-        embeddedServer(CIO, port = port) {
+        val server = embeddedServer(CIO, port = port) {
             install(ContentNegotiation) {
                 json()
             }
@@ -57,7 +62,7 @@ object Server {
                     }
                     route("/latest") {
                         post("/state") { // 2: C -> L, C froze state
-
+                            val state = call.receive<State>()
                         }
 
                         get("/ack") { // 4: C -> L, C exit
@@ -66,6 +71,8 @@ object Server {
                     }
                 }
             }
-        }.start()
+        }
+
+        server.start(wait = false)
     }
 }

@@ -10,7 +10,7 @@ import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
 import com.jaoafa.vcspeaker.tts.SpeechActor
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
@@ -33,6 +33,7 @@ import kotlin.reflect.full.createInstance
  */
 class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
+    val channelId: Snowflake,
     val player: AudioPlayer,
     val connection: VoiceConnection
 ) {
@@ -51,7 +52,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             }
 
             if (!isOnlyMessage)
-                narrator()?.scheduleAsSystem(voice)
+                getNarrator()?.scheduleAsSystem(voice)
         }
     }
 
@@ -179,6 +180,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
         guild?.announce(voice, text, replier)
     }
+
+    fun prepareState() = NarratorState(guildId, channelId, scheduler.queue)
 
     init {
         player.addListener(scheduler)

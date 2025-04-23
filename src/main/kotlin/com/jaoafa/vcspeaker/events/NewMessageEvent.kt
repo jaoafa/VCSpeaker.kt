@@ -5,7 +5,7 @@ import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
-import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
 import dev.kord.common.entity.MessageType
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kordex.core.checks.anyGuild
@@ -38,7 +38,7 @@ class NewMessageEvent : Extension() {
 
                 val guild = event.getGuildOrNull() ?: return@action
 
-                val narratorActive = guild.narrator() != null
+                val narratorActive = guild.getNarrator() != null
                 val autoJoin = event.getGuildOrNull()!!.autoJoinEnabled() // checked
 
                 if (!narratorActive && autoJoin) {
@@ -53,7 +53,7 @@ class NewMessageEvent : Extension() {
 
                 if (message.content.startsWith(VCSpeaker.prefix)) return@action
 
-                guild.narrator()?.scheduleAsUser(message)
+                guild.getNarrator()?.scheduleAsUser(message)
 
                 logger.info {
                     "[${guild.name}] Message Received: Adding the message by @${message.author?.username} to the queue."

@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.tools.discord.ChatCommandExtensions.chatCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
-import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.checks.isNotBot
 import dev.kordex.core.extensions.Extension
@@ -18,7 +18,7 @@ class ClearCommand : Extension() {
         publicSlashCommand("clear", "予定されているメッセージの読み上げを中止します。") {
             check { anyGuild() }
             action {
-                val narrator = guild?.narrator() ?: run {
+                val narrator = guild?.getNarrator() ?: run {
                     respond("**:question: VC に参加していません。**")
                     return@action
                 }
@@ -38,7 +38,7 @@ class ClearCommand : Extension() {
                 isNotBot()
             }
             action {
-                val narrator = guild?.narrator() ?: run {
+                val narrator = guild?.getNarrator() ?: run {
                     respond("**:question: VC に参加していません。**")
                     return@action
                 }

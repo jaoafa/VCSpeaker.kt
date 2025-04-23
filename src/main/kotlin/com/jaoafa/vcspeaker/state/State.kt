@@ -1,19 +1,18 @@
 package com.jaoafa.vcspeaker.state
 
-import com.jaoafa.vcspeaker.tts.Speech
-import com.jaoafa.vcspeaker.tts.narrators.Narrators
-import dev.kord.common.entity.Snowflake
+import com.jaoafa.vcspeaker.tts.narrators.NarratorManager
+import com.jaoafa.vcspeaker.tts.narrators.NarratorState
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class State(
-    val queue: Map<Snowflake, List<Speech>>,
+    val narrators: List<NarratorState>
 ) {
     companion object {
         fun generate(): State {
-            val queue = Narrators.list.associate { it.guildId to it.scheduler.queue }
+            val narratorStates = NarratorManager.list.map { it.prepareState() }
 
-            return State(queue)
+            return State(narratorStates)
         }
     }
 }
