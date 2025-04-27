@@ -77,6 +77,12 @@ class Options : OptionGroup("Main Options:") {
         help = "The port for the API server.",
         envvar = "VCSKT_API_PORT"
     ).int().default(2000)
+
+    val waitFor by option(
+        "--wait-for",
+        help = "The ID of the current version of VCSpeaker.kt instance who wants to upgrade to this instance.",
+        envvar = "VCSKT_WAIT_FOR"
+    ).long()
 }
 
 class Entrypoint : CliktCommand() {
