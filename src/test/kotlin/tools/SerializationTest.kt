@@ -12,7 +12,7 @@ class SerializationTest : FunSpec({
     data class Person(val name: String, val age: Int)
 
     val strategy = Person.serializer()
-    val tempDir = System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker_test"
+    val tempDir = System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker_test_" + System.nanoTime()
     val file = File(tempDir, "person.json")
 
     beforeTest {
@@ -22,7 +22,9 @@ class SerializationTest : FunSpec({
 
     afterTest {
         if (file.exists()) file.delete()
-        file.parentFile?.delete()
+        if (file.parentFile.listFiles()?.isEmpty() == true) {
+            file.parentFile.delete()
+        }
     }
 
     test("readOrCreateAs should create file and return initial context when file does not exist") {
