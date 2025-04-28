@@ -57,8 +57,13 @@ dependencies {
     implementation("com.uchuhimo:konf:1.1.2")
 }
 
-tasks.test {
+tasks.withType<org.gradle.api.tasks.testing.Test> {
     useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
+    }
 }
 
 kotlin {
