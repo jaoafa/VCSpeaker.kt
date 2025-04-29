@@ -48,6 +48,7 @@ dependencies {
     implementation("io.ktor:ktor-server-cio:3.1.2")
     implementation("io.ktor:ktor-server-content-negotiation:3.1.2")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.2")
+    implementation("io.ktor:ktor-server-auth:3.1.2")
 
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")

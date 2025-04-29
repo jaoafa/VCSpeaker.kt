@@ -83,6 +83,12 @@ class Options : OptionGroup("Main Options:") {
         help = "The ID of the current version of VCSpeaker.kt instance who wants to upgrade to this instance.",
         envvar = "VCSKT_WAIT_FOR"
     ).long()
+
+    val apiToken by option(
+        "--api-token",
+        help = "The token for calling the **another** VCSpeaker API server.",
+        envvar = "VCSKT_API_TOKEN"
+    )
 }
 
 class Entrypoint : CliktCommand() {
