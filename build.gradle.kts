@@ -52,7 +52,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.20.1")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.47.0")
-    implementation("com.sksamuel.scrimage:scrimage-core:4.3.0")
+    implementation("com.sksamuel.scrimage:scrimage-core:4.3.1")
     implementation("com.github.ajalt.clikt:clikt:5.0.3")
     implementation("com.uchuhimo:konf:1.1.2")
 }
