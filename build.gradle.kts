@@ -57,7 +57,7 @@ dependencies {
     implementation("com.uchuhimo:konf:1.1.2")
 }
 
-tasks.withType<org.gradle.api.tasks.testing.Test> {
+tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
