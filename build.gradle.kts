@@ -48,7 +48,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
     // Other Libraries
-    implementation("io.sentry:sentry:8.11.0")
+    implementation("io.sentry:sentry:8.11.1")
     implementation("org.jsoup:jsoup:1.20.1")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.47.0")
