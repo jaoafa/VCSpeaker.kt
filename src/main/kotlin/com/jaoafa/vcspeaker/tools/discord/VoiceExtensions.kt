@@ -30,18 +30,9 @@ object VoiceExtensions {
     suspend fun BaseVoiceChannelBehavior.join(
         replier: (suspend (String) -> Unit)? = null
     ): Narrator {
-        NarratorManager -= guild.id // force disconnection
+        val connector = NarratorManager.prepareAdd(guild.id, this)
 
-        val player = VCSpeaker.lavaplayer.createPlayer()
-
-        val connection = connect {
-            audioProvider {
-                AudioFrame.fromData(player.provide(1, TimeUnit.SECONDS)?.data)
-            }
-        }
-
-        val narrator = Narrator(guildId = guild.id, channelId = this.id, player, connection)
-        NarratorManager += narrator
+        val narrator = connector()
 
         narrator.announce(
             NarrationScripts.SELF_JOIN,
@@ -105,10 +96,9 @@ object VoiceExtensions {
     ) {
         val narrator = guild.getNarrator() ?: return
 
-        narrator.connection.leave()
-        narrator.player.destroy()
+        val disconnecter = NarratorManager.remove(guild.id)
 
-        NarratorManager -= guild.id
+        disconnecter?.invoke()
 
         narrator.announce(
             "",

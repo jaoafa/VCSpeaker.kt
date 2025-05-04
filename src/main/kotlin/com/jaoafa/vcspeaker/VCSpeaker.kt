@@ -14,6 +14,8 @@ import kotlin.io.path.Path
 object VCSpeaker {
     lateinit var version: String
 
+    lateinit var args: Array<String>
+
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()

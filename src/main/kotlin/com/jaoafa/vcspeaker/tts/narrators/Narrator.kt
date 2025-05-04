@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.reload.state.UseState
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
@@ -28,6 +29,7 @@ import kotlin.reflect.full.createInstance
  * 読み上げを管理するクラスです。
  *
  * @param guildId サーバー ID
+ * @param channelId ボイスチャンネル ID
  * @param player Lavaplayer の [AudioPlayer] インスタンス
  * @param connection [VoiceConnection] インスタンス
  */
@@ -35,8 +37,9 @@ class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
     val channelId: Snowflake,
     val player: AudioPlayer,
-    val connection: VoiceConnection
-) {
+    val connection: VoiceConnection,
+    val scheduler: Scheduler = Scheduler(player),
+) : UseState<NarratorState>() {
     companion object {
         suspend fun Guild.announce(
             voice: String,
@@ -55,8 +58,6 @@ class Narrator @OptIn(KordVoice::class) constructor(
                 getNarrator()?.scheduleAsSystem(voice)
         }
     }
-
-    val scheduler = Scheduler(player)
 
     /**
      * システム音声として文章をキューに追加します。
@@ -181,7 +182,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
         guild?.announce(voice, text, replier)
     }
 
-    fun prepareState() = NarratorState(guildId, channelId, scheduler.queue)
+    override fun prepareTransfer() = NarratorState(guildId, channelId, scheduler.queue)
 
     init {
         player.addListener(scheduler)

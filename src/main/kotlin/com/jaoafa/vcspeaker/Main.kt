@@ -16,6 +16,7 @@ import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
+import kotlin.jvm.javaClass
 
 class Options : OptionGroup("Main Options:") {
     val configPath by option(
@@ -107,11 +108,33 @@ class Entrypoint : CliktCommand() {
             addSpec(EnvSpec)
         }.from.yaml.file(options.configPath.toFile())
 
+        val manifest = javaClass
+            .classLoader
+            .getResourceAsStream("META-INF/MANIFEST.MF")
+            ?.bufferedReader()
+            ?.readText() ?: throw IllegalStateException("META-INF/MANIFEST.MF not found")
+
+        val entryPrefix = "VCSpeaker-Version: "
+        val version = manifest.lines().firstOrNull { it.startsWith(entryPrefix) }
+            ?.removePrefix(entryPrefix) ?: "local-run-${System.currentTimeMillis()}"
+
+        logger.info { "Starting VCSpeaker.kt $version" }
+
+        VCSpeaker.init(version, config, options)
+
         runBlocking {
             Server.start(options.apiPort)
-            KordStarter.start(options, config)
+
+            val shouldWait = options.waitFor != null
+            KordStarter.start(!shouldWait)
+
+            if (shouldWait)
+                logger.info { "Waiting for a ready signal from CURRENT..." }
         }
     }
 }
 
-fun main(args: Array<String>) = Entrypoint().main(args)
+fun main(args: Array<String>) {
+    VCSpeaker.args = args
+    Entrypoint().main(args)
+}

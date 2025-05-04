@@ -2,7 +2,8 @@ package com.jaoafa.vcspeaker.api
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
-import com.jaoafa.vcspeaker.state.State
+import com.jaoafa.vcspeaker.reload.state.State
+import com.jaoafa.vcspeaker.reload.state.StateManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -95,7 +96,6 @@ object Server {
             logger.info { "Launching $selfId as LATEST instance. Waiting for $waitFor..." }
         } else {
             type = ServerType.Current
-            targetId = selfId
             logger.info { "Launching $selfId as CURRENT instance." }
         }
 
@@ -154,7 +154,8 @@ object Server {
                                 if (call.attributes[invalidTypeKey]) return@post
 
                                 val state = call.receive<State>()
-                                // Restore state
+
+                                StateManager.accept(state)
 
                                 request<Unit, Unit>(RequestType.Get, "update/current/ready", null)
                             }
