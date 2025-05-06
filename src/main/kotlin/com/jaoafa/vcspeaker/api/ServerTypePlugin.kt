@@ -12,6 +12,7 @@ class ServerTypePluginConfig {
     var type: ServerType = ServerType.Unknown
 }
 
+// If the wrong type of endpoint is called, this attribute will be set to true.
 val invalidTypeKey = AttributeKey<Boolean>("invalidTypeKey")
 
 val ServerTypePlugin = createApplicationPlugin(

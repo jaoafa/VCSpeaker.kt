@@ -6,6 +6,9 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.connect
+import dev.kord.core.behavior.getChannelOf
+import dev.kord.core.behavior.getChannelOfOrNull
+import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.voice.AudioFrame
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.TimeUnit
@@ -26,25 +29,30 @@ object NarratorManager {
      * @return 登録と接続を実行する関数
      */
     @OptIn(KordVoice::class)
-    fun prepareAdd(guildId: Snowflake, channel: BaseVoiceChannelBehavior): suspend () -> Narrator {
+    fun prepareAdd(guildId: Snowflake, channelId: Snowflake): suspend () -> Narrator {
         remove(guildId)
 
         val player = VCSpeaker.lavaplayer.createPlayer()
 
-        logger.info { "Preparing Narrator for ${channel.id} at $guildId" }
+        logger.info { "Preparing Narrator for ${channelId} at $guildId" }
 
         return {
+            val guild =
+                VCSpeaker.kord.getGuildOrNull(guildId) ?: throw IllegalStateException("Error while connecting; Guild not found: $guildId")
+            val channel = guild.getChannelOfOrNull<VoiceChannel>(channelId)
+                ?: throw IllegalStateException("Error while connecting; Channel not found: $channelId")
+
             val connection = channel.connect {
                 audioProvider {
                     AudioFrame.fromData(player.provide(1, TimeUnit.SECONDS)?.data)
                 }
             }
 
-            val narrator = Narrator(guildId = guildId, channelId = channel.id, player, connection)
+            val narrator = Narrator(guildId = guildId, channelId = channelId, player, connection)
 
             list.add(narrator)
 
-            logger.info { "Connection Established: Narrator created for ${channel.id} at $guildId" }
+            logger.info { "Connection Established: Narrator created for ${channelId} at $guildId" }
 
             narrator
         }

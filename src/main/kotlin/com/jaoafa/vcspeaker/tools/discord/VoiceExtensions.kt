@@ -30,7 +30,7 @@ object VoiceExtensions {
     suspend fun BaseVoiceChannelBehavior.join(
         replier: (suspend (String) -> Unit)? = null
     ): Narrator {
-        val connector = NarratorManager.prepareAdd(guild.id, this)
+        val connector = NarratorManager.prepareAdd(guild.id, this.id)
 
         val narrator = connector()
 

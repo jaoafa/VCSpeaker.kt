@@ -182,7 +182,10 @@ class Narrator @OptIn(KordVoice::class) constructor(
         guild?.announce(voice, text, replier)
     }
 
-    override fun prepareTransfer() = NarratorState(guildId, channelId, scheduler.queue)
+    override fun prepareTransfer(): NarratorState {
+        this.lock()
+        return NarratorState(guildId, channelId, scheduler.queue)
+    }
 
     init {
         player.addListener(scheduler)

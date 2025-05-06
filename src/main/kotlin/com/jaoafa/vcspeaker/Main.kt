@@ -127,9 +127,6 @@ class Entrypoint : CliktCommand() {
 
             val shouldWait = options.waitFor != null
             KordStarter.start(!shouldWait)
-
-            if (shouldWait)
-                logger.info { "Waiting for a ready signal from CURRENT..." }
         }
     }
 }

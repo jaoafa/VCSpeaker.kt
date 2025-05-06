@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.api
 
+import com.jaoafa.vcspeaker.KordStarter
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.reload.state.State
@@ -139,6 +140,8 @@ object Server {
 
                                 call.respond(HttpStatusCode.OK)
 
+                                logger.info { "LATEST has finished init. Transferring the state..." }
+
                                 request<State, Unit>(RequestType.Post, "update/latest/state", State.generate())
                             }
 
@@ -153,9 +156,13 @@ object Server {
                             post("/state") { // 2: C -> L, C froze state
                                 if (call.attributes[invalidTypeKey]) return@post
 
+                                logger.info { "CURRENT has frozen the state. Accepting the state..." }
+
                                 val state = call.receive<State>()
 
-                                StateManager.accept(state)
+                                StateManager.restore(state)
+
+                                logger.info { "Ready to launch. Awaiting CURRENT's response..." }
 
                                 request<Unit, Unit>(RequestType.Get, "update/current/ready", null)
                             }
@@ -163,6 +170,15 @@ object Server {
                             get("/ack") { // 4: C -> L, C exit
                                 if (call.attributes[invalidTypeKey]) return@get
 
+                                logger.info { "CURRENT has exit. Logging in..." }
+
+                                val instance = KordStarter.instance
+
+                                if (instance != null) {
+                                    instance.start()
+                                } else {
+                                    throw IllegalStateException("Unexpected error: KordEx instance is null.")
+                                }
                             }
                         }
                     }
