@@ -21,7 +21,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
-    testImplementation("io.mockk:mockk:1.13.17")
+    testImplementation("io.mockk:mockk:1.14.2")
     implementation(kotlin("reflect"))
     implementation("junit:junit:4.13.2")
 
@@ -29,13 +29,13 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3")
     implementation("org.apache.logging.log4j:log4j-core:2.24.3")
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.6")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
 
     // Discord Related
     implementation("dev.kord:kord-core:0.15.0")
     implementation("dev.kord:kord-core-voice:0.15.0")
     implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
-    implementation("dev.arbjerg:lavaplayer:2.2.2")
+    implementation("dev.arbjerg:lavaplayer:2.2.3")
 
     // Ktor Client
     implementation("io.ktor:ktor-client-cio-jvm:3.1.2")
@@ -51,21 +51,26 @@ dependencies {
     implementation("io.ktor:ktor-server-auth:3.1.2")
 
     // Kotlinx
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
     // Other Libraries
-    implementation("io.sentry:sentry:8.6.0")
-    implementation("org.jsoup:jsoup:1.19.1")
+    implementation("io.sentry:sentry:8.11.1")
+    implementation("org.jsoup:jsoup:1.20.1")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.47.0")
-    implementation("com.sksamuel.scrimage:scrimage-core:4.3.0")
+    implementation("com.sksamuel.scrimage:scrimage-core:4.3.1")
     implementation("com.github.ajalt.clikt:clikt:5.0.3")
     implementation("com.uchuhimo:konf:1.1.2")
 }
 
-tasks.test {
+tasks.withType<Test> {
     useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
+    }
 }
 
 kotlin {
