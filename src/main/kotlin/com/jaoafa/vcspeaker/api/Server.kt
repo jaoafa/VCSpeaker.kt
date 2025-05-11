@@ -58,8 +58,8 @@ object Server {
         accept(ContentType.Application.Json)
 
         basicAuth(
-            selfId.toString(),
-            targetToken ?: throw Exception("targetToken is null")
+            username = selfId.toString(),
+            password = targetToken ?: throw Exception("targetToken is null")
         )
 
         if (body != null) setBody(body)
