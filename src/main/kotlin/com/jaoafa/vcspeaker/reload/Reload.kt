@@ -1,6 +1,8 @@
 package com.jaoafa.vcspeaker.reload
 
+import com.jaoafa.vcspeaker.Options
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -16,7 +18,9 @@ import kotlinx.coroutines.time.withTimeout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import okio.IOException
 import java.io.File
+import java.net.ServerSocket
 
 @Serializable
 data class GitHubAsset(
@@ -56,6 +60,13 @@ object Reload {
         }
     }
 
+    /**
+     * GitHub Releases から最新のリリースを取得し、更新があればダウンロードします。
+     * jar は ./updates に保存されます。
+     *
+     * @throws IllegalStateException GitHub Releases から jar が見つからなかった場合
+     * @return ダウンロードした [File]; 更新がなければ null を返します。
+     */
     suspend fun checkUpdate(): File? {
         val repo = VCSpeaker.config[EnvSpec.updateRepo]
         val url = "https://api.github.com/repos/$repo/releases/latest"
@@ -95,17 +106,38 @@ object Reload {
             }
         }
 
-        val jar = File(asset.name)
+        if (!File("./updates").exists())
+            File("./updates").mkdirs()
+
+        val jar = File("./updates/${asset.name}")
         jar.writeBytes(jarResponse.body())
 
         return jar
     }
 
-    fun checkUpdateLocal() {
-
-    }
-
     fun updateTo(jar: File) {
+        logger.info { "Updating to ${jar.name}..." }
 
+        val updateJar = jar.copyTo(File("./update-${System.currentTimeMillis()}.jar"), overwrite = true)
+
+        val port = listOf(2000, 2001).first {
+            try {
+                ServerSocket(it).use { true }
+            } catch (e: IOException) {
+                logger.info { "Port $it is already in use." }
+                false
+            }
+        }
+
+        ProcessBuilder(
+            "nohup", "java", "-jar", updateJar.absolutePath,
+            "--api-port", port.toString(),
+            "--wait-for", Server.selfId.toString(),
+            "--api-token", Server.selfToken,
+        ).redirectOutput(File("./update.log"))
+            .redirectError(File("./update.log"))
+            .start()
+
+        logger.info { "Update launched." }
     }
 }

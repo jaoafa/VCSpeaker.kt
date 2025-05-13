@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.api
 
 import com.jaoafa.vcspeaker.api.types.Error
+import com.uchuhimo.konf.toPath
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.request.uri
@@ -19,10 +20,12 @@ val ServerTypePlugin = createApplicationPlugin(
     name = "ServerTypePlugin",
     createConfiguration = ::ServerTypePluginConfig
 ) {
-    onCallReceive { call ->
-        val path = call.request.uri.toHttpUrl().encodedPath
+    onCall { call ->
+        val path = call.request.uri
 
-        if (!path.startsWith("/update")) return@onCallReceive
+        println("Processing a request to $path")
+
+        if (!path.startsWith("/update")) return@onCall
 
         val selfType = pluginConfig.type.toString().lowercase()
 

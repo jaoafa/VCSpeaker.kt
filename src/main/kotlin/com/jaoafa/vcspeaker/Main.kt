@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
 import com.jaoafa.vcspeaker.api.Server
+import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
@@ -123,10 +124,26 @@ class Entrypoint : CliktCommand() {
         VCSpeaker.init(version, config, options)
 
         runBlocking {
-            Server.start(options.apiPort)
-
             val shouldWait = options.waitFor != null
-            KordStarter.start(!shouldWait)
+
+            if (shouldWait) {
+                KordStarter.start(launch = false)
+                Server.start(options.apiPort)
+
+                Server.request<InitFinishedRequest, Unit>(
+                    Server.RequestType.Post, "update/current/init-finished",
+                    InitFinishedRequest(
+                        Server.selfToken,
+                        Server.selfId
+                    )
+                )
+
+                while (true) {
+                }
+            } else {
+                Server.start(options.apiPort)
+                KordStarter.start()
+            }
         }
     }
 }

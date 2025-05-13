@@ -47,7 +47,9 @@ object StateManager {
             connectors.forEach { (guildId, channelId, connector) ->
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
+                        logger.info { "Reconnecting to the voice channel $channelId in guild $guildId" }
                         connector.invoke()
+                        logger.info { "Reconnection successful for ${channelId} at ${guildId}" }
                     } catch (e: Exception) {
                         logger.error(e) { "Reconnection failed for ${channelId} at ${guildId}" }
                     }

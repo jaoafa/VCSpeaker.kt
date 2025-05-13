@@ -47,7 +47,11 @@ object Server {
 
     var type = ServerType.Unknown
 
-    val client = HttpClient(io.ktor.client.engine.cio.CIO)
+    val client = HttpClient(io.ktor.client.engine.cio.CIO) {
+        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+            json()
+        }
+    }
 
     enum class RequestType {
         Get, Post
@@ -86,7 +90,7 @@ object Server {
         return response.body<R>()
     }
 
-    fun start(port: Int) {
+    fun start(port: Int, wait: Boolean = false) {
         targetPort = if (port == 2000) port + 1 else port - 1
 
         val waitFor = VCSpeaker.options.waitFor
@@ -113,7 +117,11 @@ object Server {
                 basic("update-basic-auth") {
                     realm = "VCSpeaker Updater API"
                     validate { credentials ->
-                        if (credentials.name == targetId.toString() && credentials.password == selfToken) {
+                        val namePass = if (targetId == null) true else { // Accept username only once
+                            credentials.name == targetId.toString()
+                        }
+
+                        if (namePass && credentials.password == selfToken) {
                             UserIdPrincipal(credentials.name)
                         } else {
                             null
@@ -148,7 +156,10 @@ object Server {
                             get("/ready") { // 3: L -> C, L ready
                                 if (call.attributes[invalidTypeKey]) return@get
 
+                                call.respond(HttpStatusCode.OK)
+
                                 request<Unit, Unit>(RequestType.Get, "update/latest/ack", null)
+                                logger.info { "Exiting..." }
                                 exitProcess(0)
                             }
                         }
@@ -162,7 +173,7 @@ object Server {
 
                                 StateManager.restore(state)
 
-                                logger.info { "Ready to launch. Awaiting CURRENT's response..." }
+                                call.respond(HttpStatusCode.OK)
 
                                 request<Unit, Unit>(RequestType.Get, "update/current/ready", null)
                             }
@@ -170,7 +181,9 @@ object Server {
                             get("/ack") { // 4: C -> L, C exit
                                 if (call.attributes[invalidTypeKey]) return@get
 
-                                logger.info { "CURRENT has exit. Logging in..." }
+                                call.respond(HttpStatusCode.OK)
+
+                                logger.info { "Logging in..." }
 
                                 val instance = KordStarter.instance
 
@@ -187,6 +200,6 @@ object Server {
             }
         }
 
-        server.start(wait = false)
+        server.start(wait)
     }
 }
