@@ -161,7 +161,8 @@ object Server {
                                 request<Unit, Unit>(RequestType.Get, "update/latest/ack", null)
                                 logger.info { "Exiting..." }
 
-                                Runtime.getRuntime().halt(0)
+                                Runtime.getRuntime().removeShutdownHook(VCSpeaker.instance.shutdownHook)
+                                exitProcess(0)
                             }
                         }
                         route("/latest") {

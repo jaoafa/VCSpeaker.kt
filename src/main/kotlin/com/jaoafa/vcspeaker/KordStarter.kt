@@ -23,6 +23,10 @@ object KordStarter {
         val options = VCSpeaker.options
 
         val instance = ExtensibleBot(token = config[TokenSpec.discord]) {
+            hooks {
+                kordShutdownHook = false
+            }
+
             applicationCommands {}
 
             chatCommands {
