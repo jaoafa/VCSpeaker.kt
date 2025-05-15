@@ -160,7 +160,8 @@ object Server {
 
                                 request<Unit, Unit>(RequestType.Get, "update/latest/ack", null)
                                 logger.info { "Exiting..." }
-                                exitProcess(0)
+
+                                Runtime.getRuntime().halt(0)
                             }
                         }
                         route("/latest") {
