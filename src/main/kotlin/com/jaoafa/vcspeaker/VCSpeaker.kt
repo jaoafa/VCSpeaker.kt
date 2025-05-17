@@ -14,11 +14,14 @@ import kotlin.io.path.Path
 object VCSpeaker {
     lateinit var version: String
 
+    lateinit var args: Array<String>
+
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
 
     lateinit var config: Config
+    lateinit var options: Options
 
     lateinit var storeFolder: File
     lateinit var cacheFolder: File
@@ -60,6 +63,7 @@ object VCSpeaker {
         VCSpeaker.run {
             this.version = version
             this.config = config
+            this.options = options
             this.storeFolder = (options.storePath ?: Path(config[EnvSpec.storeFolder])).toFile()
             this.cacheFolder = (options.cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile()
             this.devGuildId = (options.devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) }

@@ -7,6 +7,8 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
+import com.jaoafa.vcspeaker.api.Server
+import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
@@ -15,6 +17,7 @@ import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
+import kotlin.jvm.javaClass
 
 class Options : OptionGroup("Main Options:") {
     val configPath by option(
@@ -70,6 +73,24 @@ class Options : OptionGroup("Main Options:") {
         help = "The Lavaplayer opus encoding quality.",
         envvar = "VCSKT_ENCODING_QUALITY"
     ).int().restrictTo(1..10)
+
+    val apiPort by option(
+        "--api-port",
+        help = "The port for the API server.",
+        envvar = "VCSKT_API_PORT"
+    ).int().default(2000)
+
+    val waitFor by option(
+        "--wait-for",
+        help = "The ID of the current version of VCSpeaker.kt instance who wants to upgrade to this instance.",
+        envvar = "VCSKT_WAIT_FOR"
+    ).long()
+
+    val apiToken by option(
+        "--api-token",
+        help = "The token for calling the **another** VCSpeaker API server.",
+        envvar = "VCSKT_API_TOKEN"
+    )
 }
 
 class Entrypoint : CliktCommand() {
@@ -88,10 +109,46 @@ class Entrypoint : CliktCommand() {
             addSpec(EnvSpec)
         }.from.yaml.file(options.configPath.toFile())
 
+        val manifest = javaClass
+            .classLoader
+            .getResourceAsStream("META-INF/MANIFEST.MF")
+            ?.bufferedReader()
+            ?.readText() ?: throw IllegalStateException("META-INF/MANIFEST.MF not found")
+
+        val entryPrefix = "VCSpeaker-Version: "
+        val version = manifest.lines().firstOrNull { it.startsWith(entryPrefix) }
+            ?.removePrefix(entryPrefix) ?: "local-run-${System.currentTimeMillis()}"
+
+        logger.info { "Starting VCSpeaker.kt $version" }
+
+        VCSpeaker.init(version, config, options)
+
         runBlocking {
-            KordStarter.start(options, config)
+            val shouldWait = options.waitFor != null
+
+            if (shouldWait) {
+                KordStarter.start(launch = false)
+                Server.start(options.apiPort)
+
+                Server.request<InitFinishedRequest, Unit>(
+                    Server.RequestType.Post, "update/current/init-finished",
+                    InitFinishedRequest(
+                        Server.selfToken,
+                        Server.selfId
+                    )
+                )
+
+                while (true) {
+                }
+            } else {
+                Server.start(options.apiPort)
+                KordStarter.start()
+            }
         }
     }
 }
 
-fun main(args: Array<String>) = Entrypoint().main(args)
+fun main(args: Array<String>) {
+    VCSpeaker.args = args
+    Entrypoint().main(args)
+}

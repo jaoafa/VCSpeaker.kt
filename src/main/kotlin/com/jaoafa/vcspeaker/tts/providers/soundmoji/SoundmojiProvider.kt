@@ -10,12 +10,16 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.io.IOException
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Soundmoji を再生する際のパラメーターを保持するクラスです。
  *
  * @param id Soundmoji の ID
  */
+@Serializable
+@SerialName("soundmoji")
 data class SoundmojiContext(
     val id: Snowflake
 ) : ProviderContext {
