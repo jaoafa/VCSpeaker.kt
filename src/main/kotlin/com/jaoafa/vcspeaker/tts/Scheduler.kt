@@ -142,6 +142,15 @@ class Scheduler(
         }
     }
 
+    fun start() {
+        val next = queue.removeFirst()
+        beginSpeech(next)
+
+        logger.info {
+            "[${next.guildName}] Speech Starting: The speech for ${next.describe()} has been started."
+        }
+    }
+
     fun skip() {
         if (queue.isEmpty()) {
             player.stopTrack()
@@ -195,7 +204,7 @@ class Scheduler(
      *
      * @param speech 音声
      */
-    private fun beginSpeech(speech: Speech): Unit = runBlocking {
+    fun beginSpeech(speech: Speech): Unit = runBlocking {
         if (speech.message != null) speech.message.addReactionSafe("🔊")
 
         player.speak(speech)

@@ -1,6 +1,9 @@
 package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.tts.Scheduler
+import com.jaoafa.vcspeaker.tts.Speech
+import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
@@ -29,7 +32,11 @@ object NarratorManager {
      * @return 登録と接続を実行する関数
      */
     @OptIn(KordVoice::class)
-    fun prepareAdd(guildId: Snowflake, channelId: Snowflake): suspend () -> Narrator {
+    fun prepareAdd(
+        guildId: Snowflake,
+        channelId: Snowflake,
+        queue: List<Speech> = emptyList()
+    ): suspend () -> Narrator {
         remove(guildId)
 
         val player = VCSpeaker.lavaplayer.createPlayer()
@@ -38,7 +45,8 @@ object NarratorManager {
 
         return {
             val guild =
-                VCSpeaker.kord.getGuildOrNull(guildId) ?: throw IllegalStateException("Error while connecting; Guild not found: $guildId")
+                VCSpeaker.kord.getGuildOrNull(guildId)
+                    ?: throw IllegalStateException("Error while connecting; Guild not found: $guildId")
             val channel = guild.getChannelOfOrNull<VoiceChannel>(channelId)
                 ?: throw IllegalStateException("Error while connecting; Channel not found: $channelId")
 
@@ -48,7 +56,15 @@ object NarratorManager {
                 }
             }
 
-            val narrator = Narrator(guildId = guildId, channelId = channelId, player, connection)
+            val narrator = Narrator(
+                guildId = guildId,
+                channelId = channelId,
+                player,
+                connection,
+                Scheduler(player, queue.map {
+                    it.copy(tracks = BatchProvider(it.contexts).start())
+                }.toMutableList())
+            )
 
             list.add(narrator)
 

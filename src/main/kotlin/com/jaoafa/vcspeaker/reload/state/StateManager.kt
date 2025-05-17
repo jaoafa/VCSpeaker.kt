@@ -40,7 +40,10 @@ object StateManager {
      */
     fun restore(state: State) {
         val connectors = state.narrators.map {
-            Triple(it.guildId, it.channelId, NarratorManager.prepareAdd(it.guildId, it.channelId))
+            Triple(
+                it.guildId, it.channelId,
+                NarratorManager.prepareAdd(it.guildId, it.channelId, it.queue)
+            )
         }
 
         reconnector = {
@@ -48,8 +51,9 @@ object StateManager {
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
                         logger.info { "Reconnecting to the voice channel $channelId in guild $guildId" }
-                        connector.invoke()
+                        val narrator = connector.invoke()
                         logger.info { "Reconnection successful for ${channelId} at ${guildId}" }
+                        narrator.scheduler.start()
                     } catch (e: Exception) {
                         logger.error(e) { "Reconnection failed for ${channelId} at ${guildId}" }
                     }

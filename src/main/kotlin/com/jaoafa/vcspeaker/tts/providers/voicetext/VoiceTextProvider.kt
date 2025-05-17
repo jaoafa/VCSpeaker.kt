@@ -14,6 +14,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.io.IOException
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -26,6 +27,7 @@ import kotlinx.serialization.json.jsonPrimitive
  * @param text テキスト
  */
 @Serializable
+@SerialName("voicetext")
 data class VoiceTextContext(
     val voice: Voice,
     val text: String

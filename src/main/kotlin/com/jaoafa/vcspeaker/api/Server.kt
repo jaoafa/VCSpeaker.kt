@@ -5,6 +5,9 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.reload.state.State
 import com.jaoafa.vcspeaker.reload.state.StateManager
+import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
+import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -19,6 +22,10 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import java.security.SecureRandom
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -29,6 +36,16 @@ enum class ServerType {
 }
 
 object Server {
+    private val reloaderJsonFormat = Json {
+        explicitNulls = false
+        serializersModule = SerializersModule {
+            polymorphic(ProviderContext::class) {
+                subclass(SoundmojiContext::class)
+                subclass(VoiceTextContext::class)
+            }
+        }
+    }
+
     private val logger = KotlinLogging.logger {}
 
     val selfId = System.currentTimeMillis()
@@ -49,7 +66,7 @@ object Server {
 
     val client = HttpClient(io.ktor.client.engine.cio.CIO) {
         install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-            json()
+            json(reloaderJsonFormat)
         }
     }
 
@@ -106,7 +123,7 @@ object Server {
 
         val server = embeddedServer(CIO, port = port) {
             install(ContentNegotiation) {
-                json()
+                json(reloaderJsonFormat)
             }
 
             install(ServerTypePlugin) {

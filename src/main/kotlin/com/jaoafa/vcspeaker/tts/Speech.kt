@@ -47,4 +47,6 @@ data class Speech(
             SpeechActor.User -> "the message$optionalText by @${message?.author?.username ?: "unknown_member"}"
         }
     }
+
+    fun prepareTransfer() = this.copy(tracks = emptyList())
 }

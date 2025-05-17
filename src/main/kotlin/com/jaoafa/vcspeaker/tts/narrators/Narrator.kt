@@ -184,7 +184,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
     override fun prepareTransfer(): NarratorState {
         this.lock()
-        return NarratorState(guildId, channelId, scheduler.queue)
+        return NarratorState(guildId, channelId, scheduler.queue.map { it.prepareTransfer() })
     }
 
     init {
