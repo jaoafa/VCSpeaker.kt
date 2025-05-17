@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm") version "2.1.21"
     kotlin("plugin.serialization") version "2.1.20"
     id("io.kotest.multiplatform") version "6.0.0-LOCAL"
     id("com.gradleup.shadow") version "8.3.6"
@@ -38,10 +38,10 @@ dependencies {
     implementation("dev.arbjerg:lavaplayer:2.2.3")
 
     // Ktor Client
-    implementation("io.ktor:ktor-client-cio-jvm:3.1.2")
-    implementation("io.ktor:ktor-client-cio:3.1.2")
-    implementation("io.ktor:ktor-client-content-negotiation:3.1.2")
-    implementation("io.ktor:ktor-client-core:3.1.2")
+    implementation("io.ktor:ktor-client-cio-jvm:3.1.3")
+    implementation("io.ktor:ktor-client-cio:3.1.3")
+    implementation("io.ktor:ktor-client-content-negotiation:3.1.3")
+    implementation("io.ktor:ktor-client-core:3.1.3")
 
     // Ktor Server
     implementation("io.ktor:ktor-server-core:3.1.2")
