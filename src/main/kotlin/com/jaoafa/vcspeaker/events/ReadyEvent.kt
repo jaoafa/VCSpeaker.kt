@@ -2,13 +2,11 @@ package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.Server
-import com.jaoafa.vcspeaker.api.Server.RequestType
-import com.jaoafa.vcspeaker.api.Server.request
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.reload.state.StateManager
+import dev.kord.core.event.gateway.ReadyEvent
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
-import dev.kord.core.event.gateway.ReadyEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ReadyEvent : Extension() {

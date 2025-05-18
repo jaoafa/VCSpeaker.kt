@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InitFinishedRequest(
-    val token: String,
-    val id: Long
+    val id: String,
+    val token: String
 )

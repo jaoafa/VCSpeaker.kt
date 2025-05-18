@@ -3,15 +3,20 @@ package com.jaoafa.vcspeaker.api
 import com.jaoafa.vcspeaker.KordStarter
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
+import com.jaoafa.vcspeaker.api.types.UpdateError
+import com.jaoafa.vcspeaker.reload.Reload
+import com.jaoafa.vcspeaker.reload.UpdateRequest
 import com.jaoafa.vcspeaker.reload.state.State
 import com.jaoafa.vcspeaker.reload.state.StateManager
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
+import com.sun.org.apache.xpath.internal.operations.Bool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -22,6 +27,9 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.io.IOException
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -35,8 +43,10 @@ enum class ServerType {
     Latest, Current, Unknown
 }
 
+
 object Server {
-    private val reloaderJsonFormat = Json {
+    private val logger = KotlinLogging.logger {}
+    val reloaderJsonFormat = Json {
         explicitNulls = false
         serializersModule = SerializersModule {
             polymorphic(ProviderContext::class) {
@@ -46,13 +56,12 @@ object Server {
         }
     }
 
-    private val logger = KotlinLogging.logger {}
+    var sequence = 0
+        private set
 
-    val selfId = System.currentTimeMillis()
-    var targetId: Long? = null
+    private var lastUpdate = 0L
 
-    var targetPort = 0
-    var targetToken: String? = VCSpeaker.options.apiToken
+    val selfId = Reload.serverIds.random()
 
     @OptIn(ExperimentalEncodingApi::class)
     val selfToken = run {
@@ -62,16 +71,16 @@ object Server {
         Base64.encode(bytes)
     }
 
-    var type = ServerType.Unknown
+    var targetId: String? = null
+    var targetPort = 0
+    var targetToken: String? = VCSpeaker.options.apiToken
+
+    var type = if (VCSpeaker.options.waitFor != null) ServerType.Latest else ServerType.Current
 
     val client = HttpClient(io.ktor.client.engine.cio.CIO) {
         install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
             json(reloaderJsonFormat)
         }
-    }
-
-    enum class RequestType {
-        Get, Post
     }
 
     fun requesterConfig(body: Any? = null): HttpRequestBuilder.() -> Unit = {
@@ -91,35 +100,53 @@ object Server {
      *
      * @param T Request body の型
      * @param R Response body の型
-     * @param type HTTP request の method
      * @param route API のルート。頭の / は不要です。
-     * @param body 任意の request body
+     * @param data 任意の request body
      * @return Response body
      */
-    suspend inline fun <reified T, reified R> request(type: RequestType, route: String, body: T?): R {
+    suspend inline fun <reified T> requestUpdate(
+        route: String,
+        data: T,
+        serializer: KSerializer<T>
+    ) {
         val url = "http://localhost:$targetPort/$route"
 
-        val response = when (type) {
-            RequestType.Get -> client.get(url, requesterConfig())
-            RequestType.Post -> client.post(url, requesterConfig(body))
+        val response = client.post(
+            url,
+            requesterConfig(
+                reloaderJsonFormat.encodeToString(
+                    UpdateRequest.serializer(serializer),
+                    UpdateRequest(sequence, data)
+                )
+            )
+        )
+
+
+        if (response.status != HttpStatusCode.OK) {
+            val error = response.body<UpdateError>()
+            throw IOException("Failed to request update: ${response.status} ${error.message}")
         }
 
-        return response.body<R>()
+        return
+    }
+
+    suspend fun <T> RoutingCall.receiveUpdateOf(serializer: KSerializer<T>): UpdateRequest<T> {
+        val response = reloaderJsonFormat.decodeFromString(UpdateRequest.serializer(serializer), receiveText())
+        return response
+    }
+
+    private suspend fun RoutingCall.ok(s: Int) {
+        respond(HttpStatusCode.OK)
+        logger.info { "[S$s] Done." }
+        sequence = s + 1
     }
 
     fun start(port: Int, wait: Boolean = false) {
         targetPort = if (port == 2000) port + 1 else port - 1
 
-        val waitFor = VCSpeaker.options.waitFor
+        targetId = VCSpeaker.options.waitFor
 
-        if (waitFor != null) {
-            type = ServerType.Latest
-            targetId = waitFor
-            logger.info { "Launching $selfId as LATEST instance. Waiting for $waitFor..." }
-        } else {
-            type = ServerType.Current
-            logger.info { "Launching $selfId as CURRENT instance." }
-        }
+        logger.info { "Initiating a server as $type instance. $selfId [$port] <----> [$targetPort] $targetId" }
 
         val server = embeddedServer(CIO, port = port) {
             install(ContentNegotiation) {
@@ -158,25 +185,56 @@ object Server {
                             post("/init-finished") { // 1: L -> C, L finished init
                                 if (call.attributes[invalidTypeKey]) return@post
 
-                                val (token, id) = call.receive<InitFinishedRequest>()
+                                val (s, request) = call.receiveUpdateOf(InitFinishedRequest.serializer())
 
-                                targetToken = token
-                                targetId = id
+                                if (s != 0) {
+                                    call.respond(HttpStatusCode.BadRequest, UpdateError("Sequence mismatch."))
+                                    return@post
+                                }
 
-                                call.respond(HttpStatusCode.OK)
+                                targetId = request.id
+                                targetToken = request.token
 
-                                logger.info { "LATEST has finished init. Transferring the state..." }
+                                call.ok(s)
 
-                                request<State, Unit>(RequestType.Post, "update/latest/state", State.generate())
+                                logger.info { "[S$sequence] $targetId has finished init. Transferring the state..." }
+
+                                try {
+                                    requestUpdate(
+                                        "update/latest/state",
+                                        State.generate(),
+                                        State.serializer()
+                                    )
+                                } catch (e: Exception) {
+                                    logger.error(e) { "[S$sequence] Failed to transfer the state. Aborting update." }
+                                    return@post
+                                }
                             }
 
-                            get("/ready") { // 3: L -> C, L ready
-                                if (call.attributes[invalidTypeKey]) return@get
+                            post("/ready") { // 3: L -> C, L ready
+                                if (call.attributes[invalidTypeKey]) return@post
 
-                                call.respond(HttpStatusCode.OK)
+                                val (s, _) = call.receiveUpdateOf(Boolean.serializer())
 
-                                request<Unit, Unit>(RequestType.Get, "update/latest/ack", null)
-                                logger.info { "Exiting..." }
+                                if (s != 2) {
+                                    call.respond(HttpStatusCode.BadRequest, UpdateError("Sequence mismatch."))
+                                    return@post
+                                }
+
+                                call.ok(s)
+
+                                logger.info { "[S$sequence] $targetId is ready. Exiting..." }
+
+                                try {
+                                    requestUpdate(
+                                        "update/latest/ack",
+                                        true,
+                                        Boolean.serializer()
+                                    )
+                                } catch (e: Exception) {
+                                    logger.error(e) { "[S$sequence] Failed to send ack signal. Aborting update. Exit cancelled." }
+                                    return@post
+                                }
 
                                 Runtime.getRuntime().removeShutdownHook(VCSpeaker.instance.shutdownHook)
                                 exitProcess(0)
@@ -186,21 +244,42 @@ object Server {
                             post("/state") { // 2: C -> L, C froze state
                                 if (call.attributes[invalidTypeKey]) return@post
 
-                                logger.info { "CURRENT has frozen the state. Accepting the state..." }
+                                val (s, state) = call.receiveUpdateOf(State.serializer())
 
-                                val state = call.receive<State>()
+                                if (s != 1) {
+                                    call.respond(HttpStatusCode.BadRequest, UpdateError("Sequence mismatch."))
+                                    return@post
+                                }
+
+                                logger.info { "[S$sequence] $targetId has frozen the state. Restoring..." }
 
                                 StateManager.restore(state)
 
-                                call.respond(HttpStatusCode.OK)
+                                call.ok(s)
 
-                                request<Unit, Unit>(RequestType.Get, "update/current/ready", null)
+                                try {
+                                    requestUpdate(
+                                        "update/current/ready",
+                                        true,
+                                        Boolean.serializer()
+                                    )
+                                } catch (e: Exception) {
+                                    logger.error(e) { "[S$sequence] Failed to send ready signal. Aborting update." }
+                                    return@post
+                                }
                             }
 
-                            get("/ack") { // 4: C -> L, C exit
-                                if (call.attributes[invalidTypeKey]) return@get
+                            post("/ack") { // 4: C -> L, C exit
+                                if (call.attributes[invalidTypeKey]) return@post
 
-                                call.respond(HttpStatusCode.OK)
+                                val (s, _) = call.receiveUpdateOf(Boolean.serializer())
+
+                                if (s != 3) {
+                                    call.respond(HttpStatusCode.BadRequest, UpdateError("Sequence mismatch."))
+                                    return@post
+                                }
+
+                                call.ok(s)
 
                                 logger.info { "Logging in..." }
 

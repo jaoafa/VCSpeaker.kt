@@ -46,6 +46,19 @@ data class GitHubRelease(
 object Reload {
     private val logger = KotlinLogging.logger { }
 
+    val serverIds = listOf(
+        "apple",
+        "banana",
+        "orange",
+        "grape",
+        "strawberry",
+        "pear",
+        "peach",
+        "cherry",
+        "lemon",
+        "blueberry"
+    )
+
     private val client = HttpClient(CIO) {
         VCSpeakerUserAgent()
 

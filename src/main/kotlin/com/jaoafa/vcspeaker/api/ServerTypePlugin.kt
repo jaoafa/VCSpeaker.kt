@@ -1,13 +1,11 @@
 package com.jaoafa.vcspeaker.api
 
-import com.jaoafa.vcspeaker.api.types.Error
-import com.uchuhimo.konf.toPath
+import com.jaoafa.vcspeaker.api.types.UpdateError
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import io.ktor.util.AttributeKey
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class ServerTypePluginConfig {
     var type: ServerType = ServerType.Unknown
@@ -30,7 +28,7 @@ val ServerTypePlugin = createApplicationPlugin(
         val selfType = pluginConfig.type.toString().lowercase()
 
         if (!path.startsWith("/update/$selfType")) {
-            call.respond(HttpStatusCode.BadRequest, Error("This server is ${selfType.uppercase()}."))
+            call.respond(HttpStatusCode.BadRequest, UpdateError("This server is ${selfType.uppercase()}."))
             call.attributes.put(invalidTypeKey, true)
         } else {
             call.attributes.put(invalidTypeKey, false)

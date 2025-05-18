@@ -16,6 +16,7 @@ import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.serializer
 import kotlin.io.path.Path
 import kotlin.jvm.javaClass
 
@@ -84,7 +85,7 @@ class Options : OptionGroup("Main Options:") {
         "--wait-for",
         help = "The ID of the current version of VCSpeaker.kt instance who wants to upgrade to this instance.",
         envvar = "VCSKT_WAIT_FOR"
-    ).long()
+    )
 
     val apiToken by option(
         "--api-token",
@@ -130,12 +131,13 @@ class Entrypoint : CliktCommand() {
                 KordStarter.start(launch = false)
                 Server.start(options.apiPort)
 
-                Server.request<InitFinishedRequest, Unit>(
-                    Server.RequestType.Post, "update/current/init-finished",
+                Server.requestUpdate(
+                    "update/current/init-finished",
                     InitFinishedRequest(
-                        Server.selfToken,
-                        Server.selfId
-                    )
+                        Server.selfId,
+                        Server.selfToken
+                    ),
+                    InitFinishedRequest.serializer()
                 )
 
                 while (true) {
