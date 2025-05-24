@@ -4,7 +4,6 @@ import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.stores.CacheStore
 import com.jaoafa.vcspeaker.tools.getClassesIn
-import com.uchuhimo.konf.Config
 import dev.kordex.core.ExtensibleBot
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.sentry.SentryAdapter
@@ -16,24 +15,18 @@ import kotlin.reflect.full.createInstance
 object KordStarter {
     private val logger = KotlinLogging.logger {}
 
-    private suspend fun init(options: Options, config: Config) {
-        val manifest = javaClass
-            .classLoader
-            .getResourceAsStream("META-INF/MANIFEST.MF")
-            ?.bufferedReader()
-            ?.readText() ?: throw IllegalStateException("META-INF/MANIFEST.MF not found")
+    var instance: ExtensibleBot? = null
+        private set
 
-        val entryPrefix = "VCSpeaker-Version: "
-        val version = manifest.lines().firstOrNull { it.startsWith(entryPrefix) }
-            ?.removePrefix(entryPrefix) ?: "local-run-${System.currentTimeMillis()}"
-
-        logger.info {
-            "Starting VCSpeaker.kt $version"
-        }
-
-        VCSpeaker.init(version, config, options)
+    private suspend fun prepareInstance(launch: Boolean) {
+        val config = VCSpeaker.config
+        val options = VCSpeaker.options
 
         val instance = ExtensibleBot(token = config[TokenSpec.discord]) {
+            hooks {
+                kordShutdownHook = false
+            }
+
             applicationCommands {}
 
             chatCommands {
@@ -70,18 +63,32 @@ object KordStarter {
                 }
         }
 
-        instance.start()
-    }
+        this.instance = instance
 
-    suspend fun start(options: Options, config: Config) {
-        try {
-            init(options, config)
-        } catch (e: SocketException) {
-            logger.error(e) { "Failed to connect to Discord. Retrying after 10 seconds..." }
-            // wait 10 seconds before retrying
-            VCSpeaker.instance.stop()
-            delay(10000)
-            init(options, config)
+        if (launch) {
+            logger.info { "Starting Kord instance..." }
+            instance.start()
+        } else {
+            logger.info { "Kord instance ready for launch." }
         }
     }
+
+    suspend fun launch() {
+        try {
+            instance?.start()
+        } catch (e: SocketException) {
+            logger.error(e) { "Failed to connect to Discord. Retrying after 10 seconds..." }
+
+            instance?.stop()
+            delay(10000) // wait 10 seconds before retrying
+            instance?.start()
+        }
+    }
+
+    /**
+     * Kord インスタンスを初期化します。
+     *
+     * @param launch 初期化が完了し次第、起動するかどうか
+     */
+    suspend fun start(launch: Boolean = true) = prepareInstance(launch)
 }

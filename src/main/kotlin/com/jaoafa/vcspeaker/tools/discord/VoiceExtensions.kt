@@ -5,8 +5,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import com.jaoafa.vcspeaker.tts.Speech
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
-import com.jaoafa.vcspeaker.tts.narrators.Narrators
-import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.narrators.NarratorManager
+import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
@@ -22,7 +22,7 @@ object VoiceExtensions {
     /**
      * VoiceChannel に接続します。
      *
-     * 接続時に [Narrator] が作成され、[Narrators] に登録されます。
+     * 接続時に [Narrator] が作成され、[NarratorManager] に登録されます。
      *
      * @param replier 参加通知の文章を受け取り、返信する関数
      */
@@ -30,18 +30,9 @@ object VoiceExtensions {
     suspend fun BaseVoiceChannelBehavior.join(
         replier: (suspend (String) -> Unit)? = null
     ): Narrator {
-        Narrators -= guild.id // force disconnection
+        val connector = NarratorManager.prepareAdd(guild.id, this.id)
 
-        val player = VCSpeaker.lavaplayer.createPlayer()
-
-        val connection = connect {
-            audioProvider {
-                AudioFrame.fromData(player.provide(1, TimeUnit.SECONDS)?.data)
-            }
-        }
-
-        val narrator = Narrator(guild.id, player, connection)
-        Narrators += narrator
+        val narrator = connector()
 
         narrator.announce(
             NarrationScripts.SELF_JOIN,
@@ -70,7 +61,7 @@ object VoiceExtensions {
     suspend fun BaseVoiceChannelBehavior.move(
         replier: (suspend (String) -> Unit)? = null
     ): Narrator? {
-        val narrator = guild.narrator() ?: return null
+        val narrator = guild.getNarrator() ?: return null
 
         narrator.connection.move(id)
 
@@ -95,7 +86,7 @@ object VoiceExtensions {
      *
      * 実行時に VoiceChannel に接続していない場合、何も起こりません。
      *
-     * 退出時に [Narrator] が破棄され、[Narrators] から削除されます。
+     * 退出時に [Narrator] が破棄され、[NarratorManager] から削除されます。
      *
      * @param replier 退出通知の文章を受け取り、返信する関数
      */
@@ -103,12 +94,11 @@ object VoiceExtensions {
     suspend fun BaseVoiceChannelBehavior.leave(
         replier: (suspend (String) -> Unit)? = null
     ) {
-        val narrator = guild.narrator() ?: return
+        val narrator = guild.getNarrator() ?: return
 
-        narrator.connection.leave()
-        narrator.player.destroy()
+        val disconnecter = NarratorManager.remove(guild.id)
 
-        Narrators -= guild.id
+        disconnecter?.invoke()
 
         narrator.announce(
             "",
@@ -125,7 +115,7 @@ object VoiceExtensions {
     }
 
     fun AudioPlayer.speak(speech: Speech) {
-        val guildName = speech.guild.name
+        val guildName = speech.guildName
 
         try {
             if (speech.contexts[0] is SoundmojiContext)
