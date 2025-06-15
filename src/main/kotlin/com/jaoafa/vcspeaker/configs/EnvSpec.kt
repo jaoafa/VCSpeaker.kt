@@ -36,4 +36,6 @@ object EnvSpec : ConfigSpec() {
     val encodingQuality by optional<Int>(10)
 
     val updateRepo by optional<String>("jaoafa/VCSpeaker.kt")
+
+    val autoUpdate by optional<Boolean>(false)
 }

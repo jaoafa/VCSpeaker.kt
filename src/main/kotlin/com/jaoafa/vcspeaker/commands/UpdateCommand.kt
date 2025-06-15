@@ -25,6 +25,20 @@ class UpdateCommand : Extension() {
                 failIfNot(VCSpeaker.isDev(), "このコマンドは開発モードでのみ使用できます。")
             }
             action {
+                if (arguments.path == "bypassdevlock") {
+                    val file = Reload.checkUpdate(bypassDevLock = true)
+
+                    if (file == null) { // can't be reached
+                        respond("更新が見つかりませんでした。")
+                        return@action
+                    }
+
+                    respond("更新が見つかりました: `${file.name}`")
+                    Reload.updateTo(file)
+
+                    return@action
+                }
+
                 val file = File("./updates/${arguments.path}")
 
                 if (!file.exists()) {

@@ -92,6 +92,12 @@ class Options : OptionGroup("Main Options:") {
         help = "The token for calling the **another** VCSpeaker API server.",
         envvar = "VCSKT_API_TOKEN"
     )
+
+    val autoUpdate by option(
+        "--auto-update",
+        help = "Enable auto update.",
+        envvar = "VCSKT_AUTO_UPDATE"
+    ).boolean()
 }
 
 class Entrypoint : CliktCommand() {

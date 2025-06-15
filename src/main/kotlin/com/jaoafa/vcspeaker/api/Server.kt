@@ -141,6 +141,7 @@ object Server {
         sequence = s + 1
     }
 
+    // todo: add timeout for each request (to prevent stucking)
     fun start(port: Int, wait: Boolean = false) {
         targetPort = if (port == 2000) port + 1 else port - 1
 
