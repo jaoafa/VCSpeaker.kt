@@ -27,8 +27,8 @@ dependencies {
 
     // Logging
     implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3")
-    implementation("org.apache.logging.log4j:log4j-core:2.24.3")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.25.0")
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
 
     // Discord Related
