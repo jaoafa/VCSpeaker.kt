@@ -37,7 +37,7 @@ jobs:
 
   build-docker:
     name: 🏗️ Build Docker (${{ matrix.architecture }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     needs: bump-version
 
     env:
