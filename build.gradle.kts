@@ -36,7 +36,7 @@ dependencies {
     implementation("dev.kord:kord-core:0.15.0")
     implementation("dev.kord:kord-core-voice:new-voice-encryption-modes-SNAPSHOT")
     implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
-    implementation("dev.arbjerg:lavaplayer:2.2.3")
+    implementation("dev.arbjerg:lavaplayer:2.2.4")
 
     // Ktor
     implementation("io.ktor:ktor-client-cio-jvm:3.2.2")
