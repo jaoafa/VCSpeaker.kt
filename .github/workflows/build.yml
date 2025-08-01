@@ -34,7 +34,7 @@ jobs:
 
   build-docker:
     name: 🏗️ Build Docker (${{ matrix.architecture }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     needs: bump-version
 
     env:
@@ -100,10 +100,10 @@ jobs:
           distribution: zulu
           java-version: 21
 
-      - name: 🐘 Setup Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: release-candidate
+          gradle-version: current
 
       - name: 📥 Checkout ${{ github.repository }}
         uses: actions/checkout@v4

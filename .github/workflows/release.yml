@@ -37,7 +37,7 @@ jobs:
 
   build-docker:
     name: 🏗️ Build Docker (${{ matrix.architecture }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     needs: bump-version
 
     env:
@@ -103,14 +103,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create and push manifest images (latest)
-        uses: Noelware/docker-manifest-action@1.0.0
+        uses: Noelware/docker-manifest-action@0.4.3
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest-arm64
           inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           push: true
 
       - name: Create and push manifest images (version)
-        uses: Noelware/docker-manifest-action@1.0.0
+        uses: Noelware/docker-manifest-action@0.4.3
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-amd64,ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}-arm64
           inputs: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ needs.bump-version.outputs.version }}
@@ -134,10 +134,10 @@ jobs:
           distribution: zulu
           java-version: 21
 
-      - name: 🐘 Setup Gradle
-        uses: gradle/gradle-build-action@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: release-candidate
+          gradle-version: current
 
       - name: 📥 Checkout ${{ github.repository }}
         uses: actions/checkout@v4
