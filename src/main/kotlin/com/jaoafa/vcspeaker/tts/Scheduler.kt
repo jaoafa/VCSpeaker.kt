@@ -22,15 +22,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
 
 class Scheduler(
-    private val player: AudioPlayer
-) : AudioEventAdapter() {
-    private val logger = KotlinLogging.logger { }
-
+    private val player: AudioPlayer,
     /**
      * 再生中・再生待ちの Speech の Queue.
      * 0 番目が現在再生中の Speech です。
      */
-    val queue = mutableListOf<Speech>()
+    val queue: MutableList<Speech> = mutableListOf()
+) : AudioEventAdapter() {
+    private val logger = KotlinLogging.logger { }
 
     /**
      * 現在再生中の Speech を取得します。
@@ -126,7 +125,7 @@ class Scheduler(
             return
         }
 
-        val speech = Speech(actor, guild, message, contexts, tracks)
+        val speech = Speech(actor, guild.name, message, contexts, tracks)
 
         queue.add(speech)
 
@@ -143,6 +142,15 @@ class Scheduler(
         }
     }
 
+    fun start() {
+        val next = queue.removeFirst()
+        beginSpeech(next)
+
+        logger.info {
+            "[${next.guildName}] Speech Starting: The speech for ${next.describe()} has been started."
+        }
+    }
+
     fun skip() {
         if (queue.isEmpty()) {
             player.stopTrack()
@@ -155,7 +163,7 @@ class Scheduler(
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
         runBlocking {
             val message = current()!!.message
-            val guildName = current()!!.guild.name
+            val guildName = current()!!.guildName
 
             val next = current()!!.next()
 
@@ -196,7 +204,7 @@ class Scheduler(
      *
      * @param speech 音声
      */
-    private fun beginSpeech(speech: Speech): Unit = runBlocking {
+    fun beginSpeech(speech: Speech): Unit = runBlocking {
         if (speech.message != null) speech.message.addReactionSafe("🔊")
 
         player.speak(speech)
