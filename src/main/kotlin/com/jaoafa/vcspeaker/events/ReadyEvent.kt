@@ -19,7 +19,7 @@ class ReadyEvent : Extension() {
             action {
                 logger.info { "Ready! Logged in as ${event.self.tag}." }
 
-                if (Server.type == ServerType.Latest) {
+                if (VCSpeaker.apiServer?.type == ServerType.Latest) {
                     StateManager.reconnect()
                 }
 
