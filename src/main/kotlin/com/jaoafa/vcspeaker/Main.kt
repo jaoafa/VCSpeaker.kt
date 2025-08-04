@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
 import com.jaoafa.vcspeaker.api.Server
+import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
@@ -77,7 +78,7 @@ class Options : OptionGroup("Main Options:") {
 
     val apiPort by option(
         "--api-port",
-        help = "The port for the API server.",
+        help = "The port for the API server to listen on.",
         envvar = "VCSKT_API_PORT"
     ).int().default(2000)
 
@@ -133,15 +134,17 @@ class Entrypoint : CliktCommand() {
         runBlocking {
             val shouldWait = options.waitFor != null
 
-            if (shouldWait) {
+            if (shouldWait) { // this instance is LATEST
                 KordStarter.start(launch = false)
-                Server.start(options.apiPort)
+                val server = Server(ServerType.Latest, options.apiToken, options.waitFor)
+                VCSpeaker.apiServer = server
+                server.start(options.apiPort)
 
-                Server.requestUpdate(
+                server.requestUpdate(
                     "update/current/init-finished",
                     InitFinishedRequest(
-                        Server.selfId,
-                        Server.selfToken
+                        server.selfId,
+                        server.selfToken
                     ),
                     InitFinishedRequest.serializer()
                 )
@@ -149,7 +152,6 @@ class Entrypoint : CliktCommand() {
                 while (true) {
                 }
             } else {
-                Server.start(options.apiPort)
                 KordStarter.start()
             }
         }

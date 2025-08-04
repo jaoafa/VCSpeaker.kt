@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.reload
 import com.jaoafa.vcspeaker.Options
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.Server
+import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -116,6 +117,7 @@ object Reload {
 
         if (jar.exists()) {
             logger.info { "Found existing jar file: ${jar.absolutePath}. Download aborted." }
+            return null
         }
 
         var lastProgressUpdate = System.currentTimeMillis()
@@ -156,20 +158,16 @@ object Reload {
         // copy to the current working directory
         val updateJar = jar.copyTo(File("./update-${System.currentTimeMillis()}.jar"), overwrite = true)
 
-        val port = listOf(2000, 2001).first {
-            try {
-                ServerSocket(it).use { true }
-            } catch (e: IOException) {
-                logger.info { "Port $it is already in use." }
-                false
-            }
-        }
+        val server = Server(ServerType.Current)
+        VCSpeaker.apiServer?.stop()
+        VCSpeaker.apiServer = server
+        server.start(2000)
 
         ProcessBuilder(
             "nohup", "java", "-jar", updateJar.absolutePath,
-            "--api-port", port.toString(),
-            "--wait-for", Server.selfId.toString(),
-            "--api-token", Server.selfToken,
+            "--api-port", "2001",
+            "--wait-for", server.selfId.toString(),
+            "--api-token", server.selfToken,
         ).redirectOutput(File("./update.log"))
             .redirectError(File("./update.log"))
             .start()

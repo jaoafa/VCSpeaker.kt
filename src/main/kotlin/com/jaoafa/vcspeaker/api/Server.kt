@@ -27,6 +27,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
@@ -44,8 +45,9 @@ enum class ServerType {
 }
 
 
-object Server {
+class Server(val type: ServerType, var targetToken: String? = null, var targetId: String? = null) {
     private val logger = KotlinLogging.logger {}
+
     val reloaderJsonFormat = Json {
         explicitNulls = false
         serializersModule = SerializersModule {
@@ -71,11 +73,9 @@ object Server {
         Base64.encode(bytes)
     }
 
-    var targetId: String? = null
     var targetPort = 0
-    var targetToken: String? = VCSpeaker.options.apiToken
 
-    var type = if (VCSpeaker.options.waitFor != null) ServerType.Latest else ServerType.Current
+    // var type = if (VCSpeaker.options.waitFor != null) ServerType.Latest else ServerType.Current
 
     val client = HttpClient(io.ktor.client.engine.cio.CIO) {
         install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
@@ -142,10 +142,17 @@ object Server {
     }
 
     // todo: add timeout for each request (to prevent stucking)
+
+    private var server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>? = null
+
+    /**
+     * API サーバーを起動します。
+     *
+     * @param port バインドするポート番号。
+     * @param wait 起動後にサスペンドするかどうか。
+     */
     fun start(port: Int, wait: Boolean = false) {
         targetPort = if (port == 2000) port + 1 else port - 1
-
-        targetId = VCSpeaker.options.waitFor
 
         logger.info { "Initiating a server as $type instance. $selfId [$port] <----> [$targetPort] $targetId" }
 
@@ -155,7 +162,7 @@ object Server {
             }
 
             install(ServerTypePlugin) {
-                type = Server.type
+                type = this@Server.type
             }
 
             authentication {
@@ -237,7 +244,7 @@ object Server {
                                     return@post
                                 }
 
-                                Runtime.getRuntime().removeShutdownHook(VCSpeaker.instance.shutdownHook)
+                                VCSpeaker.removeShutdownHook()
                                 exitProcess(0)
                             }
                         }
@@ -299,6 +306,16 @@ object Server {
             }
         }
 
+        this.server = server
         server.start(wait)
+    }
+
+    fun stop() {
+        logger.info { "Stopping API server..." }
+        runBlocking {
+            server?.stopSuspend(1000, 1000)
+        }
+        server = null
+        logger.info { "Server stopped." }
     }
 }

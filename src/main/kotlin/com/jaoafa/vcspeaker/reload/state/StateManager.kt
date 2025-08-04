@@ -17,7 +17,7 @@ object StateManager {
      * Latest -> Locked from the start
      * Current -> Locked when the transfer happens
      */
-    var locked = Server.type == ServerType.Latest
+    var locked = VCSpeaker.apiServer?.type == ServerType.Latest
         private set
 
     fun lock() {
