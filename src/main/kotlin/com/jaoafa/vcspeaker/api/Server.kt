@@ -75,8 +75,6 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
 
     var targetPort = 0
 
-    // var type = if (VCSpeaker.options.waitFor != null) ServerType.Latest else ServerType.Current
-
     val client = HttpClient(io.ktor.client.engine.cio.CIO) {
         install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
             json(reloaderJsonFormat)
@@ -152,6 +150,7 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
      * @param wait 起動後にサスペンドするかどうか。
      */
     fun start(port: Int, wait: Boolean = false) {
+        // rotate the port between 2000 and 2001
         targetPort = if (port == 2000) port + 1 else port - 1
 
         logger.info { "Initiating a server as $type instance. $selfId [$port] <----> [$targetPort] $targetId" }

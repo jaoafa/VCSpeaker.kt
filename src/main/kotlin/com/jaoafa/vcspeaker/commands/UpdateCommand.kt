@@ -26,7 +26,7 @@ class UpdateCommand : Extension() {
             }
             action {
                 if (arguments.path == "bypassdevlock") {
-                    val file = Reload.checkUpdate(bypassDevLock = true)
+                    val file = Reload.downloadUpdate(bypassDevLock = true)
 
                     if (file == null) { // can't be reached
                         respond("更新が見つかりませんでした。")

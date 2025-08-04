@@ -1,6 +1,5 @@
 package com.jaoafa.vcspeaker.reload
 
-import com.jaoafa.vcspeaker.Options
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
@@ -16,13 +15,10 @@ import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.time.withTimeout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import okio.IOException
 import java.io.File
-import java.net.ServerSocket
 import java.util.Timer
 import java.util.TimerTask
 
@@ -86,7 +82,7 @@ object Reload {
      * @throws IllegalStateException GitHub Releases から jar archive が見つからなかった場合
      * @return ダウンロードした [File]; 更新がなければ null を返します。
      */
-    suspend fun checkUpdate(bypassDevLock: Boolean = false): File? {
+    suspend fun downloadUpdate(bypassDevLock: Boolean = false): File? {
         val repo = VCSpeaker.config[EnvSpec.updateRepo]
         val url = "https://api.github.com/repos/$repo/releases/latest"
 
@@ -100,13 +96,19 @@ object Reload {
         if (release.tagName.removePrefix("v") == VCSpeaker.version) { // up to date
             logger.info { "Already up-to-date. VCSpeaker ${release.tagName}" }
             return null
-        } else if (VCSpeaker.isDev() && !bypassDevLock && !prodUpdateInDevWarned) { // tags don't match, but VCSpeaker is in dev mode
-            logger.warn { "Production Update Found. To simulate update process, use \"/update bypassdevlock\" (v${VCSpeaker.version} on local)" }
+        } else if (VCSpeaker.isDev()) { // tags don't match, but VCSpeaker is in dev mode
+            if (!bypassDevLock && !prodUpdateInDevWarned) { // no bypassDevLock, warn only once
+                logger.warn { "Production Update Found. To simulate update process, use \"/update bypassdevlock\" (v${VCSpeaker.version} on local)" }
 
-            prodUpdateInDevWarned = true
-            return null
+                prodUpdateInDevWarned = true
+                return null
+            } else if (!bypassDevLock) { // no bypassDevLock
+                return null
+            } else { // bypassDevLock
+                logger.info { "Bypassing production update lock in dev mode..." }
+                logger.info { "Updating to VCSpeaker ${release.tagName} (v${VCSpeaker.version} on local)" }
+            }
         } else {
-            if (bypassDevLock) logger.info { "Bypassing production update lock in dev mode..." }
             logger.info { "Update found! VCSpeaker ${release.tagName} (v${VCSpeaker.version} on local)" }
         }
 
@@ -190,12 +192,12 @@ object Reload {
                 try {
                     logger.info { "Auto update is enabled. Checking for updates..." }
 
-                    val jar = runBlocking { checkUpdate() }
+                    val jar = runBlocking { downloadUpdate() }
 
                     if (jar != null) {
                         updateTo(jar)
                     } else {
-                        logger.info { "No updates found." }
+                        logger.info { "Not updating." }
                     }
                 } catch (e: Exception) {
                     logger.error(e) { "Failed to check for updates." }
