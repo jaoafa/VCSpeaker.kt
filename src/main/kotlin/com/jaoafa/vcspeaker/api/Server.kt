@@ -92,7 +92,7 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
 
         basicAuth(
             username = selfId.toString(),
-            password = targetToken ?: throw Exception("targetToken is null")
+            password = targetToken ?: ""
         )
 
         if (body != null) setBody(body)
@@ -166,13 +166,30 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
      * @param port バインドするポート番号。
      * @param wait 起動後にサスペンドするかどうか。
      */
-    fun start(port: Int, wait: Boolean = false) {
+    fun start(port: Int, wait: Boolean = false, sendBackIntSignal: Boolean = false) {
         // rotate the port between 2000 and 2001
         targetPort = if (port == 2000) port + 1 else port - 1
 
         logger.info { "Initiating a server as $type instance. $selfId [$port] <----> [$targetPort] $targetId" }
 
         val server = embeddedServer(CIO, port = port) {
+            monitor.subscribe(ServerReady) {
+                logger.info { "Server is ready at port $port" }
+
+                if (sendBackIntSignal) {
+                    runBlocking {
+                        requestUpdate(
+                            "update/current/init-finished",
+                            InitFinishedRequest(
+                                selfId,
+                                selfToken
+                            ),
+                            InitFinishedRequest.serializer()
+                        )
+                    }
+                }
+            }
+
             install(ContentNegotiation) {
                 json(reloaderJsonFormat)
             }

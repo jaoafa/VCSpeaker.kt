@@ -138,19 +138,7 @@ class Entrypoint : CliktCommand() {
                 KordStarter.start(launch = false)
                 val server = Server(ServerType.Latest, options.apiToken, options.waitFor)
                 VCSpeaker.apiServer = server
-                server.start(options.apiPort)
-
-                server.requestUpdate(
-                    "update/current/init-finished",
-                    InitFinishedRequest(
-                        server.selfId,
-                        server.selfToken
-                    ),
-                    InitFinishedRequest.serializer()
-                )
-
-                while (true) {
-                }
+                server.start(options.apiPort, wait = true, sendBackIntSignal = true)
             } else {
                 KordStarter.start()
             }
