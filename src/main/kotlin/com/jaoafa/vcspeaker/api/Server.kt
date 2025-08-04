@@ -44,7 +44,13 @@ enum class ServerType {
     Latest, Current, Unknown
 }
 
-
+/**
+ * VCSpeaker の API サーバーを表すクラスです。
+ *
+ * @property type [ServerType]
+ * @property targetToken [type] が [ServerType.Latest] の場合、[ServerType.Current] サーバーの認証トークン
+ * @property targetId [type] が [ServerType.Latest] の場合、[ServerType.Current] の ID
+ */
 class Server(val type: ServerType, var targetToken: String? = null, var targetId: String? = null) {
     private val logger = KotlinLogging.logger {}
 
@@ -128,11 +134,23 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
         return
     }
 
+    /**
+     * ルートで受信した UpdateRequest をデコードします。
+     *
+     * @param serializer Body のシリアライザ
+     * @return UpdateRequest<T>
+     */
     suspend fun <T> RoutingCall.receiveUpdateOf(serializer: KSerializer<T>): UpdateRequest<T> {
-        val response = reloaderJsonFormat.decodeFromString(UpdateRequest.serializer(serializer), receiveText())
+        val response = reloaderJsonFormat
+            .decodeFromString(UpdateRequest.serializer(serializer), receiveText())
         return response
     }
 
+    /**
+     * リクエストに肯定応答を返し、シーケンス番号を更新します。
+     *
+     * @param s シーケンス番号
+     */
     private suspend fun RoutingCall.ok(s: Int) {
         respond(HttpStatusCode.OK)
         logger.info { "[S$s] Done." }
@@ -174,9 +192,7 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
 
                         if (namePass && credentials.password == selfToken) {
                             UserIdPrincipal(credentials.name)
-                        } else {
-                            null
-                        }
+                        } else null
                     }
                 }
             }
@@ -189,7 +205,11 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
                 route("/update") {
                     authenticate("update-basic-auth") {
                         route("/current") {
-                            post("/init-finished") { // 1: L -> C, L finished init
+                            /**
+                             * S0 - Latest から Current へ、初期化が完了したことを通知します。
+                             * Body: UpdateRequest<InitFinishedRequest>
+                             */
+                            post("/init-finished") {
                                 if (call.attributes[invalidTypeKey]) return@post
 
                                 val (s, request) = call.receiveUpdateOf(InitFinishedRequest.serializer())
@@ -218,7 +238,12 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
                                 }
                             }
 
-                            post("/ready") { // 3: L -> C, L ready
+                            /**
+                             * S2 - Latest から Current へ、ステート同期とログイン準備が完了したことを通知します。
+                             * Current は S3 - Ack を送信後に code 0 で終了します。
+                             * Body: UpdateRequest<Boolean>
+                             */
+                            post("/ready") {
                                 if (call.attributes[invalidTypeKey]) return@post
 
                                 val (s, _) = call.receiveUpdateOf(Boolean.serializer())
@@ -247,8 +272,13 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
                                 exitProcess(0)
                             }
                         }
+
                         route("/latest") {
-                            post("/state") { // 2: C -> L, C froze state
+                            /**
+                             * S1 - Current から Latest へ、[State] を転送します。
+                             * Body: UpdateRequest<State>
+                             */
+                            post("/state") {
                                 if (call.attributes[invalidTypeKey]) return@post
 
                                 val (s, state) = call.receiveUpdateOf(State.serializer())
@@ -276,7 +306,11 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
                                 }
                             }
 
-                            post("/ack") { // 4: C -> L, C exit
+                            /**
+                             * S3 - Current から Latest へ、肯定応答を送信し、Latest はログインを開始します。
+                             * Body: UpdateRequest<State>
+                             */
+                            post("/ack") {
                                 if (call.attributes[invalidTypeKey]) return@post
 
                                 val (s, _) = call.receiveUpdateOf(Boolean.serializer())
