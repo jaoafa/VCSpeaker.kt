@@ -75,6 +75,31 @@ object Reload {
 
     var prodUpdateInDevWarned = false
 
+    fun shouldContinueUpdate(nextVersion: String, bypassDevLock: Boolean = false): Boolean {
+        // tagName ... v1.2.3
+        // version ... 1.2.3
+        if (nextVersion == VCSpeaker.version) { // up to date
+            logger.info { "Already up-to-date. VCSpeaker v${nextVersion}" }
+            return false
+        } else if (VCSpeaker.isDev()) { // tags don't match, but VCSpeaker is in dev mode
+            if (!bypassDevLock && !prodUpdateInDevWarned) { // no bypassDevLock, warn only once
+                logger.warn { "Production Update Found. To simulate update process, use \"/update bypassdevlock\" (v${VCSpeaker.version} on local)" }
+
+                prodUpdateInDevWarned = true
+                return false
+            } else if (!bypassDevLock) { // no bypassDevLock
+                return false
+            } else { // bypassDevLock
+                logger.info { "Bypassing production update lock in dev mode..." }
+                logger.info { "Updating to VCSpeaker v${nextVersion} (v${VCSpeaker.version} on local)" }
+            }
+        } else {
+            logger.info { "Update found! VCSpeaker v${nextVersion} (v${VCSpeaker.version} on local)" }
+        }
+
+        return true
+    }
+
     /**
      * GitHub Releases から最新のリリースを取得し、更新があればダウンロードします。
      * jar archive は ./updates に保存されます。
@@ -91,26 +116,8 @@ object Reload {
         val response = client.get(url)
         val release = response.body<GitHubRelease>()
 
-        // tagName ... v1.2.3
-        // version ... 1.2.3
-        if (release.tagName.removePrefix("v") == VCSpeaker.version) { // up to date
-            logger.info { "Already up-to-date. VCSpeaker ${release.tagName}" }
-            return null
-        } else if (VCSpeaker.isDev()) { // tags don't match, but VCSpeaker is in dev mode
-            if (!bypassDevLock && !prodUpdateInDevWarned) { // no bypassDevLock, warn only once
-                logger.warn { "Production Update Found. To simulate update process, use \"/update bypassdevlock\" (v${VCSpeaker.version} on local)" }
-
-                prodUpdateInDevWarned = true
-                return null
-            } else if (!bypassDevLock) { // no bypassDevLock
-                return null
-            } else { // bypassDevLock
-                logger.info { "Bypassing production update lock in dev mode..." }
-                logger.info { "Updating to VCSpeaker ${release.tagName} (v${VCSpeaker.version} on local)" }
-            }
-        } else {
-            logger.info { "Update found! VCSpeaker ${release.tagName} (v${VCSpeaker.version} on local)" }
-        }
+        val shouldContinue = shouldContinueUpdate(release.tagName.removePrefix("v"), bypassDevLock)
+        if (!shouldContinue) return null
 
         val asset = release.assets.firstOrNull { it.contentType == "application/java-archive" }
             ?: throw IllegalStateException("No jar found in release ${release.tagName}")
