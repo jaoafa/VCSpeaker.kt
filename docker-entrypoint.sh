@@ -19,7 +19,7 @@ else
     echo "Reload triggered."
     while :; do
       pid=$(pgrep -n "update-[0-9]+\.jar")
-      if [[ -e $(process_check "$pid") ]]; then
+      if process_check "$pid"; then
         exit 0
       fi
     done
