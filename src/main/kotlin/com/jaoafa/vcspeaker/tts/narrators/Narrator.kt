@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.reload.state.UseState
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
@@ -10,7 +11,7 @@ import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
 import com.jaoafa.vcspeaker.tts.SpeechActor
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.narrators.Narrators.narrator
+import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
 import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
@@ -28,14 +29,17 @@ import kotlin.reflect.full.createInstance
  * 読み上げを管理するクラスです。
  *
  * @param guildId サーバー ID
+ * @param channelId ボイスチャンネル ID
  * @param player Lavaplayer の [AudioPlayer] インスタンス
  * @param connection [VoiceConnection] インスタンス
  */
 class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
+    val channelId: Snowflake,
     val player: AudioPlayer,
-    val connection: VoiceConnection
-) {
+    val connection: VoiceConnection,
+    val scheduler: Scheduler = Scheduler(player),
+) : UseState<NarratorState>() {
     companion object {
         suspend fun Guild.announce(
             voice: String,
@@ -51,11 +55,9 @@ class Narrator @OptIn(KordVoice::class) constructor(
             }
 
             if (!isOnlyMessage)
-                narrator()?.scheduleAsSystem(voice)
+                getNarrator()?.scheduleAsSystem(voice)
         }
     }
-
-    private val scheduler = Scheduler(player)
 
     /**
      * システム音声として文章をキューに追加します。
@@ -178,6 +180,11 @@ class Narrator @OptIn(KordVoice::class) constructor(
         val guild = VCSpeaker.kord.getGuildOrNull(guildId)
 
         guild?.announce(voice, text, replier)
+    }
+
+    override fun prepareTransfer(): NarratorState {
+        this.lock()
+        return NarratorState(guildId, channelId, scheduler.queue.map { it.prepareTransfer() })
     }
 
     init {

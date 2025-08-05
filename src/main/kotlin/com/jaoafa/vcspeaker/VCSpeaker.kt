@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker
 
+import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.Emoji
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
@@ -14,16 +15,21 @@ import kotlin.io.path.Path
 object VCSpeaker {
     lateinit var version: String
 
+    lateinit var args: Array<String>
+
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
 
     lateinit var config: Config
+    lateinit var options: Options
 
     lateinit var storeFolder: File
     lateinit var cacheFolder: File
 
     lateinit var prefix: String
+
+    var apiServer: Server? = null
 
     // 開発環境のコマンドを登録する Guild ID (null で開発環境を無効化)
     var devGuildId: Snowflake? = null
@@ -60,6 +66,7 @@ object VCSpeaker {
         VCSpeaker.run {
             this.version = version
             this.config = config
+            this.options = options
             this.storeFolder = (options.storePath ?: Path(config[EnvSpec.storeFolder])).toFile()
             this.cacheFolder = (options.cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile()
             this.devGuildId = (options.devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) }
@@ -78,4 +85,6 @@ object VCSpeaker {
             it.opusEncodingQuality = options.encodingQuality ?: config[EnvSpec.encodingQuality]
         }
     }
+
+    fun removeShutdownHook() = Runtime.getRuntime().removeShutdownHook(instance.shutdownHook)
 }

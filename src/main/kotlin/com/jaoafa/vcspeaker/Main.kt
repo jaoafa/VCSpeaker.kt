@@ -7,6 +7,9 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
+import com.jaoafa.vcspeaker.api.Server
+import com.jaoafa.vcspeaker.api.ServerType
+import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
@@ -14,7 +17,9 @@ import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.serializer
 import kotlin.io.path.Path
+import kotlin.jvm.javaClass
 
 class Options : OptionGroup("Main Options:") {
     val configPath by option(
@@ -70,6 +75,30 @@ class Options : OptionGroup("Main Options:") {
         help = "The Lavaplayer opus encoding quality.",
         envvar = "VCSKT_ENCODING_QUALITY"
     ).int().restrictTo(1..10)
+
+    val apiPort by option(
+        "--api-port",
+        help = "The port for the API server to listen on.",
+        envvar = "VCSKT_API_PORT"
+    ).int().default(2000)
+
+    val waitFor by option(
+        "--wait-for",
+        help = "The ID of the current version of VCSpeaker.kt instance who wants to upgrade to this instance.",
+        envvar = "VCSKT_WAIT_FOR"
+    )
+
+    val apiToken by option(
+        "--api-token",
+        help = "The token for calling the **another** VCSpeaker API server.",
+        envvar = "VCSKT_API_TOKEN"
+    )
+
+    val autoUpdate by option(
+        "--auto-update",
+        help = "Enable auto update.",
+        envvar = "VCSKT_AUTO_UPDATE"
+    ).boolean()
 }
 
 class Entrypoint : CliktCommand() {
@@ -88,10 +117,36 @@ class Entrypoint : CliktCommand() {
             addSpec(EnvSpec)
         }.from.yaml.file(options.configPath.toFile())
 
+        val manifest = javaClass
+            .classLoader
+            .getResourceAsStream("META-INF/MANIFEST.MF")
+            ?.bufferedReader()
+            ?.readText() ?: throw IllegalStateException("META-INF/MANIFEST.MF not found")
+
+        val entryPrefix = "VCSpeaker-Version: "
+        val version = manifest.lines().firstOrNull { it.startsWith(entryPrefix) }
+            ?.removePrefix(entryPrefix) ?: "local-run-${System.currentTimeMillis()}"
+
+        logger.info { "Starting VCSpeaker.kt $version" }
+
+        VCSpeaker.init(version, config, options)
+
         runBlocking {
-            KordStarter.start(options, config)
+            val shouldWait = options.waitFor != null
+
+            if (shouldWait) { // this instance is LATEST
+                KordStarter.start(launch = false)
+                val server = Server(ServerType.Latest, options.apiToken, options.waitFor)
+                VCSpeaker.apiServer = server
+                server.start(options.apiPort, wait = true, sendBackIntSignal = true)
+            } else {
+                KordStarter.start()
+            }
         }
     }
 }
 
-fun main(args: Array<String>) = Entrypoint().main(args)
+fun main(args: Array<String>) {
+    VCSpeaker.args = args
+    Entrypoint().main(args)
+}

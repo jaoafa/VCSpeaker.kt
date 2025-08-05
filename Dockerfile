@@ -24,8 +24,11 @@ FROM azul/zulu-openjdk-alpine:21-latest AS runner
 
 WORKDIR /app
 
+COPY docker-entrypoint.sh ./
+RUN chmod a+x docker-entrypoint.sh
+
 # hadolint ignore=DL3018
-RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig curl tzdata && \
+RUN apk add --update --no-cache libstdc++ msttcorefonts-installer fontconfig curl tzdata bash && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     echo "Asia/Tokyo" > /etc/timezone && \
     apk del tzdata && \
@@ -45,4 +48,4 @@ ENV TZ=Asia/Tokyo
 RUN FILE_NAME=$(find . -name "vcspeaker-*-all.jar" -print -quit) && \
     mv ${FILE_NAME} vcspeaker.jar
 
-CMD ["java", "-jar", "/app/vcspeaker.jar"]
+CMD ["/app/docker-entrypoint.sh"]
