@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "2.2.0"
     kotlin("plugin.serialization") version "2.2.0"
     id("io.kotest.multiplatform") version "6.0.0-LOCAL"
-    id("com.gradleup.shadow") version "9.0.0-rc3"
+    id("com.gradleup.shadow") version "9.0.1"
     application
 }
 
