@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🔼 Semantic Release
         id: semantic
@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🐋 Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -140,7 +140,7 @@ jobs:
           gradle-version: current
 
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: ⌛ Restore caches
         uses: actions/cache@v4
