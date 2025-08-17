@@ -102,4 +102,6 @@ tasks.named("shadowJar", ShadowJar::class) {
     println("Creating jar as version $buildVersion")
 
     archiveVersion.set(buildVersion)
+
+    mergeServiceFiles()
 }
