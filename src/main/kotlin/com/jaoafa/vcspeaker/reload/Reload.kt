@@ -125,8 +125,8 @@ object Reload {
         val jar = File("./updates/${asset.name}")
 
         if (jar.exists()) {
-            logger.info { "Found existing jar file: ${jar.absolutePath}. Download aborted." }
-            return null
+            logger.info { "Found existing jar file: ${jar.absolutePath}. Not downloading." }
+            return jar
         }
 
         var lastProgressUpdate = System.currentTimeMillis()
@@ -175,7 +175,7 @@ object Reload {
         ProcessBuilder(
             "nohup", "java", "-jar", updateJar.absolutePath,
             "--api-port", "2001",
-            "--wait-for", server.selfId.toString(),
+            "--wait-for", server.selfId,
             "--api-token", server.selfToken,
         ).redirectOutput(File("./update.log"))
             .redirectError(File("./update.log"))
