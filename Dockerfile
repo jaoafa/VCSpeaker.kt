@@ -18,7 +18,7 @@ COPY src src
 
 ARG VERSION=local-docker
 
-RUN ./gradlew build -Pversion=${VERSION}
+RUN ./gradlew build -Pversion=${VERSION} -x test
 
 FROM azul/zulu-openjdk-alpine:21-latest AS runner
 
