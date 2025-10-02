@@ -12,7 +12,7 @@ group = "com.jaoafa"
 
 repositories {
     mavenCentral()
-    maven("https://repo.kord.dev/snapshots")
+    maven("https://snapshots.kord.dev")
     maven("https://jitpack.io/")
     maven("https://snapshots-repo.kordex.dev")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
