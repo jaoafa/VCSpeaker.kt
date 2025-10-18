@@ -9,7 +9,6 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
 import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
-import com.jaoafa.vcspeaker.api.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
@@ -17,9 +16,7 @@ import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.builtins.serializer
 import kotlin.io.path.Path
-import kotlin.jvm.javaClass
 
 class Options : OptionGroup("Main Options:") {
     val configPath by option(
