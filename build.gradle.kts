@@ -12,7 +12,7 @@ group = "com.jaoafa"
 
 repositories {
     mavenCentral()
-    maven("https://repo.kord.dev/snapshots")
+    maven("https://snapshots.kord.dev")
     maven("https://jitpack.io/")
     maven("https://snapshots-repo.kordex.dev")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
@@ -34,7 +34,7 @@ dependencies {
 
     // Discord Related
     implementation("dev.kord:kord-core:0.15.0")
-    implementation("dev.kord:kord-core-voice:new-voice-encryption-modes-SNAPSHOT")
+    implementation("dev.kord:kord-core-voice:0.15.0")
     implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
     implementation("dev.arbjerg:lavaplayer:2.2.3")
 

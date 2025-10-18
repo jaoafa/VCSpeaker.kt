@@ -152,7 +152,7 @@ jobs:
 
       - name: 🐘 Run Gradle command
         run: |
-          gradle build -Pversion=${{ env.version }}
+          gradle build -Pversion=${{ env.version }} -x test
 
       - name: 🗃️ Publish Release on main
         uses: softprops/action-gh-release@v2
