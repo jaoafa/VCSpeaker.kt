@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.tools
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
@@ -20,6 +21,9 @@ object Emoji {
 
         val client = HttpClient(CIO) {
             VCSpeakerUserAgent()
+            install(HttpTimeout) {
+                requestTimeoutMillis = 300_000 // 5 minutes
+            }
         }
 
         val response = client.get("https://unicode.org/Public/emoji/latest/emoji-test.txt")
