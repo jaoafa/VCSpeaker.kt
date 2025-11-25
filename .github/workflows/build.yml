@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🐋 Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -106,7 +106,7 @@ jobs:
           gradle-version: current
 
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: ⌛ Restore caches
         uses: actions/cache@v4
