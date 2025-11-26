@@ -17,6 +17,8 @@ repositories {
     maven("https://snapshots-repo.kordex.dev")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://repo.tomacheese.com")
+    maven("https://maven.arbjerg.dev/snapshots")
 }
 
 dependencies {
@@ -34,9 +36,9 @@ dependencies {
 
     // Discord Related
     implementation("dev.kord:kord-core:0.15.0")
-    implementation("dev.kord:kord-core-voice:0.15.0")
     implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
     implementation("dev.arbjerg:lavaplayer:2.2.3")
+    implementation("dev.schlaubi.lavakord:kord:9.1.5")
 
     // Ktor Client
     implementation("io.ktor:ktor-client-cio-jvm:3.2.3")

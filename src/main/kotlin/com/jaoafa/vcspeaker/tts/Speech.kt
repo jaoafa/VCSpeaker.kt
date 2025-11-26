@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.tts
 import com.jaoafa.vcspeaker.tools.discord.MessageSerializer
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.core.entity.Message
 import kotlinx.serialization.Serializable
 
@@ -14,7 +15,7 @@ import kotlinx.serialization.Serializable
  * @param guildName サーバー名
  * @param message メッセージ
  * @param contexts [ProviderContext] のリスト
- * @param tracks [AudioTrack] のリスト
+ * @param tracks [Track] のリスト
  */
 @Serializable
 data class Speech(
@@ -23,7 +24,7 @@ data class Speech(
     @Serializable(with = MessageSerializer::class)
     val message: Message? = null,
     val contexts: List<ProviderContext>,
-    val tracks: List<AudioTrack>
+    val tracks: List<Track>
 ) {
     private var index: Int = 0
 
@@ -32,7 +33,7 @@ data class Speech(
      *
      * @return [Pair<AudioTrack, ProviderContext>], 存在しない場合は null
      */
-    fun next(): Pair<AudioTrack, ProviderContext>? {
+    fun next(): Pair<Track, ProviderContext>? {
         index++
 
         if (index >= tracks.size) return null
