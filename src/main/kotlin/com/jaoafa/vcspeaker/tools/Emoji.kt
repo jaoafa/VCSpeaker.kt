@@ -26,7 +26,7 @@ object Emoji {
             }
         }
 
-        val response = client.get("https://gist.githubusercontent.com/yuuahp/64fa9c60a198f71d211629906079d040/raw/f3429f8ee26776d9028f8cfac5cc0608efc83ce0/emoji-test.txt")
+        val response = client.get("https://unicode.org/Public/emoji/latest/emoji-test.txt")
         val lines = response.bodyAsText().lines().filter { !it.startsWith("#") && it.isNotEmpty() }
 
         val emojiDataString = lines.map { it.split("#").last().trim() }
