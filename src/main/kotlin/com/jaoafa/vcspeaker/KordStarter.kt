@@ -66,7 +66,7 @@ object KordStarter {
         this.instance = instance
 
         // FIXME: load from env
-        initLavaLink(instance.kordRef, "ws://localhost:2333", "npe09mgZlbb4")
+        initLavaLink(instance.kordRef, "ws://localhost:2333", "CHANGEME")
 
         if (launch) {
             logger.info { "Starting Kord instance..." }
