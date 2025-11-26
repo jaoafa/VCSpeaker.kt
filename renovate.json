@@ -1,15 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":disableRateLimiting"],
+  "extends": [
+    "config:recommended",
+    ":disableRateLimiting"
+  ],
   "timezone": "Asia/Tokyo",
   "automerge": true,
   "platformAutomerge": true,
-  "platformCommit": true,
+  "platformCommit": "enabled",
   "packageRules": [
     {
       "groupName": "mkdocs",
-      "matchPackageNames": ["mkdocs"],
-      "matchPackagePatterns": ["^mkdocs-"]
+      "matchPackageNames": [
+        "mkdocs",
+        "/^mkdocs-/"
+      ]
     }
   ]
 }
