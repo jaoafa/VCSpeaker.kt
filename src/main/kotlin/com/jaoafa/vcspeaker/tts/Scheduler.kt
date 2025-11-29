@@ -21,6 +21,7 @@ import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
+import dev.arbjerg.lavalink.protocol.v4.Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason
 
 class Scheduler(
     private val link: Link,
@@ -162,8 +163,7 @@ class Scheduler(
     }
 
     fun onTrackEnd(
-        track: Track,
-        endReason: dev.arbjerg.lavalink.protocol.v4.Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason
+        endReason: AudioTrackEndReason
     ): Unit =
         runBlocking {
             val message = current()!!.message
@@ -215,7 +215,7 @@ class Scheduler(
 
     init {
         link.player.on<TrackEndEvent> event@{
-            onTrackEnd(track, reason)
+            onTrackEnd(reason)
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.jaoafa.vcspeaker.tts.providers
 
+import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.stores.CacheStore
 import dev.arbjerg.lavalink.protocol.v4.LoadResult
 import dev.arbjerg.lavalink.protocol.v4.Track
@@ -59,7 +61,7 @@ class BatchProvider(private val link: Link, private val contexts: List<ProviderC
                         logger.info { "Cache Found: Audio for ${context.describe()} already exists" }
                     })
 
-                    val track = when (val item = link.loadItem("/opt/Lavalink/cache/" + file.name)) {
+                    val track = when (val item = link.loadItem(VCSpeaker.config[EnvSpec.lavalinkCachePath] + file.name)) {
                         is LoadResult.TrackLoaded -> item.data
                         is LoadResult.LoadFailed -> throw UnexpectedException(item.data.causeStackTrace)
                         else -> throw UnexpectedException("Code should not reach here")

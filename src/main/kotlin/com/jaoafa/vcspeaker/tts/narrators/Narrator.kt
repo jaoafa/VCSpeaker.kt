@@ -184,8 +184,4 @@ class Narrator @OptIn(KordVoice::class) constructor(
         this.lock()
         return NarratorState(guildId, channelId, scheduler.queue.map { it.prepareTransfer() })
     }
-
-    init {
-        // link.player.addListener(scheduler)
-    }
 }

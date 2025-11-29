@@ -38,4 +38,10 @@ object EnvSpec : ConfigSpec() {
     val updateRepo by optional<String>("jaoafa/VCSpeaker.kt")
 
     val autoUpdate by optional<Boolean>(false)
+
+    val lavalinkUri by optional<String>("ws://localhost:2333")
+
+    val lavalinkPassword by optional<String>("CHANGEME")
+
+    val lavalinkCachePath by optional<String>("/opt/Lavalink/cache/")
 }
