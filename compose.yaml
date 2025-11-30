@@ -12,10 +12,6 @@ services:
       - ./application.yml:/opt/Lavalink/application.yml
       - ./plugins/:/opt/Lavalink/plugins/
       - ./cache/:/opt/Lavalink/cache/
-    expose:
-      - 2333
-    ports:
-      - "2333:2333"
   app:
     build: .
     volumes:

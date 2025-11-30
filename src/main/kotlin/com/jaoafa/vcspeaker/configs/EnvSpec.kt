@@ -39,7 +39,7 @@ object EnvSpec : ConfigSpec() {
 
     val autoUpdate by optional<Boolean>(false)
 
-    val lavalinkUri by optional<String>("ws://localhost:2333")
+    val lavalinkUri by optional<String>("ws://lavalink:2333")
 
     val lavalinkPassword by optional<String>("CHANGEME")
 

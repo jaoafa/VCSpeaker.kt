@@ -121,7 +121,7 @@ object VoiceExtensions {
             this.playTrack(speech.tracks[0])
 
             logger.info {
-                "[$guildName] Playing Track: Audio for ${speech.describe()} is playing now "// (${speech.tracks[0].identifier})"
+                "[$guildName] Playing Track: Audio for ${speech.describe()} is playing now"
             }
         } catch (exception: Exception) {
             logger.error(exception) {

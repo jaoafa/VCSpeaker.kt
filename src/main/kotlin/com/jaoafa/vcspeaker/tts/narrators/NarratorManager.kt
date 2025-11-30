@@ -45,12 +45,6 @@ object NarratorManager {
             val channel = guild.getChannelOfOrNull<VoiceChannel>(channelId)
                 ?: throw IllegalStateException("Error while connecting; Channel not found: $channelId")
 
-//            val connection = channel.connect {
-//                audioProvider {
-//                    AudioFrame.fromData(player.provide(1, TimeUnit.SECONDS)?.data)
-//                }
-//            }
-
             val link = VCSpeaker.lavalink.getLink(guild.id)
             link.connectAudio(channel.id)
 
