@@ -2,8 +2,10 @@ package providers
 
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import dev.schlaubi.lavakord.audio.Link
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.assertions.throwables.shouldThrow
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 
 class BatchProviderTest : FunSpec({
@@ -12,7 +14,8 @@ class BatchProviderTest : FunSpec({
             override fun describe(): String = "dummy"
             override fun identity(): String = "dummy"
         }
-        val batch = BatchProvider(listOf(dummy))
+        val linkMock = mockk<Link>()
+        val batch = BatchProvider(linkMock, listOf(dummy))
         shouldThrow<IllegalArgumentException> {
             runBlocking {
                 batch.start()

@@ -7,28 +7,30 @@ import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
-import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.rest.builder.message.embed
+import dev.schlaubi.lavakord.audio.Link
+import dev.schlaubi.lavakord.audio.TrackEndEvent
+import dev.schlaubi.lavakord.audio.on
+import dev.schlaubi.lavakord.audio.player.applyFilters
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
+import dev.arbjerg.lavalink.protocol.v4.Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason
 
 class Scheduler(
-    private val player: AudioPlayer,
+    private val link: Link,
     /**
      * 再生中・再生待ちの Speech の Queue.
      * 0 番目が現在再生中の Speech です。
      */
     val queue: MutableList<Speech> = mutableListOf()
-) : AudioEventAdapter() {
+) {
     private val logger = KotlinLogging.logger { }
 
     /**
@@ -52,7 +54,7 @@ class Scheduler(
         val messageInfo = "the message by @${message?.author?.username ?: "unknown_member"}"
 
         val tracks = try {
-            BatchProvider(contexts).start()
+            BatchProvider(link, contexts).start()
         } catch (exception: HttpRequestTimeoutException) {
             message?.reply {
                 embed {
@@ -151,16 +153,18 @@ class Scheduler(
         }
     }
 
-    fun skip() {
+    suspend fun skip() {
         if (queue.isEmpty()) {
-            player.stopTrack()
+            link.player.stopTrack()
         } else {
             val next = queue.removeFirst()
             beginSpeech(next)
         }
     }
 
-    override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason): Unit =
+    fun onTrackEnd(
+        endReason: AudioTrackEndReason
+    ): Unit =
         runBlocking {
             val message = current()!!.message
             val guildName = current()!!.guildName
@@ -171,12 +175,11 @@ class Scheduler(
             if (endReason.mayStartNext && next != null) {
                 val (nextTrack, nextContext) = next
 
-                if (nextContext is SoundmojiContext)
-                    player.volume = 20
-                else player.volume = 100
+                link.player.applyFilters {
+                    volume = if (nextContext is SoundmojiContext) 20F else 100F
+                }
 
-
-                launch { player.playTrack(nextTrack) }
+                launch { link.player.playTrack(nextTrack) }
                 return@runBlocking
             }
 
@@ -205,8 +208,14 @@ class Scheduler(
      * @param speech 音声
      */
     fun beginSpeech(speech: Speech): Unit = runBlocking {
-        if (speech.message != null) speech.message.addReactionSafe("🔊")
+        speech.message?.addReactionSafe("🔊")
 
-        player.speak(speech)
+        link.player.speak(speech)
+    }
+
+    init {
+        link.player.on<TrackEndEvent> event@{
+            onTrackEnd(reason)
+        }
     }
 }

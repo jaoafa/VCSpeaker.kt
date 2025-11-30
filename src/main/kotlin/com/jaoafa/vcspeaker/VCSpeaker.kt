@@ -9,6 +9,7 @@ import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kordex.core.ExtensibleBot
+import dev.schlaubi.lavakord.LavaKord
 import java.io.File
 import kotlin.io.path.Path
 
@@ -20,6 +21,7 @@ object VCSpeaker {
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
     val lavaplayer = DefaultAudioPlayerManager()
+    lateinit var lavalink: LavaKord
 
     lateinit var config: Config
     lateinit var options: Options
