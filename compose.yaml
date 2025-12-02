@@ -11,7 +11,7 @@ services:
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml
       - ./plugins/:/opt/Lavalink/plugins/
-      - ./cache/:/opt/Lavalink/cache/
+      - ./data/cache/:/opt/Lavalink/cache/
   app:
     build: .
     volumes:

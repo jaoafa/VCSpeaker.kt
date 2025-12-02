@@ -7,7 +7,7 @@ import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
-import dev.arbjerg.lavalink.protocol.v4.Track
+import dev.arbjerg.lavalink.protocol.v4.Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
@@ -21,7 +21,6 @@ import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
-import dev.arbjerg.lavalink.protocol.v4.Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason
 
 class Scheduler(
     private val link: Link,
@@ -144,7 +143,7 @@ class Scheduler(
         }
     }
 
-    fun start() {
+    suspend fun start() {
         val next = queue.removeFirst()
         beginSpeech(next)
 
@@ -207,9 +206,8 @@ class Scheduler(
      *
      * @param speech 音声
      */
-    fun beginSpeech(speech: Speech): Unit = runBlocking {
+    suspend fun beginSpeech(speech: Speech) {
         speech.message?.addReactionSafe("🔊")
-
         link.player.speak(speech)
     }
 
