@@ -65,6 +65,8 @@ object KordStarter {
 
         this.instance = instance
 
+        initLavaLink(instance.kordRef, config[EnvSpec.lavalinkUri], config[EnvSpec.lavalinkPassword])
+
         if (launch) {
             logger.info { "Starting Kord instance..." }
             instance.start()

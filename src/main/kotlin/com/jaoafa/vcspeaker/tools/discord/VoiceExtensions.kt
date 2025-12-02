@@ -1,20 +1,16 @@
 package com.jaoafa.vcspeaker.tools.discord
 
-import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
 import com.jaoafa.vcspeaker.tts.Speech
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
 import com.jaoafa.vcspeaker.tts.narrators.NarratorManager
 import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
-import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
-import dev.kord.core.behavior.channel.connect
-import dev.kord.voice.AudioFrame
+import dev.schlaubi.lavakord.audio.player.Player
+import dev.schlaubi.lavakord.kord.connectAudio
 import io.github.oshai.kotlinlogging.KotlinLogging
-import java.util.concurrent.TimeUnit
 
 object VoiceExtensions {
     private val logger = KotlinLogging.logger { }
@@ -63,7 +59,7 @@ object VoiceExtensions {
     ): Narrator? {
         val narrator = guild.getNarrator() ?: return null
 
-        narrator.connection.move(id)
+        narrator.link.connectAudio(id)
 
         narrator.announce(
             NarrationScripts.SELF_MOVE,
@@ -114,18 +110,18 @@ object VoiceExtensions {
         }
     }
 
-    fun AudioPlayer.speak(speech: Speech) {
+    suspend fun Player.speak(speech: Speech) {
         val guildName = speech.guildName
 
         try {
-            if (speech.contexts[0] is SoundmojiContext)
-                this.volume = 20
-            else this.volume = 100
+            // applyFilters { // FIXME: StackOverflowError
+            //     volume = if (speech.contexts[0] is SoundmojiContext) 20F else 100F
+            // }
 
             this.playTrack(speech.tracks[0])
 
             logger.info {
-                "[$guildName] Playing Track: Audio for ${speech.describe()} is playing now (${speech.tracks[0].identifier})"
+                "[$guildName] Playing Track: Audio for ${speech.describe()} is playing now"
             }
         } catch (exception: Exception) {
             logger.error(exception) {

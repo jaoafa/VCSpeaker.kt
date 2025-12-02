@@ -16,13 +16,12 @@ import com.jaoafa.vcspeaker.tts.processors.BaseProcessor
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.TextChannel
-import dev.kord.voice.VoiceConnection
+import dev.schlaubi.lavakord.audio.Link
 import kotlin.reflect.full.createInstance
 
 /**
@@ -30,15 +29,14 @@ import kotlin.reflect.full.createInstance
  *
  * @param guildId サーバー ID
  * @param channelId ボイスチャンネル ID
- * @param player Lavaplayer の [AudioPlayer] インスタンス
- * @param connection [VoiceConnection] インスタンス
+ * @param link LavaLink の [Link] インスタンス
+ * @param scheduler 読み上げスケジューラー
  */
 class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
     val channelId: Snowflake,
-    val player: AudioPlayer,
-    val connection: VoiceConnection,
-    val scheduler: Scheduler = Scheduler(player),
+    val link: Link,
+    val scheduler: Scheduler = Scheduler(link),
 ) : UseState<NarratorState>() {
     companion object {
         suspend fun Guild.announce(
@@ -157,19 +155,19 @@ class Narrator @OptIn(KordVoice::class) constructor(
     /**
      * 読み上げ中のメッセージをスキップします。
      */
-    fun skip() = scheduler.skip()
+    suspend fun skip() = scheduler.skip()
 
     /**
      * キューをクリアします。
      */
-    fun clear() {
+    suspend fun clear() {
         listOfNotNull(*scheduler.queue.toTypedArray(), scheduler.current()).forEach {
             it.message?.deleteOwnReactionSafe("🔊")
             it.message?.deleteOwnReactionSafe("👀")
         }
 
         scheduler.queue.clear()
-        player.stopTrack()
+        link.player.stopTrack()
     }
 
     suspend fun announce(
@@ -185,9 +183,5 @@ class Narrator @OptIn(KordVoice::class) constructor(
     override fun prepareTransfer(): NarratorState {
         this.lock()
         return NarratorState(guildId, channelId, scheduler.queue.map { it.prepareTransfer() })
-    }
-
-    init {
-        player.addListener(scheduler)
     }
 }
