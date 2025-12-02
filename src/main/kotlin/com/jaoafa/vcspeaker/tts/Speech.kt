@@ -2,7 +2,6 @@ package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.tools.discord.MessageSerializer
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.core.entity.Message
 import kotlinx.serialization.Serializable
@@ -29,9 +28,9 @@ data class Speech(
     private var index: Int = 0
 
     /**
-     * 次の [AudioTrack] と [ProviderContext] を取得します。
+     * 次の [Track] と [ProviderContext] を取得します。
      *
-     * @return [Pair<AudioTrack, ProviderContext>], 存在しない場合は null
+     * @return [Pair<Track, ProviderContext>], 存在しない場合は null
      */
     fun next(): Pair<Track, ProviderContext>? {
         index++
