@@ -35,7 +35,7 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.11")
 
     // Discord Related
-    implementation("dev.kord:kord-core:0.15.0")
+    implementation("dev.kord:kord-core:0.17.0")
     implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
     implementation("dev.arbjerg:lavaplayer:2.2.3")
     implementation("dev.schlaubi.lavakord:kord:9.1.5")
