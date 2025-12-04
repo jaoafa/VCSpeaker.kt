@@ -9,8 +9,6 @@ services:
       - LAVALINK_SERVER_PASSWORD=CHANGEME
       - LAVALINK_SERVER_SOURCES_LOCAL=true
     volumes:
-      - ./application.yml:/opt/Lavalink/application.yml
-      - ./plugins/:/opt/Lavalink/plugins/
       - ./data/cache/:/opt/Lavalink/cache/
   app:
     build: .
