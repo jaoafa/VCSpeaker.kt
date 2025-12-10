@@ -41,17 +41,17 @@ dependencies {
     implementation("dev.schlaubi.lavakord:kord:9.1.5")
 
     // Ktor Client
-    implementation("io.ktor:ktor-client-cio-jvm:3.2.3")
-    implementation("io.ktor:ktor-client-cio:3.2.3")
-    implementation("io.ktor:ktor-client-content-negotiation:3.2.3")
-    implementation("io.ktor:ktor-client-core:3.2.3")
+    implementation("io.ktor:ktor-client-cio-jvm:3.3.3")
+    implementation("io.ktor:ktor-client-cio:3.3.3")
+    implementation("io.ktor:ktor-client-content-negotiation:3.3.3")
+    implementation("io.ktor:ktor-client-core:3.3.3")
 
     // Ktor Server
-    implementation("io.ktor:ktor-server-core:3.2.3")
-    implementation("io.ktor:ktor-server-cio:3.2.3")
-    implementation("io.ktor:ktor-server-content-negotiation:3.2.3")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.3")
-    implementation("io.ktor:ktor-server-auth:3.2.3")
+    implementation("io.ktor:ktor-server-core:3.3.3")
+    implementation("io.ktor:ktor-server-cio:3.3.3")
+    implementation("io.ktor:ktor-server-content-negotiation:3.3.3")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.3.3")
+    implementation("io.ktor:ktor-server-auth:3.3.3")
 
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
