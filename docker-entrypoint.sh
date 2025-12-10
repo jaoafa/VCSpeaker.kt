@@ -15,7 +15,7 @@ exit_code=$?
 echo "VCSpeaker exited with code: $exit_code"
 
 if [[ $exit_code -eq 0 ]]; then
-    update_pid=$(pgrep -f "update-[0-9]+\.jar" || true)
+    update_pid=$(pgrep -f "update-[0-9]+\.jar" | head -n1 || true)
 
     if [[ -n "$update_pid" ]]; then
         echo "Update process detected (PID: $update_pid). Waiting for it to complete..."
