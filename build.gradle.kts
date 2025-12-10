@@ -32,7 +32,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.0")
     implementation("org.apache.logging.log4j:log4j-core:2.25.0")
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.11")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 
     // Discord Related
     implementation("dev.kord:kord-core:0.15.0")
