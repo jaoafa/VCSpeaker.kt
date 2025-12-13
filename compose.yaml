@@ -10,9 +10,18 @@ services:
       - LAVALINK_SERVER_SOURCES_LOCAL=true
     volumes:
       - ./data/cache/:/opt/Lavalink/cache/
+    healthcheck:
+        test: nc -z -v localhost 2333
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
   app:
     build: .
     volumes:
       - ./data:/data
       - ./logs:/app/logs
     init: true
+    depends_on:
+      lavalink:
+        condition: service_healthy
