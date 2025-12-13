@@ -37,7 +37,7 @@ dependencies {
     // Discord Related
     implementation("dev.kord:kord-core:0.17.0")
     implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
-    implementation("dev.arbjerg:lavaplayer:2.2.3")
+    implementation("dev.arbjerg:lavaplayer:78733ec")
     implementation("dev.schlaubi.lavakord:kord:9.1.5")
 
     // Ktor Client
