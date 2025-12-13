@@ -1,6 +1,6 @@
 services:
   lavalink:
-    image: ghcr.io/lavalink-devs/lavalink:4-alpine
+    image: ghcr.io/lavalink-devs/lavalink:9930779-alpine
     container_name: lavalink
     restart: unless-stopped
     environment:
