@@ -203,20 +203,17 @@ object Reload {
         VCSpeaker.apiServer = server
         server.start(2000)
 
-        val preservedArgs = VCSpeaker.args.toMutableList()
-        
         // Remove update-specific options that will be re-added with new values
         // These options always have a value following them
-        val optionsToRemove = listOf("--api-port", "--wait-for", "--api-token")
-        val iterator = preservedArgs.listIterator()
-        while (iterator.hasNext()) {
-            val arg = iterator.next()
+        val optionsToRemove = setOf("--api-port", "--wait-for", "--api-token")
+        val preservedArgs = VCSpeaker.args.filterIndexed { index, arg ->
+            // Keep the arg if it's not in optionsToRemove
             if (arg in optionsToRemove) {
-                iterator.remove() // remove the option
-                if (iterator.hasNext()) {
-                    iterator.next() // move to value
-                    iterator.remove() // remove the value
-                }
+                false // skip the option
+            } else if (index > 0 && VCSpeaker.args[index - 1] in optionsToRemove) {
+                false // skip the value following an option to remove
+            } else {
+                true // keep everything else
             }
         }
 
