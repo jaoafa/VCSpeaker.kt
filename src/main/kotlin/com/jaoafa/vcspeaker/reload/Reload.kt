@@ -30,7 +30,10 @@ data class GitHubAsset(
     val contentType: String,
     @SerialName("name")
     val name: String,
-    val size: Long = 0,
+    /**
+     * Size of the asset in bytes. Null means the size was not provided by the API.
+     */
+    val size: Long? = null,
 )
 
 @Serializable
@@ -142,7 +145,7 @@ object Reload {
             val expectedSize = asset.size
 
             val versionMatches = existingVersion == releaseVersion
-            val sizeMatches = expectedSize == 0L || expectedSize == existingSize
+            val sizeMatches = expectedSize == null || expectedSize == existingSize
 
             if (versionMatches && sizeMatches) {
                 logger.info { "Found existing jar file: ${jar.absolutePath} (version=$existingVersion, size=${existingSize} bytes). Not downloading." }
@@ -150,7 +153,11 @@ object Reload {
             }
 
             logger.warn { "Existing jar ${jar.name} is stale (version=${existingVersion ?: "unknown"}, size=${existingSize} bytes, expected version=$releaseVersion, expected size=$expectedSize). Re-downloading." }
-            jar.delete()
+            val deleted = jar.delete()
+            if (jar.exists()) {
+                logger.error { "Failed to delete existing jar file: ${jar.absolutePath}. Aborting update." }
+                return null
+            }
         }
 
         var lastProgressUpdate = System.currentTimeMillis()
@@ -200,9 +207,12 @@ object Reload {
         fun MutableList<String>.removeOptionWithValue(name: String) {
             val idx = indexOf(name)
             if (idx >= 0) {
-                // remove option and its value if present
+                // remove option
                 removeAt(idx)
-                if (idx < size) removeAt(idx)
+                // remove value if present and not another option flag
+                if (idx < size && !get(idx).startsWith("--")) {
+                    removeAt(idx)
+                }
             }
         }
 
