@@ -153,7 +153,7 @@ object Reload {
             }
 
             logger.warn { "Existing jar ${jar.name} is stale (version=${existingVersion ?: "unknown"}, size=${existingSize} bytes, expected version=$releaseVersion, expected size=$expectedSize). Re-downloading." }
-            val deleted = jar.delete()
+            jar.delete()
             if (jar.exists()) {
                 logger.error { "Failed to delete existing jar file: ${jar.absolutePath}. Aborting update." }
                 return null
@@ -204,22 +204,21 @@ object Reload {
         server.start(2000)
 
         val preservedArgs = VCSpeaker.args.toMutableList()
-        fun MutableList<String>.removeOptionWithValue(name: String) {
-            val idx = indexOf(name)
-            if (idx >= 0) {
-                // remove option
-                removeAt(idx)
-                // remove value if present and not another option flag
-                if (idx < size && !get(idx).startsWith("--")) {
-                    removeAt(idx)
+        
+        // Remove update-specific options that will be re-added with new values
+        // These options always have a value following them
+        val optionsToRemove = listOf("--api-port", "--wait-for", "--api-token")
+        val iterator = preservedArgs.listIterator()
+        while (iterator.hasNext()) {
+            val arg = iterator.next()
+            if (arg in optionsToRemove) {
+                iterator.remove() // remove the option
+                if (iterator.hasNext()) {
+                    iterator.next() // move to value
+                    iterator.remove() // remove the value
                 }
             }
         }
-
-        // avoid duplicate/old values that conflict with reloader flow
-        preservedArgs.removeOptionWithValue("--api-port")
-        preservedArgs.removeOptionWithValue("--wait-for")
-        preservedArgs.removeOptionWithValue("--api-token")
 
         val command = buildList {
             add("java")
