@@ -31,7 +31,7 @@ data class GitHubAsset(
     @SerialName("name")
     val name: String,
     /**
-     * Size of the asset in bytes. Null means the size was not provided by the API.
+     * Size of the asset in bytes. Null if the size was not provided by the GitHub API response.
      */
     val size: Long? = null,
 )
@@ -153,9 +153,24 @@ object Reload {
             }
 
             logger.warn { "Existing jar ${jar.name} is stale (version=${existingVersion ?: "unknown"}, size=${existingSize} bytes, expected version=$releaseVersion, expected size=$expectedSize). Re-downloading." }
-            jar.delete()
-            if (jar.exists()) {
-                logger.error { "Failed to delete existing jar file: ${jar.absolutePath}. Aborting update." }
+            
+            try {
+                if (!jar.delete() && jar.exists()) {
+                    logger.error {
+                        "Failed to delete existing jar file: ${jar.absolutePath}. " +
+                        "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
+                        "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
+                        "Aborting update."
+                    }
+                    return null
+                }
+            } catch (e: Exception) {
+                logger.error(e) {
+                    "Exception occurred while deleting existing jar file: ${jar.absolutePath}. " +
+                    "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
+                    "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
+                    "Aborting update."
+                }
                 return null
             }
         }
