@@ -30,6 +30,10 @@ data class GitHubAsset(
     val contentType: String,
     @SerialName("name")
     val name: String,
+    /**
+     * Size of the asset in bytes. Null if the size was not provided by the GitHub API response.
+     */
+    val size: Long? = null,
 )
 
 @Serializable
@@ -75,6 +79,15 @@ object Reload {
 
     var prodUpdateInDevWarned = false
 
+    private fun File.jarVersion(): String? = try {
+        java.util.jar.JarFile(this).use { jar ->
+            jar.manifest?.mainAttributes?.getValue("VCSpeaker-Version")
+        }
+    } catch (e: Exception) {
+        logger.warn(e) { "Failed to read manifest from ${this.name}. Re-downloading will be triggered." }
+        null
+    }
+
     fun shouldContinueUpdate(nextVersion: String, bypassDevLock: Boolean = false): Boolean {
         // tagName ... v1.2.3
         // version ... 1.2.3
@@ -116,7 +129,9 @@ object Reload {
         val response = client.get(url)
         val release = response.body<GitHubRelease>()
 
-        val shouldContinue = shouldContinueUpdate(release.tagName.removePrefix("v"), bypassDevLock)
+        val releaseVersion = release.tagName.removePrefix("v")
+
+        val shouldContinue = shouldContinueUpdate(releaseVersion, bypassDevLock)
         if (!shouldContinue) return null
 
         val asset = release.assets.firstOrNull { it.contentType == "application/java-archive" }
@@ -125,8 +140,39 @@ object Reload {
         val jar = File("./updates/${asset.name}")
 
         if (jar.exists()) {
-            logger.info { "Found existing jar file: ${jar.absolutePath}. Not downloading." }
-            return jar
+            val existingVersion = jar.jarVersion()
+            val existingSize = jar.length()
+            val expectedSize = asset.size
+
+            val versionMatches = existingVersion == releaseVersion
+            val sizeMatches = expectedSize == null || expectedSize == existingSize
+
+            if (versionMatches && sizeMatches) {
+                logger.info { "Found existing jar file: ${jar.absolutePath} (version=$existingVersion, size=${existingSize} bytes). Not downloading." }
+                return jar
+            }
+
+            logger.warn { "Existing jar ${jar.name} is stale (version=${existingVersion ?: "unknown"}, size=${existingSize} bytes, expected version=$releaseVersion, expected size=$expectedSize). Re-downloading." }
+            
+            try {
+                if (!jar.delete() && jar.exists()) {
+                    logger.error {
+                        "Failed to delete existing jar file: ${jar.absolutePath}. " +
+                        "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
+                        "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
+                        "Aborting update."
+                    }
+                    return null
+                }
+            } catch (e: Exception) {
+                logger.error(e) {
+                    "Exception occurred while deleting existing jar file: ${jar.absolutePath}. " +
+                    "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
+                    "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
+                    "Aborting update."
+                }
+                return null
+            }
         }
 
         var lastProgressUpdate = System.currentTimeMillis()
@@ -172,12 +218,35 @@ object Reload {
         VCSpeaker.apiServer = server
         server.start(2000)
 
-        ProcessBuilder(
-            "nohup", "java", "-jar", updateJar.absolutePath,
-            "--api-port", "2001",
-            "--wait-for", server.selfId,
-            "--api-token", server.selfToken,
-        ).redirectOutput(File("./update.log"))
+        // Remove update-specific options that will be re-added with new values
+        // These options always have a value following them
+        val optionsToRemove = setOf("--api-port", "--wait-for", "--api-token")
+        val preservedArgs = VCSpeaker.args.filterIndexed { index, arg ->
+            // Keep the arg if it's not in optionsToRemove
+            if (arg in optionsToRemove) {
+                false // skip the option
+            } else if (index > 0 && VCSpeaker.args[index - 1] in optionsToRemove) {
+                false // skip the value following an option to remove
+            } else {
+                true // keep everything else
+            }
+        }
+
+        val command = buildList {
+            add("java")
+            add("-jar")
+            add(updateJar.absolutePath)
+            addAll(preservedArgs) // keep original CLI options (e.g., config path, store path, dev id)
+            add("--api-port")
+            add("2001")
+            add("--wait-for")
+            add(server.selfId)
+            add("--api-token")
+            add(server.selfToken)
+        }
+
+        ProcessBuilder(command)
+            .redirectOutput(File("./update.log"))
             .redirectError(File("./update.log"))
             .start()
 
