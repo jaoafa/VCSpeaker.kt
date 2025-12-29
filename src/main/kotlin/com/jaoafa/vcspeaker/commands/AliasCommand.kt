@@ -13,6 +13,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import dev.kord.common.entity.Snowflake
 import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
@@ -26,6 +27,26 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
+
+    /**
+     * Extract soundboard ID from URL
+     * Supports formats:
+     * - https://cdn.discordapp.com/soundboard-sounds/1152787870411669585
+     * - 1152787870411669585
+     */
+    private fun parseSoundboardId(input: String?): Snowflake? {
+        if (input == null) return null
+        
+        val urlPattern = Regex("""https://cdn\.discordapp\.com/soundboard-sounds/(\d+)""")
+        val match = urlPattern.find(input)
+        
+        return if (match != null) {
+            Snowflake(match.groupValues[1])
+        } else {
+            // Try parsing as direct ID
+            input.toLongOrNull()?.let { Snowflake(it) }
+        }
+    }
 
     inner class CreateOptions : Options() {
         val type by stringChoice {
@@ -43,6 +64,11 @@ class AliasCommand : Extension() {
         val replace by string {
             name = "replace"
             description = "置き換える文字列"
+        }
+
+        val soundboard by optionalString {
+            name = "soundboard"
+            description = "サウンドボードのURL (例: https://cdn.discordapp.com/soundboard-sounds/1152787870411669585)"
         }
     }
 
@@ -70,6 +96,11 @@ class AliasCommand : Extension() {
             name = "replace"
             description = "置き換える文字列"
         }
+
+        val soundboard by optionalString {
+            name = "soundboard"
+            description = "サウンドボードのURL (例: https://cdn.discordapp.com/soundboard-sounds/1152787870411669585)"
+        }
     }
 
     inner class DeleteOptions : Options() {
@@ -90,14 +121,16 @@ class AliasCommand : Extension() {
                     val type = AliasType.valueOf(arguments.type)
                     val search = arguments.search
                     val replace = arguments.replace
+                    val soundboardId = parseSoundboardId(arguments.soundboard)
 
                     val duplicate = AliasStore.find(guild!!.id, search)
                     val isUpdate = duplicate != null
                     val oldReplace = duplicate?.replace
+                    val oldSoundboard = duplicate?.soundboard
 
                     if (isUpdate) AliasStore.remove(duplicate!!) // checked
 
-                    AliasStore.create(AliasData(guild!!.id, user.id, type, search, replace))
+                    AliasStore.create(AliasData(guild!!.id, user.id, type, search, replace, soundboardId))
 
                     respondEmbed(
                         ":loudspeaker: Alias ${if (isUpdate) "Updated" else "Created"}",
@@ -108,7 +141,9 @@ class AliasCommand : Extension() {
                         fieldAliasFrom(type, search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            if (isUpdate) "$oldReplace → **$replace**" else replace
+                            val displayReplace = if (soundboardId != null) "🔊 Soundboard $soundboardId" else replace
+                            val displayOldReplace = if (oldSoundboard != null) "🔊 Soundboard $oldSoundboard" else oldReplace
+                            if (isUpdate) "$displayOldReplace → **$displayReplace**" else displayReplace
                         }
 
                         successColor()
@@ -116,10 +151,12 @@ class AliasCommand : Extension() {
 
                     val verb = if (isUpdate) "updated" else "created"
                     val typeName = type.name.lowercase()
+                    val replaceTo = if (soundboardId != null) "soundboard $soundboardId" else "\"$replace\""
+                    val oldReplaceTo = if (oldSoundboard != null) "soundboard $oldSoundboard" else "\"$oldReplace\""
 
                     log(logger) { guild, user ->
-                        "[${guild.name}] Alias ${verb.capitalizeWords()}: @${user.username} $verb $typeName alias that replaces \"$search\" to \"$replace\"" +
-                                if (isUpdate) " (updated from \"$oldReplace\")" else ""
+                        "[${guild.name}] Alias ${verb.capitalizeWords()}: @${user.username} $verb $typeName alias that replaces \"$search\" to $replaceTo" +
+                                if (isUpdate) " (updated from $oldReplaceTo)" else ""
                     }
                 }
             }
@@ -128,11 +165,16 @@ class AliasCommand : Extension() {
                 action {
                     val aliasData = AliasStore.find(guild!!.id, arguments.alias)
                     if (aliasData != null) {
-                        val (_, _, type, search, replace) = aliasData
+                        val (_, _, type, search, replace, soundboard) = aliasData
 
                         val updatedType = arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: type
                         val updatedSearch = arguments.search ?: search
                         val updatedReplace = arguments.replace ?: replace
+                        val updatedSoundboard = if (arguments.soundboard != null) {
+                            parseSoundboardId(arguments.soundboard)
+                        } else {
+                            soundboard
+                        }
 
                         AliasStore.remove(aliasData)
                         AliasStore.create(
@@ -140,7 +182,8 @@ class AliasCommand : Extension() {
                                 userId = user.id,
                                 type = updatedType,
                                 search = updatedSearch,
-                                replace = updatedReplace
+                                replace = updatedReplace,
+                                soundboard = updatedSoundboard
                             )
                         )
 
@@ -163,14 +206,20 @@ class AliasCommand : Extension() {
                             }
 
                             field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                if (replace != updatedReplace) "「$replace」→「**$updatedReplace**」" else "「$replace」"
+                                val displayReplace = if (soundboard != null) "🔊 Soundboard $soundboard" else "「$replace」"
+                                val displayUpdatedReplace = if (updatedSoundboard != null) "🔊 Soundboard $updatedSoundboard" else "「$updatedReplace」"
+                                if (replace != updatedReplace || soundboard != updatedSoundboard) "$displayReplace → **$displayUpdatedReplace**" else displayReplace
                             }
+
 
                             successColor()
                         }
 
+                        val replaceTo = if (updatedSoundboard != null) "soundboard $updatedSoundboard" else "\"$updatedReplace\""
+                        val oldReplaceTo = if (soundboard != null) "soundboard $soundboard" else "\"$replace\""
+
                         log(logger) { guild, user ->
-                            "[${guild.name}] Alias Updated: @${user.username} updated $type alias that replaces \"$search\" to \"$updatedReplace\" (updated from \"$replace\")"
+                            "[${guild.name}] Alias Updated: @${user.username} updated $type alias that replaces \"$search\" to $replaceTo (updated from $oldReplaceTo)"
                         }
                     } else {
                         respondEmbed(
@@ -195,7 +244,7 @@ class AliasCommand : Extension() {
                     if (aliasData != null) {
                         AliasStore.remove(aliasData)
 
-                        val (_, _, type, search, replace) = aliasData
+                        val (_, _, type, search, replace, soundboard) = aliasData
 
                         respondEmbed(
                             ":wastebasket: Alias Deleted",
@@ -206,16 +255,17 @@ class AliasCommand : Extension() {
                             fieldAliasFrom(type, search)
 
                             field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                replace
+                                if (soundboard != null) "🔊 Soundboard $soundboard" else replace
                             }
 
                             successColor()
                         }
 
                         val username = user.asUser().username
+                        val replaceTo = if (soundboard != null) "soundboard $soundboard" else "\"$replace\""
 
                         log(logger) { guild, user ->
-                            "[${guild.name}] Alias Deleted: @${user.username} deleted $type alias that replaces \"$search\" to \"$replace\""
+                            "[${guild.name}] Alias Deleted: @${user.username} deleted $type alias that replaces \"$search\" to $replaceTo"
                         }
                     } else {
                         respondEmbed(

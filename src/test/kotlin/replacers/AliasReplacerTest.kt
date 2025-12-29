@@ -89,4 +89,68 @@ class AliasReplacerTest : FunSpec({
 
         processedTokens shouldBe tokens
     }
+
+    // サウンドボード付きエイリアスを設定した場合、soundタグに置き換えられる
+    test("If a text alias with soundboard matches the message, the soundboard tag should be returned.") {
+        val message = mockk<Message>()
+        coEvery { message.getGuild() } returns mockk {
+            every { id } returns Snowflake(0)
+        }
+
+        AliasStore.create(
+            AliasData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = AliasType.Text,
+                search = ":alley_oop:",
+                replace = "",
+                soundboard = Snowflake(1152787870411669585)
+            )
+        )
+
+        val tokens = mutableListOf(TextToken("Hello :alley_oop: world!"))
+        val expectedTokens = mutableListOf(
+            TextToken("Hello "),
+            TextToken("<sound:0:1152787870411669585>", "Text Alias「:alley_oop:」→ 🔊 Soundboard 1152787870411669585"),
+            TextToken(" world!")
+        )
+
+        val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
+
+        processedTokens shouldBe expectedTokens
+    }
+
+    // サウンドボード付きエイリアスで複数マッチする場合、すべて置き換えられる
+    test("If a text alias with soundboard matches multiple times, all should be replaced.") {
+        val message = mockk<Message>()
+        coEvery { message.getGuild() } returns mockk {
+            every { id } returns Snowflake(0)
+        }
+
+        AliasStore.create(
+            AliasData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = AliasType.Text,
+                search = ":sound:",
+                replace = "",
+                soundboard = Snowflake(123456789)
+            )
+        )
+
+        val tokens = mutableListOf(TextToken(":sound::sound::sound:"))
+        val expectedTokens = mutableListOf(
+            TextToken(""),
+            TextToken("<sound:0:123456789>", "Text Alias「:sound:」→ 🔊 Soundboard 123456789"),
+            TextToken(""),
+            TextToken("<sound:0:123456789>", "Text Alias「:sound:」→ 🔊 Soundboard 123456789"),
+            TextToken(""),
+            TextToken("<sound:0:123456789>", "Text Alias「:sound:」→ 🔊 Soundboard 123456789"),
+            TextToken("")
+        )
+
+        val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
+
+        processedTokens shouldBe expectedTokens
+    }
 })

@@ -25,7 +25,13 @@ object AliasReplacer : BaseReplacer {
                     val splitTexts = text.split(alias.search)
 
                     val additions = splitTexts.mixin {
-                        TextToken(alias.replace, "Text Alias「${alias.search}」→「${alias.replace}」")
+                        if (alias.soundboard != null) {
+                            // Replace with soundboard tag
+                            TextToken("<sound:0:${alias.soundboard}>", "Text Alias「${alias.search}」→ 🔊 Soundboard ${alias.soundboard}")
+                        } else {
+                            // Normal text replacement
+                            TextToken(alias.replace, "Text Alias「${alias.search}」→「${alias.replace}」")
+                        }
                     }
 
                     addAll(additions)

@@ -21,11 +21,12 @@ data class AliasData(
     val userId: Snowflake,
     val type: AliasType,
     val search: String,
-    val replace: String
+    val replace: String,
+    val soundboard: Snowflake? = null
 ) {
     private val searchDisplay = if (type == AliasType.Regex) " `$search` " else "「$search」"
 
-    private fun describe() = "${type.displayName}${searchDisplay}→「$replace」<@$userId>"
+    private fun describe() = "${type.displayName}${searchDisplay}→${if (soundboard != null) "🔊 Soundboard" else "「$replace」"}<@$userId>"
 
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
 }
@@ -35,7 +36,7 @@ object AliasStore : StoreStruct<AliasData>(
     AliasData.serializer(),
     { Json.decodeFromString(this) },
 
-    version = 1,
+    version = 2,
     migrators = mapOf(
         1 to { file ->
             val list = Json.decodeFromString<List<AliasData>>(file.readText())
@@ -43,6 +44,17 @@ object AliasStore : StoreStruct<AliasData>(
                 Json.encodeToString(
                     TypedStore.serializer(AliasData.serializer()),
                     TypedStore(1, list)
+                )
+            )
+        },
+        2 to { file ->
+            // Migration for adding soundboard field
+            // Since soundboard is nullable with default null, existing data will work
+            val store = Json.decodeFromString<TypedStore<AliasData>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(AliasData.serializer()),
+                    TypedStore(2, store.list)
                 )
             )
         }
