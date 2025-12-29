@@ -19,7 +19,6 @@ import dev.schlaubi.lavakord.audio.player.applyFilters
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
 
 class Scheduler(
@@ -161,45 +160,44 @@ class Scheduler(
         }
     }
 
-    fun onTrackEnd(
+    suspend fun onTrackEnd(
         endReason: AudioTrackEndReason
-    ): Unit =
-        runBlocking {
-            val message = current()!!.message
-            val guildName = current()!!.guildName
+    ) {
+        val message = current()!!.message
+        val guildName = current()!!.guildName
 
-            val next = current()!!.next()
+        val next = current()!!.next()
 
-            // Speech 内に次の Track が存在し、かつ再生が可能な場合、次の Track を再生
-            if (endReason.mayStartNext && next != null) {
-                val (nextTrack, nextContext) = next
+        // Speech 内に次の Track が存在し、かつ再生が可能な場合、次の Track を再生
+        if (endReason.mayStartNext && next != null) {
+            val (nextTrack, nextContext) = next
 
-                link.player.applyFilters {
-                    volume = if (nextContext is SoundmojiContext) 20F else 100F
-                }
-
-                launch { link.player.playTrack(nextTrack) }
-                return@runBlocking
+            link.player.applyFilters {
+                volume = if (nextContext is SoundmojiContext) 20F else 100F
             }
 
-            message?.deleteOwnReactionSafe("🔊")
+            link.player.playTrack(nextTrack)
+            return
+        }
 
-            queue.removeFirst()
-            val nextSpeech = current()
+        message?.deleteOwnReactionSafe("🔊")
 
-            // Speech 無いのすべての Track を再生し終わった場合、次の Speech を再生
-            if (endReason.mayStartNext && nextSpeech != null) {
-                launch { beginSpeech(nextSpeech) }
+        queue.removeFirst()
+        val nextSpeech = current()
 
-                logger.info {
-                    "[$guildName] Next Speech Starting: The speech for ${nextSpeech.describe()} has been started."
-                }
-            } else {
-                logger.info {
-                    "[$guildName] Speech Finished: All tracks have been played. Waiting for the next speech..."
-                }
+        // Speech 無いのすべての Track を再生し終わった場合、次の Speech を再生
+        if (endReason.mayStartNext && nextSpeech != null) {
+            beginSpeech(nextSpeech)
+
+            logger.info {
+                "[$guildName] Next Speech Starting: The speech for ${nextSpeech.describe()} has been started."
+            }
+        } else {
+            logger.info {
+                "[$guildName] Speech Finished: All tracks have been played. Waiting for the next speech..."
             }
         }
+    }
 
     /**
      * 音声を再生します。
@@ -213,7 +211,9 @@ class Scheduler(
 
     init {
         link.player.on<TrackEndEvent> event@{
-            onTrackEnd(reason)
+            launch {
+                onTrackEnd(reason)
+            }
         }
     }
 }
