@@ -46,18 +46,8 @@ object AliasStore : StoreStruct<AliasData>(
                     TypedStore(1, list)
                 )
             )
-        },
-        2 to { file ->
-            // Migration for adding soundboard field
-            // Since soundboard is nullable with default null, existing data will work
-            val store = Json.decodeFromString<TypedStore<AliasData>>(file.readText())
-            file.writeText(
-                Json.encodeToString(
-                    TypedStore.serializer(AliasData.serializer()),
-                    TypedStore(2, store.list)
-                )
-            )
         }
+        // Version 2: Added optional soundboard field (nullable, no migration needed)
     ),
     auditor = { data ->
         data.sortedByDescending { it.search.length }.toMutableList()

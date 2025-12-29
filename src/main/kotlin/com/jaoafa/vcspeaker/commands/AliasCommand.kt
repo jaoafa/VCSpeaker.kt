@@ -48,6 +48,12 @@ class AliasCommand : Extension() {
         }
     }
 
+    /**
+     * Format the replacement display string for soundboard or text
+     */
+    private fun formatReplaceDisplay(soundboard: Snowflake?, text: String): String =
+        if (soundboard != null) "🔊 Soundboard $soundboard" else text
+
     inner class CreateOptions : Options() {
         val type by stringChoice {
             name = "type"
@@ -141,8 +147,8 @@ class AliasCommand : Extension() {
                         fieldAliasFrom(type, search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            val displayReplace = if (soundboardId != null) "🔊 Soundboard $soundboardId" else replace
-                            val displayOldReplace = if (oldSoundboard != null) "🔊 Soundboard $oldSoundboard" else oldReplace
+                            val displayReplace = formatReplaceDisplay(soundboardId, replace)
+                            val displayOldReplace = formatReplaceDisplay(oldSoundboard, oldReplace ?: "")
                             if (isUpdate) "$displayOldReplace → **$displayReplace**" else displayReplace
                         }
 
@@ -206,8 +212,8 @@ class AliasCommand : Extension() {
                             }
 
                             field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                val displayReplace = if (soundboard != null) "🔊 Soundboard $soundboard" else "「$replace」"
-                                val displayUpdatedReplace = if (updatedSoundboard != null) "🔊 Soundboard $updatedSoundboard" else "「$updatedReplace」"
+                                val displayReplace = formatReplaceDisplay(soundboard, "「$replace」")
+                                val displayUpdatedReplace = formatReplaceDisplay(updatedSoundboard, "「$updatedReplace」")
                                 if (replace != updatedReplace || soundboard != updatedSoundboard) "$displayReplace → **$displayUpdatedReplace**" else displayReplace
                             }
 
@@ -255,7 +261,7 @@ class AliasCommand : Extension() {
                             fieldAliasFrom(type, search)
 
                             field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                if (soundboard != null) "🔊 Soundboard $soundboard" else replace
+                                formatReplaceDisplay(soundboard, replace)
                             }
 
                             successColor()
