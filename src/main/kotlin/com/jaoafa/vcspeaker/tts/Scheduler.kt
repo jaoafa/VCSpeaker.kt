@@ -185,7 +185,7 @@ class Scheduler(
         queue.removeFirst()
         val nextSpeech = current()
 
-        // Speech 無いのすべての Track を再生し終わった場合、次の Speech を再生
+        // Speech 内のすべての Track を再生し終わった場合、次の Speech を再生
         if (endReason.mayStartNext && nextSpeech != null) {
             beginSpeech(nextSpeech)
 
