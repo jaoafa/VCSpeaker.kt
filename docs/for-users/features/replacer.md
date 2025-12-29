@@ -36,7 +36,7 @@ Replacerは、以下の優先度順に実行されます：
 2. **Discordチャンネルリンク**: `https://discord.com/channels/{guild}/{channel}` → 「{チャンネル種別}「{チャンネル名}」へのリンク」
 3. **Discordイベント直接リンク**: `https://discord.com/events/{guild}/{event}` → 「イベント「{イベント名}」へのリンク」
 4. **Discordイベント招待リンク**: `https://discord.com/invite/{code}?event={event}` → 「イベント「{イベント名}」へのリンク」
-5. **ツイート（X）**: `https://twitter.com/{user}/status/{id}` または `https://x.com/{user}/status/{id}` → 「{ユーザー名}のツイート「{ツイート内容（70文字まで）}」へのリンク」
+5. **ツイート（X）**: `https://twitter.com/{user}/status/{id}` または `https://x.com/{user}/status/{id}` → 「{ユーザー名}のツイート「{ツイート内容（70文字まで）}」へのリンク」（70文字を超える場合は「以下略」が付きます）
 6. **Discord招待リンク**: `https://discord.gg/{code}` → 「サーバ「{サーバ名}」のチャンネル「{チャンネル名}」への招待リンク」
 7. **Steam**: `https://store.steampowered.com/app/{id}` → 「Steamアイテム「{アイテム名}」へのリンク」
 8. **YouTube動画**: YouTubeの動画、ショート、ライブ配信 → 「YouTubeの「{投稿者名}」による{種別}「{タイトル}」へのリンク」
@@ -109,7 +109,7 @@ Replacerは、以下の優先度順に実行されます：
 - エイリアスストアに登録された正規表現タイプ（`AliasType.Regex`）のエイリアスを検索します
 - 正規表現にマッチするテキストを登録された置換文字列に変換します
 - 複雑なパターンマッチングに対応します
-- 例: `[0-9]{3}-[0-9]{4}` というパターン → 「電話番号」（エイリアスで設定されている場合）
+- 例: `https?://example\.com/.*` というパターン → 「特定サイトへのリンク」（エイリアスで設定されている場合）
 
 ## 置換処理の仕組み
 
