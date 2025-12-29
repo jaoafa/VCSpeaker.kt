@@ -11,7 +11,6 @@ import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
-import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -60,18 +59,6 @@ class Options : OptionGroup("Main Options:") {
         help = "The Sentry environment.",
         envvar = "VCSKT_SENTRY_ENV"
     )
-
-    val resamplingQuality by option(
-        "--resampling-quality",
-        help = "The Lavaplayer resampling quality.",
-        envvar = "VCSKT_RESAMPLING_QUALITY"
-    ).enum<AudioConfiguration.ResamplingQuality>()
-
-    val encodingQuality by option(
-        "--encoding-quality",
-        help = "The Lavaplayer opus encoding quality.",
-        envvar = "VCSKT_ENCODING_QUALITY"
-    ).int().restrictTo(1..10)
 
     val apiPort by option(
         "--api-port",
