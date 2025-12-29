@@ -59,7 +59,7 @@ dependencies {
 
     // Other Libraries
     implementation("io.sentry:sentry:8.29.0")
-    implementation("org.jsoup:jsoup:1.20.1")
+    implementation("org.jsoup:jsoup:1.21.2")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.cloud:google-cloud-vision:3.79.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.5")
