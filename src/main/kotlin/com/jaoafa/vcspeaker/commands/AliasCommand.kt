@@ -29,17 +29,18 @@ class AliasCommand : Extension() {
     private val logger = KotlinLogging.logger { }
 
     /**
-     * Extract soundboard ID from URL
-     * Supports formats:
-     * - https://cdn.discordapp.com/soundboard-sounds/1152787870411669585
-     * - 1152787870411669585
+     * Extracts soundboard ID from URL or raw ID string.
+     *
+     * @param input The soundboard URL or raw snowflake ID. Supported formats:
+     * https://cdn.discordapp.com/soundboard-sounds/1152787870411669585 or 1152787870411669585.
+     * @return The parsed Snowflake ID, or null if the input is null or invalid.
      */
     private fun parseSoundboardId(input: String?): Snowflake? {
         if (input == null) return null
-        
+
         val urlPattern = Regex("""https://cdn\.discordapp\.com/soundboard-sounds/(\d+)""")
         val match = urlPattern.find(input)
-        
+
         return if (match != null) {
             Snowflake(match.groupValues[1])
         } else {
@@ -49,7 +50,11 @@ class AliasCommand : Extension() {
     }
 
     /**
-     * Format the replacement display string for soundboard or text
+     * Formats the replacement display string for soundboard or text.
+     *
+     * @param soundboard The soundboard Snowflake ID, or null for text replacement.
+     * @param text The replacement text to display if soundboard is null.
+     * @return A formatted display string showing either the soundboard ID or the text.
      */
     private fun formatReplaceDisplay(soundboard: Snowflake?, text: String): String =
         if (soundboard != null) "🔊 Soundboard $soundboard" else text
@@ -127,7 +132,25 @@ class AliasCommand : Extension() {
                     val type = AliasType.valueOf(arguments.type)
                     val search = arguments.search
                     val replace = arguments.replace
-                    val soundboardId = parseSoundboardId(arguments.soundboard)
+                    val soundboardInput = arguments.soundboard
+                    
+                    // Validate soundboard input if provided
+                    if (soundboardInput != null) {
+                        val soundboardId = parseSoundboardId(soundboardInput)
+                        if (soundboardId == null) {
+                            respondEmbed(
+                                ":x: Invalid Soundboard URL",
+                                "サウンドボードのURLまたはIDが無効です。正しい形式で入力してください。\n" +
+                                        "例: `https://cdn.discordapp.com/soundboard-sounds/1152787870411669585` または `1152787870411669585`"
+                            ) {
+                                authorOf(user)
+                                errorColor()
+                            }
+                            return@action
+                        }
+                    }
+                    
+                    val soundboardId = parseSoundboardId(soundboardInput)
 
                     val duplicate = AliasStore.find(guild!!.id, search)
                     val isUpdate = duplicate != null
@@ -173,6 +196,22 @@ class AliasCommand : Extension() {
                     if (aliasData != null) {
                         val (_, _, type, search, replace, soundboard) = aliasData
 
+                        // Validate soundboard input if provided
+                        if (arguments.soundboard != null) {
+                            val parsedSoundboard = parseSoundboardId(arguments.soundboard)
+                            if (parsedSoundboard == null) {
+                                respondEmbed(
+                                    ":x: Invalid Soundboard URL",
+                                    "サウンドボードのURLまたはIDが無効です。正しい形式で入力してください。\n" +
+                                            "例: `https://cdn.discordapp.com/soundboard-sounds/1152787870411669585` または `1152787870411669585`"
+                                ) {
+                                    authorOf(user)
+                                    errorColor()
+                                }
+                                return@action
+                            }
+                        }
+
                         val updatedType = arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: type
                         val updatedSearch = arguments.search ?: search
                         val updatedReplace = arguments.replace ?: replace
@@ -216,7 +255,6 @@ class AliasCommand : Extension() {
                                 val displayUpdatedReplace = formatReplaceDisplay(updatedSoundboard, "「$updatedReplace」")
                                 if (replace != updatedReplace || soundboard != updatedSoundboard) "$displayReplace → **$displayUpdatedReplace**" else displayReplace
                             }
-
 
                             successColor()
                         }
