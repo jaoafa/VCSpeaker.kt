@@ -9,7 +9,7 @@ import dev.kord.common.entity.Snowflake
  * サウンドボードエイリアスを置換するクラス
  */
 object SoundboardReplacer : BaseReplacer {
-    override val priority = ReplacerPriority.Low
+    override val priority = ReplacerPriority.High
 
     override suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake) =
         replaceText(tokens, guildId, AliasType.Soundboard) { alias, replacedTokens ->
