@@ -10,11 +10,9 @@ import com.jaoafa.vcspeaker.stores.StoreStruct
 import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.SoundboardReplacer
 import dev.kord.common.entity.Snowflake
-import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -48,11 +46,6 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     test("If a soundboard alias matches the content, the replaced text should be returned.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
-
         val replace = "https://cdn.discordapp.com/soundboard-sounds/123456789012345678.mp3"
 
         AliasStore.create(
@@ -78,11 +71,6 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     test("If a soundboard alias uses a raw id, the text should be normalized") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
-
         AliasStore.create(
             AliasData(
                 guildId = Snowflake(0),
@@ -106,11 +94,6 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     test("If a soundboard alias appears multiple times, all occurrences should be replaced") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
-
         AliasStore.create(
             AliasData(
                 guildId = Snowflake(0),
@@ -136,11 +119,6 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     test("If a soundboard alias does not match the content, the text should remain unchanged.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
-
         AliasStore.create(
             AliasData(
                 guildId = Snowflake(0),

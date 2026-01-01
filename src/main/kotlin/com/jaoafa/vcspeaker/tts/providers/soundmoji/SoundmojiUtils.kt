@@ -21,8 +21,7 @@ object SoundmojiUtils {
     }
 
     fun normalizeSoundmojiReferences(text: String): String {
-        val trimmed = text.trim()
-        val rawMatch = rawIdRegex.matchEntire(trimmed)
+        val rawMatch = rawIdRegex.matchEntire(text)
         if (rawMatch != null) {
             val id = rawMatch.groupValues[1].toLongOrNull()
             if (id != null) return "<sound:0:$id>"
