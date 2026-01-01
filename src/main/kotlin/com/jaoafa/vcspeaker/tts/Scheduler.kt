@@ -170,11 +170,7 @@ class Scheduler(
 
         // Speech 内に次の Track が存在し、かつ再生が可能な場合、次の Track を再生
         if (endReason.mayStartNext && next != null) {
-            val (nextTrack, nextContext) = next
-
-            link.player.applyFilters {
-                volume = if (nextContext is SoundmojiContext) 20F else 100F
-            }
+            val (nextTrack, _) = next
 
             link.player.playTrack(nextTrack)
             return
