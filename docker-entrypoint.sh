@@ -58,14 +58,35 @@ if [[ $exit_code -eq 0 ]]; then
     if [[ ${#update_pids[@]} -gt 0 ]]; then
         echo "Update process detected (PID: ${update_pids[*]}). Waiting for it to complete..."
 
+        update_wait_timeout_seconds=${UPDATE_WAIT_TIMEOUT_SECONDS:-300}
+        update_wait_start_epoch=$(date +%s)
+        update_wait_timed_out=0
+
+        if [[ ! "$update_wait_timeout_seconds" =~ ^[0-9]+$ ]]; then
+            update_wait_timeout_seconds=300
+        fi
+
         # Wait for the update process to finish
         # This keeps the entrypoint alive so Docker doesn't restart the container
         while [[ ${#update_pids[@]} -gt 0 ]]; do
             find_update_pids
             if [[ ${#update_pids[@]} -gt 0 ]]; then
+                if [[ "$update_wait_timeout_seconds" -gt 0 ]]; then
+                    now_epoch=$(date +%s)
+                    elapsed_seconds=$((now_epoch - update_wait_start_epoch))
+                    if [[ $elapsed_seconds -ge $update_wait_timeout_seconds ]]; then
+                        update_wait_timed_out=1
+                        break
+                    fi
+                fi
                 sleep 1
             fi
         done
+
+        if [[ $update_wait_timed_out -eq 1 ]]; then
+            echo "Update process wait timed out after ${elapsed_seconds}s (PID: ${update_pids[*]})."
+            exit 1
+        fi
 
         echo "Update process finished."
     else
