@@ -15,23 +15,43 @@ exit_code=$?
 echo "VCSpeaker exited with code: $exit_code"
 
 if [[ $exit_code -eq 0 ]]; then
+    find_update_pids() {
+        mapfile -t update_pids < <(pgrep -f "update-.*\\.jar" || true)
+    }
+
+    wait_for_pid() {
+        local pid=$1
+
+        if wait "$pid" 2>/dev/null; then
+            return 0
+        fi
+
+        while kill -0 "$pid" 2>/dev/null; do
+            sleep 1
+        done
+    }
+
     # Retry loop: wait up to 5 seconds for update process to appear
-    update_pid=""
+    update_pids=()
     for _ in {1..5}; do
-        update_pid=$(pgrep -f "update-.*\.jar" || true)
-        if [[ -n "$update_pid" ]]; then
+        find_update_pids
+        if [[ ${#update_pids[@]} -gt 0 ]]; then
             break
         fi
         sleep 1
     done
 
-    if [[ -n "$update_pid" ]]; then
-        echo "Update process detected (PID: $update_pid). Waiting for it to complete..."
+    if [[ ${#update_pids[@]} -gt 0 ]]; then
+        echo "Update process detected (PID: ${update_pids[*]}). Waiting for it to complete..."
 
         # Wait for the update process to finish
         # This keeps the entrypoint alive so Docker doesn't restart the container
-        while kill -0 "$update_pid" 2>/dev/null; do
-            sleep 1
+        while [[ ${#update_pids[@]} -gt 0 ]]; do
+            for update_pid in "${update_pids[@]}"; do
+                wait_for_pid "$update_pid"
+            done
+
+            find_update_pids
         done
 
         echo "Update process finished."
