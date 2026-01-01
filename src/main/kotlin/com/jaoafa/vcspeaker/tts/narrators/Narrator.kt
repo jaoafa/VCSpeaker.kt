@@ -100,23 +100,23 @@ class Narrator @OptIn(KordVoice::class) constructor(
         guild: Guild,
         actor: SpeechActor
     ) {
-        val sounds = Regex("<sound:\\d+:(\\d+)>").findAll(text).mapNotNull {
+        val sounds = soundRegex.findAll(text).mapNotNull {
             val id = it.groupValues[1].toLongOrNull() ?: return@mapNotNull null
             it.value to id
-        }
+        }.toList()
 
-        val textElements = text.split(*(sounds.map { it.first }.toList().toTypedArray()))
+        val textElements = if (sounds.isEmpty()) listOf(text)
+        else text.split(*(sounds.map { it.first }.toTypedArray()))
 
         val contexts = mutableListOf<ProviderContext>()
 
         textElements.forEachIndexed { i, element ->
             val (processText, processVoice) = process(message, element, voice) ?: return
 
-            if (processText.isNotBlank())
-                contexts.add(VoiceTextContext(processVoice, processText))
+            appendContextsFromText(processText, processVoice, contexts)
 
-            if (i < sounds.count())
-                contexts.add(SoundmojiContext(Snowflake(sounds.elementAt(i).second)))
+            if (i < sounds.size)
+                contexts.add(SoundmojiContext(Snowflake(sounds[i].second)))
         }
 
         if (contexts.isEmpty()) return
@@ -184,4 +184,34 @@ class Narrator @OptIn(KordVoice::class) constructor(
         this.lock()
         return NarratorState(guildId, channelId, scheduler.queue.map { it.prepareTransfer() })
     }
+
+    private fun appendContextsFromText(
+        text: String,
+        voice: Voice,
+        contexts: MutableList<ProviderContext>
+    ) {
+        val matches = soundRegex.findAll(text).toList()
+        if (matches.isEmpty()) {
+            if (text.isNotBlank()) contexts.add(VoiceTextContext(voice, text))
+            return
+        }
+
+        var lastIndex = 0
+        for (match in matches) {
+            val part = text.substring(lastIndex, match.range.first)
+            if (part.isNotBlank()) contexts.add(VoiceTextContext(voice, part))
+
+            val id = match.groupValues[1].toLongOrNull()
+            if (id != null) {
+                contexts.add(SoundmojiContext(Snowflake(id)))
+            }
+
+            lastIndex = match.range.last + 1
+        }
+
+        val tail = text.substring(lastIndex)
+        if (tail.isNotBlank()) contexts.add(VoiceTextContext(voice, tail))
+    }
+
+    private val soundRegex = Regex("<sound:\\d+:(\\d+)>")
 }
