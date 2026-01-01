@@ -3,8 +3,6 @@ package com.jaoafa.vcspeaker
 import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.Emoji
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.uchuhimo.konf.Config
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -20,7 +18,6 @@ object VCSpeaker {
 
     lateinit var instance: ExtensibleBot
     lateinit var kord: Kord
-    val lavaplayer = DefaultAudioPlayerManager()
     lateinit var lavalink: LavaKord
 
     lateinit var config: Config
@@ -77,15 +74,8 @@ object VCSpeaker {
 
         Emoji // init
 
-        AudioSourceManagers.registerLocalSource(lavaplayer)
-
         if (!storeFolder.exists()) storeFolder.mkdir()
         if (!cacheFolder.exists()) cacheFolder.mkdir()
-
-        lavaplayer.configuration.let {
-            it.resamplingQuality = options.resamplingQuality ?: config[EnvSpec.resamplingQuality]
-            it.opusEncodingQuality = options.encodingQuality ?: config[EnvSpec.encodingQuality]
-        }
     }
 
     fun removeShutdownHook() = Runtime.getRuntime().removeShutdownHook(instance.shutdownHook)
