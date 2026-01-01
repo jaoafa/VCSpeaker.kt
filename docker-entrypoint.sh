@@ -9,42 +9,42 @@
 # 4. Current exits with code 0
 # 5. This script waits for Latest to finish (or keeps running)
 
+is_zombie_pid() {
+    local pid=$1
+
+    if [[ ! -r "/proc/$pid/stat" ]]; then
+        return 0
+    fi
+
+    local state
+    state=$(awk '{print $3}' "/proc/$pid/stat" 2>/dev/null || true)
+
+    [[ "$state" == "Z" ]]
+}
+
+find_update_pids() {
+    update_pids=()
+    local pid
+
+    while IFS= read -r pid; do
+        if [[ -z "$pid" ]]; then
+            continue
+        fi
+
+        if is_zombie_pid "$pid"; then
+            continue
+        fi
+
+        update_pids+=("$pid")
+    done < <(pgrep -f "update-.*\.jar" || true)
+}
+
 java -jar /app/vcspeaker.jar "$@"
 exit_code=$?
 
 echo "VCSpeaker exited with code: $exit_code"
 
 if [[ $exit_code -eq 0 ]]; then
-    find_update_pids() {
-        update_pids=()
-        local pid
-
-        while IFS= read -r pid; do
-            if [[ -z "$pid" ]]; then
-                continue
-            fi
-
-            if is_zombie_pid "$pid"; then
-                continue
-            fi
-
-            update_pids+=("$pid")
-        done < <(pgrep -f "update-.*\.jar" || true)
-    }
-
-    is_zombie_pid() {
-        local pid=$1
-
-        if [[ ! -r "/proc/$pid/stat" ]]; then
-            return 0
-        fi
-
-        local state
-        state=$(awk '{print $3}' "/proc/$pid/stat" 2>/dev/null || true)
-
-        [[ "$state" == "Z" ]]
-    }
-
     # Retry loop: wait up to 5 seconds for update process to appear
     update_pids=()
     for _ in {1..5}; do
