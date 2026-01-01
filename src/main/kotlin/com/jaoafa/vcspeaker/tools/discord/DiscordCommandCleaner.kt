@@ -43,13 +43,21 @@ object DiscordCommandCleaner {
                 contentType(ContentType.Application.Json)
             }
         }.use { client ->
-            val appInfo = client
-                .get("https://discord.com/api/v10/oauth2/applications/@me")
-                .body<ApplicationInfo>()
-            val appId = appInfo.id
+            val appId = try {
+                val response = client.get("https://discord.com/api/v10/oauth2/applications/@me")
+                if (response.status.value !in 200..299) {
+                    logger.error { "Failed to fetch application info. status=${response.status}" }
+                    return
+                }
+                val appInfo = response.body<ApplicationInfo>()
+                appInfo.id
+            } catch (e: Exception) {
+                logger.error(e) { "Exception while fetching application info from Discord." }
+                return
+            }
 
             val globalResponse = client.put("https://discord.com/api/v10/applications/$appId/commands") {
-                setBody("[]")
+                setBody(emptyList<Any>())
             }
 
             if (globalResponse.status.value !in 200..299) {
@@ -60,7 +68,7 @@ object DiscordCommandCleaner {
 
             if (devGuildId != null) {
                 val guildResponse = client.put("https://discord.com/api/v10/applications/$appId/guilds/$devGuildId/commands") {
-                    setBody("[]")
+                    setBody(emptyList<Any>())
                 }
 
                 if (guildResponse.status.value !in 200..299) {
