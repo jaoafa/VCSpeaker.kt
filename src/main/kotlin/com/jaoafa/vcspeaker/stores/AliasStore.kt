@@ -16,6 +16,10 @@ enum class AliasType(
     Soundboard("サウンドボード", ":sound:")
 }
 
+private val aliasJson = Json {
+    ignoreUnknownKeys = true
+}
+
 @Serializable
 data class AliasData(
     val guildId: Snowflake,
@@ -34,12 +38,12 @@ data class AliasData(
 object AliasStore : StoreStruct<AliasData>(
     VCSpeaker.Files.aliases.path,
     AliasData.serializer(),
-    { Json.decodeFromString(this) },
+    { aliasJson.decodeFromString(this) },
 
     version = 1,
     migrators = mapOf(
         1 to { file ->
-            val list = Json.decodeFromString<List<AliasData>>(file.readText())
+            val list = aliasJson.decodeFromString<List<AliasData>>(file.readText())
             file.writeText(
                 Json.encodeToString(
                     TypedStore.serializer(AliasData.serializer()),
