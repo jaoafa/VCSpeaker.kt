@@ -16,6 +16,7 @@ import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashComm
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.checks.anyGuild
+import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
 import dev.kordex.core.commands.application.slash.converters.impl.stringChoice
 import dev.kordex.core.commands.converters.impl.optionalString
@@ -92,16 +93,7 @@ class AliasCommand : Extension() {
                     val search = arguments.search
                     val replace = arguments.replace
 
-                    if (type == AliasType.Soundboard && !SoundmojiUtils.containsSoundmojiReference(replace)) {
-                        respondEmbed(
-                            ":x: Invalid Soundboard",
-                            "サウンドボードのURL、`<sound:0:ID>`、もしくはIDのみを指定してください。"
-                        ) {
-                            authorOf(user)
-                            errorColor()
-                        }
-                        return@action
-                    }
+                    if (!validateSoundboardAlias(type, replace)) return@action
 
                     val duplicate = AliasStore.find(guild!!.id, search)
                     val isUpdate = duplicate != null
@@ -146,16 +138,7 @@ class AliasCommand : Extension() {
                         val updatedSearch = arguments.search ?: search
                         val updatedReplace = arguments.replace ?: replace
 
-                        if (updatedType == AliasType.Soundboard && !SoundmojiUtils.containsSoundmojiReference(updatedReplace)) {
-                            respondEmbed(
-                                ":x: Invalid Soundboard",
-                                "サウンドボードのURL、`<sound:0:ID>`、もしくはIDのみを指定してください。"
-                            ) {
-                                authorOf(user)
-                                errorColor()
-                            }
-                            return@action
-                        }
+                        if (!validateSoundboardAlias(updatedType, updatedReplace)) return@action
 
                         AliasStore.remove(aliasData)
                         AliasStore.create(
@@ -290,5 +273,23 @@ class AliasCommand : Extension() {
                 }
             }
         }
+    }
+
+    private suspend fun PublicSlashCommandContext<*, *>.validateSoundboardAlias(
+        type: AliasType,
+        replace: String
+    ): Boolean {
+        if (type != AliasType.Soundboard) return true
+        if (SoundmojiUtils.containsSoundmojiReference(replace)) return true
+
+        respondEmbed(
+            ":x: Invalid Soundboard",
+            "サウンドボードのURL、`<sound:0:ID>`、もしくはIDのみを指定してください。"
+        ) {
+            authorOf(user)
+            errorColor()
+        }
+
+        return false
     }
 }

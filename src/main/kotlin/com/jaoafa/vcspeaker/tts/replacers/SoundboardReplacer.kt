@@ -16,11 +16,11 @@ object SoundboardReplacer : BaseReplacer {
             buildList {
                 val normalized = SoundmojiUtils.normalizeSoundmojiReferences(alias.replace)
 
-                for (token in replacedTokens) {
-                    val text = token.text
+                for (replacedToken in replacedTokens) {
+                    val text = replacedToken.text
 
-                    if (token.replaced() || !text.contains(alias.search)) {
-                        add(token)
+                    if (replacedToken.replaced() || !text.contains(alias.search)) {
+                        add(replacedToken)
                         continue
                     }
 
