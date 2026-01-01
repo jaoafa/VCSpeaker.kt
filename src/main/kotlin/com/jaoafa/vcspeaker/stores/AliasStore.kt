@@ -12,7 +12,8 @@ enum class AliasType(
 ) {
     Text("文字列", ":pencil:"),
     Regex("正規表現", ":asterisk:"),
-    Emoji("絵文字", ":neutral_face:")
+    Emoji("絵文字", ":neutral_face:"),
+    Soundboard("サウンドボード", ":sound:")
 }
 
 @Serializable
@@ -61,4 +62,3 @@ object AliasStore : StoreStruct<AliasData>(
         write()
     }
 }
-

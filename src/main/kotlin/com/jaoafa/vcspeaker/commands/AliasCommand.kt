@@ -5,6 +5,7 @@ import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
 import com.jaoafa.vcspeaker.stores.AliasData
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiUtils
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -91,6 +92,17 @@ class AliasCommand : Extension() {
                     val search = arguments.search
                     val replace = arguments.replace
 
+                    if (type == AliasType.Soundboard && !SoundmojiUtils.containsSoundmojiReference(replace)) {
+                        respondEmbed(
+                            ":x: Invalid Soundboard",
+                            "サウンドボードのURL、`<sound:0:ID>`、もしくはIDのみを指定してください。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        return@action
+                    }
+
                     val duplicate = AliasStore.find(guild!!.id, search)
                     val isUpdate = duplicate != null
                     val oldReplace = duplicate?.replace
@@ -134,6 +146,17 @@ class AliasCommand : Extension() {
                         val updatedSearch = arguments.search ?: search
                         val updatedReplace = arguments.replace ?: replace
 
+                        if (updatedType == AliasType.Soundboard && !SoundmojiUtils.containsSoundmojiReference(updatedReplace)) {
+                            respondEmbed(
+                                ":x: Invalid Soundboard",
+                                "サウンドボードのURL、`<sound:0:ID>`、もしくはIDのみを指定してください。"
+                            ) {
+                                authorOf(user)
+                                errorColor()
+                            }
+                            return@action
+                        }
+
                         AliasStore.remove(aliasData)
                         AliasStore.create(
                             aliasData.copy(
@@ -154,6 +177,7 @@ class AliasCommand : Extension() {
                                 AliasType.Text -> search
                                 AliasType.Regex -> "`$search`"
                                 AliasType.Emoji -> "$search `$search`"
+                                AliasType.Soundboard -> search
                             }
 
                             field("${updatedType.emoji} ${updatedType.displayName}", true) {
