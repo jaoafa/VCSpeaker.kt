@@ -13,7 +13,7 @@ is_zombie_pid() {
     local pid=$1
 
     if [[ ! -r "/proc/$pid/stat" ]]; then
-        return 0
+        return 1
     fi
 
     local state
@@ -28,6 +28,10 @@ find_update_pids() {
 
     while IFS= read -r pid; do
         if [[ -z "$pid" ]]; then
+            continue
+        fi
+
+        if [[ ! -r "/proc/$pid/stat" ]]; then
             continue
         fi
 
@@ -68,19 +72,23 @@ if [[ $exit_code -eq 0 ]]; then
 
         # Wait for the update process to finish
         # This keeps the entrypoint alive so Docker doesn't restart the container
-        while [[ ${#update_pids[@]} -gt 0 ]]; do
+        while true; do
             find_update_pids
-            if [[ ${#update_pids[@]} -gt 0 ]]; then
-                if [[ "$update_wait_timeout_seconds" -gt 0 ]]; then
-                    now_epoch=$(date +%s)
-                    elapsed_seconds=$((now_epoch - update_wait_start_epoch))
-                    if [[ $elapsed_seconds -ge $update_wait_timeout_seconds ]]; then
-                        update_wait_timed_out=1
-                        break
-                    fi
-                fi
-                sleep 1
+
+            if [[ ${#update_pids[@]} -eq 0 ]]; then
+                break
             fi
+
+            if [[ "$update_wait_timeout_seconds" -gt 0 ]]; then
+                now_epoch=$(date +%s)
+                elapsed_seconds=$((now_epoch - update_wait_start_epoch))
+                if [[ $elapsed_seconds -ge $update_wait_timeout_seconds ]]; then
+                    update_wait_timed_out=1
+                    break
+                fi
+            fi
+
+            sleep 1
         done
 
         if [[ $update_wait_timed_out -eq 1 ]]; then
