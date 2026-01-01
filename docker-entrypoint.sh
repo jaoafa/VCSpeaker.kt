@@ -4,7 +4,7 @@
 #
 # Update flow:
 # 1. Current (vcspeaker.jar) starts and runs normally
-# 2. When update is detected, Current spawns Latest (update-*.jar) via nohup
+# 2. When update is detected, Current spawns Latest (update-*.jar)
 # 3. Current and Latest communicate via API to transfer state
 # 4. Current exits with code 0
 # 5. This script waits for Latest to finish (or keeps running)
@@ -19,14 +19,26 @@ if [[ $exit_code -eq 0 ]]; then
         mapfile -t update_pids < <(pgrep -f "update-.*\\.jar" || true)
     }
 
+    is_zombie_pid() {
+        local pid=$1
+
+        if [[ ! -r "/proc/$pid/stat" ]]; then
+            return 1
+        fi
+
+        local state
+        state=$(awk '{print $3}' "/proc/$pid/stat" 2>/dev/null || true)
+
+        [[ "$state" == "Z" ]]
+    }
+
     wait_for_pid() {
         local pid=$1
 
-        if wait "$pid" 2>/dev/null; then
-            return 0
-        fi
-
         while kill -0 "$pid" 2>/dev/null; do
+            if is_zombie_pid "$pid"; then
+                break
+            fi
             sleep 1
         done
     }
