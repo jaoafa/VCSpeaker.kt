@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:21-latest AS builder
+FROM azul/zulu-openjdk-alpine:25-latest AS builder
 
 # hadolint ignore=DL3018
 RUN apk add --no-cache git wget unzip
@@ -20,7 +20,7 @@ ARG VERSION=local-docker
 
 RUN ./gradlew build -Pversion=${VERSION} -x test
 
-FROM azul/zulu-openjdk-alpine:21-latest AS runner
+FROM azul/zulu-openjdk-alpine:25-latest AS runner
 
 WORKDIR /app
 
