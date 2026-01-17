@@ -11,3 +11,5 @@ logs/
 config.yml
 
 store-test/
+
+site/
