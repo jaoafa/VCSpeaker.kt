@@ -2,17 +2,17 @@
 
 VCSpeaker.kt では、メッセージを読み上げる際に、特定のパターンやメンションなどを読みやすい形に置き換える「Replacer（リプレーサー）」という仕組みがあります。
 
-## Replacerの実行順序
+## Replacer の実行順序
 
-Replacerは、以下の優先度順に実行されます：
+Replacer は、以下の優先度順に実行されます：
 
-1. **High（高優先度）**: `priority.level = 2`
-2. **Normal（通常優先度）**: `priority.level = 1`
-3. **Low（低優先度）**: `priority.level = 0`
+1. **High（高優先度）**: `ReplacerPriority.High`（level = 2）
+2. **Normal（通常優先度）**: `ReplacerPriority.Normal`（level = 1）
+3. **Low（低優先度）**: `ReplacerPriority.Low`（level = 0）
 
-各優先度内では、Replacerは検出された順序で実行されます。
+優先度の高い Replacer から順に実行され、各 Replacer は優先度の `level` 値の降順でソートされます。同一優先度内での実行順序は保証されていません。
 
-## Replacerの一覧
+## Replacer の一覧
 
 ### 高優先度（High）
 
@@ -30,21 +30,25 @@ Replacerは、以下の優先度順に実行されます：
 
 **優先度**: High
 
-**機能**: URLを読みやすい形式に置換します。以下の順序で複数の置換処理を実行します：
+**機能**: URL を読みやすい形式に置換します。以下の順序で複数の置換処理を実行します：
 
-1. **Discordメッセージリンク**: `https://discord.com/channels/{guild}/{channel}/{message}` → 「{チャンネル種別}「{チャンネル名}」で送信したメッセージのリンク」
-2. **Discordチャンネルリンク**: `https://discord.com/channels/{guild}/{channel}` → 「{チャンネル種別}「{チャンネル名}」へのリンク」
-3. **Discordイベント直接リンク**: `https://discord.com/events/{guild}/{event}` → 「イベント「{イベント名}」へのリンク」
-4. **Discordイベント招待リンク**: `https://discord.com/invite/{code}?event={event}` → 「イベント「{イベント名}」へのリンク」
-5. **ツイート（X）**: `https://twitter.com/{user}/status/{id}` または `https://x.com/{user}/status/{id}` → 「{ユーザー名}のツイート「{ツイート内容（70文字まで）}」へのリンク」（70文字を超える場合は「以下略」が付きます）
-6. **Discord招待リンク**: `https://discord.gg/{code}` → 「サーバ「{サーバ名}」のチャンネル「{チャンネル名}」への招待リンク」
-7. **Steam**: `https://store.steampowered.com/app/{id}` → 「Steamアイテム「{アイテム名}」へのリンク」
-8. **YouTube動画**: YouTubeの動画、ショート、ライブ配信 → 「YouTubeの「{投稿者名}」による{種別}「{タイトル}」へのリンク」
-9. **YouTubeプレイリスト**: YouTube プレイリスト → 「YouTubeの「{投稿者名}」によるプレイリスト「{タイトル}」へのリンク」
-10. **Google検索**: `https://www.google.com/search?q={query}` → 「Google検索「{検索語}」へのリンク」
-11. **Webページタイトル**: 一般的なWebページ → 「Webページ「{ページタイトル（30文字まで）}」へのリンク」
-12. **ファイル拡張子**: 拡張子が認識できる場合 → 「{拡張子名}ファイルへのリンク」（例: `.jpg` → 「JPEGファイルへのリンク」）
-13. **その他URL**: 上記に該当しない場合 → 「Webページのリンク」
+1. **Discord メッセージリンク**: `https://discord.com/channels/{guild}/{channel}/{message}` → 「{チャンネル種別}「{チャンネル名}」で送信したメッセージのリンク」
+   - スレッド内の場合: 「{チャンネル種別}「{親チャンネル名}」のスレッド「{スレッド名}」で送信したメッセージのリンク」
+2. **Discord チャンネルリンク**: `https://discord.com/channels/{guild}/{channel}` → 「{チャンネル種別}「{チャンネル名}」へのリンク」
+   - スレッド内の場合: 「{チャンネル種別}「{親チャンネル名}」のスレッド「{スレッド名}」へのリンク」
+3. **Discord イベント直接リンク**: `https://discord.com/events/{guild}/{event}` → 「イベント「{イベント名}」へのリンク」
+4. **Discord イベント招待リンク**: `https://discord.com/invite/{code}?event={event}` → 「イベント「{イベント名}」へのリンク」
+5. **ツイート（X）**: `https://twitter.com/{user}/status/{id}` または `https://x.com/{user}/status/{id}` → 「{ユーザー名}のツイート「{ツイート内容（70 文字まで）}」へのリンク」（70 文字を超える場合は「以下略」が付きます）
+6. **Discord 招待リンク**: `https://discord.gg/{code}` → 「サーバ「{サーバ名}」のチャンネル「{チャンネル名}」への招待リンク」
+7. **Steam**: `https://store.steampowered.com/app/{id}` → 「Steam アイテム「{アイテム名}」へのリンク」
+8. **YouTube 動画**: YouTube の動画、ショート、ライブ配信 → 「YouTube の「{投稿者名}」による{種別}「{タイトル}」へのリンク」
+   - 動画タイトルが 20 文字を超える場合は 20 文字に短縮して「以下略」が付きます
+   - 投稿者名が 15 文字を超える場合は 15 文字に短縮して「以下略」が付きます
+9. **YouTube プレイリスト**: YouTube プレイリスト → 「YouTube の「{投稿者名}」によるプレイリスト「{タイトル}」へのリンク」
+10. **Google 検索**: `https://www.google.com/search?q={query}` → 「Google 検索「{検索語}」へのリンク」
+11. **Web ページタイトル**: 一般的な Web ページ → 「Web ページ「{ページタイトル（30 文字まで）}」へのリンク」
+12. **ファイル拡張子**: 拡張子が認識できる場合 → 「{拡張子名}ファイルへのリンク」（例: `.jpg` → 「JPEG ファイルへのリンク」）
+13. **その他 URL**: 上記に該当しない場合 → 「Web ページのリンク」
 
 ### 通常優先度（Normal）
 
@@ -98,7 +102,7 @@ Replacerは、以下の優先度順に実行されます：
 
 - エイリアスストアに登録されたテキストタイプ（`AliasType.Text`）のエイリアスを検索します
 - 一致するテキストを登録された置換文字列に変換します
-- 例: 「NGワード」 → 「適切な言葉」（エイリアスで設定されている場合）
+- 例: 「NG ワード」 → 「適切な言葉」（エイリアスで設定されている場合）
 
 #### 8. RegexReplacer
 
@@ -114,12 +118,12 @@ Replacerは、以下の優先度順に実行されます：
 ## 置換処理の仕組み
 
 1. メッセージテキストは最初に `TextToken` のリストとして処理されます
-2. 各Replacerは優先度順に実行され、トークンのリストを変換します
-3. すでに置換されたトークン（`replaced()` が `true`）は、後続のReplacerによってスキップされます
+2. 各 Replacer は優先度順に実行され、トークンのリストを変換します
+3. すでに置換されたトークン（`replaced()` が `true`）は、後続の Replacer によってスキップされます
 4. 最終的に、すべてのトークンが結合され、絵文字も名前に変換されて読み上げられます
 
 ## 注意事項
 
-- Replacerは常に上記の優先度順に実行されるため、高優先度のReplacerによって置換されたテキストは、低優先度のReplacerでは処理されません
-- URLの置換は他の置換より先に行われるため、URL内のパターンが意図せず置換されることを防ぎます
+- Replacer は常に上記の優先度順に実行されるため、高優先度の Replacer によって置換されたテキストは、低優先度の Replacer では処理されません
+- URL の置換は他の置換より先に行われるため、URL 内のパターンが意図せず置換されることを防ぎます
 - エイリアス機能を使用することで、サーバー固有の置換ルールをカスタマイズできます
