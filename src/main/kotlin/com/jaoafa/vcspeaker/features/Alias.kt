@@ -25,6 +25,7 @@ object Alias {
                 AliasType.Text -> search
                 AliasType.Regex -> "`$search`"
                 AliasType.Emoji -> "$search `$search`"
+                AliasType.Soundboard -> search
             }
         }
 }
