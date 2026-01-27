@@ -57,7 +57,7 @@ object DiscordCommandCleaner {
             }
 
             val globalResponse = client.put("https://discord.com/api/v10/applications/$appId/commands") {
-                setBody(emptyList<Any>())
+                setBody("[]")
             }
 
             if (globalResponse.status.value !in 200..299) {
@@ -68,7 +68,7 @@ object DiscordCommandCleaner {
 
             if (devGuildId != null) {
                 val guildResponse = client.put("https://discord.com/api/v10/applications/$appId/guilds/$devGuildId/commands") {
-                    setBody(emptyList<Any>())
+                    setBody("[]")
                 }
 
                 if (guildResponse.status.value !in 200..299) {
