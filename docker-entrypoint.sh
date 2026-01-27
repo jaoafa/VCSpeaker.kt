@@ -12,12 +12,18 @@
 is_zombie_pid() {
     local pid=$1
 
+    # プロセスが存在しない場合は zombie ではない
     if [[ ! -r "/proc/$pid/stat" ]]; then
         return 1
     fi
 
     local state
     state=$(awk '{print $3}' "/proc/$pid/stat" 2>/dev/null || true)
+
+    # state が取得できなかった場合も zombie ではない
+    if [[ -z "$state" ]]; then
+        return 1
+    fi
 
     [[ "$state" == "Z" ]]
 }
@@ -31,10 +37,7 @@ find_update_pids() {
             continue
         fi
 
-        if [[ ! -r "/proc/$pid/stat" ]]; then
-            continue
-        fi
-
+        # zombie プロセスはスキップ (is_zombie_pid 内でプロセスの存在確認も行われる)
         if is_zombie_pid "$pid"; then
             continue
         fi
