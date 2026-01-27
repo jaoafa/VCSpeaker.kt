@@ -5,12 +5,14 @@ import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.*
 import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
+import com.jaoafa.vcspeaker.tools.discord.DiscordCommandCleaner
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -83,6 +85,11 @@ class Options : OptionGroup("Main Options:") {
         help = "Enable auto update.",
         envvar = "VCSKT_AUTO_UPDATE"
     ).boolean()
+
+    val clearCommandsAndExit by option(
+        "--clear-commands-and-exit",
+        help = "Delete all registered application commands and exit."
+    ).flag()
 }
 
 class Entrypoint : CliktCommand() {
@@ -100,6 +107,20 @@ class Entrypoint : CliktCommand() {
             addSpec(TokenSpec)
             addSpec(EnvSpec)
         }.from.yaml.file(options.configPath.toFile())
+
+        if (options.clearCommandsAndExit) {
+            val devGuildId = options.devGuildId ?: config[EnvSpec.devGuildId]
+
+            runBlocking {
+                DiscordCommandCleaner.clearRegisteredCommands(
+                    token = config[TokenSpec.discord],
+                    devGuildId = devGuildId
+                )
+            }
+
+            logger.info { "Command cleanup completed. Exiting." }
+            return
+        }
 
         val manifest = javaClass
             .classLoader
