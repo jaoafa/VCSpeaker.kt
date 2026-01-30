@@ -12,7 +12,12 @@ enum class AliasType(
 ) {
     Text("文字列", ":pencil:"),
     Regex("正規表現", ":asterisk:"),
-    Emoji("絵文字", ":neutral_face:")
+    Emoji("絵文字", ":neutral_face:"),
+    Soundboard("サウンドボード", ":sound:")
+}
+
+private val aliasJson = Json {
+    ignoreUnknownKeys = true
 }
 
 @Serializable
@@ -33,12 +38,12 @@ data class AliasData(
 object AliasStore : StoreStruct<AliasData>(
     VCSpeaker.Files.aliases.path,
     AliasData.serializer(),
-    { Json.decodeFromString(this) },
+    { aliasJson.decodeFromString(this) },
 
     version = 1,
     migrators = mapOf(
         1 to { file ->
-            val list = Json.decodeFromString<List<AliasData>>(file.readText())
+            val list = aliasJson.decodeFromString<List<AliasData>>(file.readText())
             file.writeText(
                 Json.encodeToString(
                     TypedStore.serializer(AliasData.serializer()),
@@ -61,4 +66,3 @@ object AliasStore : StoreStruct<AliasData>(
         write()
     }
 }
-
