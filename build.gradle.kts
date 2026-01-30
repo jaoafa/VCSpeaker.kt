@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.serialization") version "2.2.21"
     id("io.kotest.multiplatform") version "6.0.0-LOCAL"
-    id("com.gradleup.shadow") version "9.0.0-rc3"
+    id("com.gradleup.shadow") version "9.3.1"
     application
 }
 
@@ -32,7 +32,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3")
     implementation("org.apache.logging.log4j:log4j-core:2.25.3")
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.14")
 
     // Discord Related
     implementation("dev.kord:kord-core:0.17.0")
@@ -57,12 +57,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     // Other Libraries
-    implementation("io.sentry:sentry:8.29.0")
-    implementation("org.jsoup:jsoup:1.21.2")
+    implementation("io.sentry:sentry:8.30.0")
+    implementation("org.jsoup:jsoup:1.22.1")
     implementation("org.reflections:reflections:0.10.2")
-    implementation("com.google.cloud:google-cloud-vision:3.79.0")
+    implementation("com.google.cloud:google-cloud-vision:3.80.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.5")
-    implementation("com.github.ajalt.clikt:clikt:5.0.3")
+    implementation("com.github.ajalt.clikt:clikt:5.1.0")
     implementation("com.uchuhimo:konf:1.1.2")
 }
 
