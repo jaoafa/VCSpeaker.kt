@@ -39,6 +39,10 @@ object NarratorManager {
         logger.info { "Preparing Narrator for $channelId at $guildId" }
 
         return {
+            // Lavalink ノードが利用可能か確認
+            if (!VCSpeaker.lavalink.nodes.any { it.available }) {
+                throw IllegalStateException("🔌 Lavalink ノードが利用できません。しばらく待ってから再度お試しください。")
+            }
             val guild =
                 VCSpeaker.kord.getGuildOrNull(guildId)
                     ?: throw IllegalStateException("Error while connecting; Guild not found: $guildId")

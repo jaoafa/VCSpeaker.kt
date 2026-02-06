@@ -67,6 +67,9 @@ object KordStarter {
 
         initLavaLink(instance.kordRef, config[EnvSpec.lavalinkUri], config[EnvSpec.lavalinkPassword])
 
+        // Lavalink ヘルスチェックを開始
+        HealthChecker.start(instance.kordRef, config[EnvSpec.lavalinkUri], config[EnvSpec.lavalinkPassword])
+
         if (launch) {
             logger.info { "Starting Kord instance..." }
             instance.start()
