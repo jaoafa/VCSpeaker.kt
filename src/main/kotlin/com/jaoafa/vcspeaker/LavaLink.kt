@@ -21,9 +21,11 @@ suspend fun initLavaLink(kord: Kord, uri: String, password: String) {
     val baseDelayMillis = 1000L
     val jitterMillis = 500L
 
+    // LavaKord インスタンスはループの外で 1 回だけ生成
+    val lavalink = kord.lavakord()
+
     repeat(maxRetries) { attempt ->
         try {
-            val lavalink = kord.lavakord()
             lavalink.addNode(uri, password)
 
             // ノードが利用可能になるまで少し待機

@@ -70,6 +70,12 @@ object KordStarter {
         // Lavalink ヘルスチェックを開始
         HealthChecker.start(instance.kordRef, config[EnvSpec.lavalinkUri], config[EnvSpec.lavalinkPassword])
 
+        // アプリケーション終了時に HealthChecker を停止
+        Runtime.getRuntime().addShutdownHook(Thread {
+            logger.info { "Shutting down HealthChecker..." }
+            HealthChecker.stop()
+        })
+
         if (launch) {
             logger.info { "Starting Kord instance..." }
             instance.start()

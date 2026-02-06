@@ -44,9 +44,7 @@ object HealthChecker {
                         logger.warn { "Lavalink ノードが利用できません。再接続を試行します..." }
 
                         try {
-                            // 既存のノードをクリア (再接続前に古いノードを削除)
-                            // Note: Lavakord には removeNode メソッドがないため、
-                            // 新しいノードを追加することで既存のノードを上書きします
+                            // Lavalink への再接続を試行
                             initLavaLink(kord, uri, password)
                             logger.info { "Lavalink への再接続に成功しました" }
                         } catch (e: Exception) {
