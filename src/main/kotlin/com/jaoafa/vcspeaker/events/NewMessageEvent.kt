@@ -31,7 +31,7 @@ class NewMessageEvent : Extension() {
                     if (message.author?.isBot != true) return@failIf false
 
                     // ギルドが存在しない場合や、読み上げ可能Botでない場合は弾く
-                    guildId == null || !ReadableBotStore.isReadableBot(guildId, message.author!!.id)
+                    guildId == null || !ReadableBotStore.isReadableBot(guildId, message.author!!)
                 }
             }
 
