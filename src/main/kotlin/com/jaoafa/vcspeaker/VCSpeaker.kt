@@ -46,6 +46,7 @@ object VCSpeaker {
         val aliases = storeFolder + File("aliases.json")
         val voices = storeFolder + File("voices.json")
         val titles = storeFolder + File("titles.json")
+        val readableBot = storeFolder + File("readablebot.json")
         val visionApiCounter = storeFolder + File("vision-api-counter.json")
 
         val visionApiCache = storeFolder + File("vision-api") + File("cache")

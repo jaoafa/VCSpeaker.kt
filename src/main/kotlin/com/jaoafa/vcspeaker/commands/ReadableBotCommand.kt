@@ -5,16 +5,14 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import dev.kord.common.entity.Snowflake
 import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.checks.anyGuild
-import dev.kordex.core.commands.converters.impl.string
+import dev.kordex.core.commands.converters.impl.user
 import dev.kordex.core.extensions.Extension
-import dev.kordex.core.utils.FilterStrategy
-import dev.kordex.core.utils.suggestStringCollection
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ReadableBotCommand : Extension() {
@@ -22,25 +20,16 @@ class ReadableBotCommand : Extension() {
     private val logger = KotlinLogging.logger { }
 
     inner class AddOptions : Options() {
-        val userId by string {
-            name = "userid"
-            description = "読み上げを許可するBotのユーザーID"
+        val user by user {
+            name = "user"
+            description = "読み上げを許可するBotのユーザー"
         }
     }
 
     inner class RemoveOptions : Options() {
-        val userId by string {
-            name = "userid"
-            description = "読み上げを許可しなくなるBotのユーザーID"
-
-            autoComplete { event ->
-                val guildId = event.interaction.getChannel().data.guildId.value
-
-                suggestStringCollection(
-                    ReadableBotStore.filter(guildId).map { it.userId.toString() },
-                    FilterStrategy.Contains
-                )
-            }
+        val user by user {
+            name = "user"
+            description = "読み上げを許可しなくなるBotのユーザー"
         }
     }
 
@@ -51,12 +40,12 @@ class ReadableBotCommand : Extension() {
             publicSubCommand("add", "読み上げを許可するBotを追加します。", ::AddOptions) {
                 action {
                     val guildId = guild!!.id
-                    val userId = Snowflake(arguments.userId)
+                    val targetUser = arguments.user
 
-                    if (ReadableBotStore.isReadableBot(guildId, userId)) {
+                    if (ReadableBotStore.isReadableBot(guildId, targetUser)) {
                         respondEmbed(
                             ":speaking_head: Already Added",
-                            "既に読み上げを許可するBotに追加されています。"
+                            "${targetUser.mention} は既に読み上げを許可するBotに追加されています。"
                         ) {
                             authorOf(user)
                             errorColor()
@@ -64,13 +53,17 @@ class ReadableBotCommand : Extension() {
                         return@action
                     }
 
-                    ReadableBotStore.add(guildId, userId, user.id)
+                    ReadableBotStore.add(guildId, targetUser, user.id)
                     respondEmbed(
                         ":speaking_head: Added Readable Bot",
-                        "読み上げを許可するBotに追加しました。"
+                        "${targetUser.mention} を読み上げを許可するBotに追加しました。"
                     ) {
                         authorOf(user)
                         successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Readable Bot Added: @${user.username} added readable bot ${targetUser.username} (${targetUser.id})"
                     }
                 }
             }
@@ -78,12 +71,12 @@ class ReadableBotCommand : Extension() {
             publicSubCommand("remove", "読み上げを許可するBotを削除します。", ::RemoveOptions) {
                 action {
                     val guildId = guild!!.id
-                    val userId = Snowflake(arguments.userId)
+                    val targetUser = arguments.user
 
-                    if (!ReadableBotStore.isReadableBot(guildId, userId)) {
+                    if (!ReadableBotStore.isReadableBot(guildId, targetUser)) {
                         respondEmbed(
                             ":face_with_symbols_over_mouth: Not Found",
-                            "読み上げを許可するBotに追加されていません。"
+                            "${targetUser.mention} は読み上げを許可するBotに追加されていません。"
                         ) {
                             authorOf(user)
                             errorColor()
@@ -91,10 +84,44 @@ class ReadableBotCommand : Extension() {
                         return@action
                     }
 
-                    ReadableBotStore.remove(guildId, userId)
+                    ReadableBotStore.remove(guildId, targetUser)
                     respondEmbed(
                         ":face_with_symbols_over_mouth: Removed Readable Bot",
-                        "読み上げを許可するBotから削除しました。"
+                        "${targetUser.mention} を読み上げを許可するBotから削除しました。"
+                    ) {
+                        authorOf(user)
+                        successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Readable Bot Removed: @${user.username} removed readable bot ${targetUser.username} (${targetUser.id})"
+                    }
+                }
+            }
+
+            publicSubCommand("list", "読み上げを許可するBotの一覧を表示します.") {
+                action {
+                    val guildId = guild!!.id
+                    val readableBots = ReadableBotStore.data.filter { it.guildId == guildId }
+
+                    if (readableBots.isEmpty()) {
+                        respondEmbed(
+                            ":speaking_head: No Readable Bots",
+                            "このサーバーには読み上げを許可するBotが設定されていません。"
+                        ) {
+                            authorOf(user)
+                            successColor()
+                        }
+                        return@action
+                    }
+
+                    val description = readableBots.joinToString("\n") { data ->
+                        "<@${data.userId}> (Added by <@${data.addedByUserId}>)"
+                    }
+
+                    respondEmbed(
+                        ":speaking_head: Readable Bots",
+                        description
                     ) {
                         authorOf(user)
                         successColor()

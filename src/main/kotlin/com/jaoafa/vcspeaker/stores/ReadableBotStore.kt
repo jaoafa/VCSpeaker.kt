@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import dev.kord.common.entity.Snowflake
+import dev.kord.core.entity.User
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -13,7 +14,7 @@ data class ReadableBotData(
 )
 
 object ReadableBotStore : StoreStruct<ReadableBotData>(
-    VCSpeaker.Files.titles.path,
+    VCSpeaker.Files.readableBot.path,
     ReadableBotData.serializer(),
     { Json.decodeFromString(this) },
 
@@ -30,18 +31,21 @@ object ReadableBotStore : StoreStruct<ReadableBotData>(
         }
     )
 ) {
-    fun isReadableBot(guildId: Snowflake, userId: Snowflake) = data.any { it.guildId == guildId && it.userId == userId }
+    fun isReadableBot(guildId: Snowflake, user: User) = data.any { it.guildId == guildId && it.userId == user.id }
 
-    fun add(guildId: Snowflake, userId: Snowflake, addedByUserId: Snowflake) {
-        if (isReadableBot(guildId, userId)) return
-        data.add(ReadableBotData(guildId, userId, addedByUserId))
+    fun add(guildId: Snowflake, user: User, addedByUserId: Snowflake) {
+        if (isReadableBot(guildId, user)) return
+        data.add(ReadableBotData(guildId, user.id, addedByUserId))
         write()
     }
 
-    fun remove(guildId: Snowflake, userId: Snowflake) {
-        data.removeIf { it.guildId == guildId && it.userId == userId }
+    fun remove(guildId: Snowflake, user: User) {
+        data.removeIf { it.guildId == guildId && it.userId == user.id }
         write()
     }
 
-    fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
+    fun removeForGuild(guildId: Snowflake) {
+        data.removeIf { it.guildId == guildId }
+        write()
+    }
 }
