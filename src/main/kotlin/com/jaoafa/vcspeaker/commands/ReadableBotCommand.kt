@@ -55,7 +55,7 @@ class ReadableBotCommand : Extension() {
 
                     if (ReadableBotStore.isReadableBot(guildId, userId)) {
                         respondEmbed(
-                            ":face_with_symbols_over_mouth: Already Added",
+                            ":speaking_head: Already Added",
                             "既に読み上げを許可するBotに追加されています。"
                         ) {
                             authorOf(user)
@@ -66,7 +66,7 @@ class ReadableBotCommand : Extension() {
 
                     ReadableBotStore.add(guildId, userId, user.id)
                     respondEmbed(
-                        ":face_with_symbols_over_mouth: Added Readable Bot",
+                        ":speaking_head: Added Readable Bot",
                         "読み上げを許可するBotに追加しました。"
                     ) {
                         authorOf(user)
