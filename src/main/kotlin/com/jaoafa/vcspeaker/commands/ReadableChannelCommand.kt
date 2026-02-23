@@ -17,6 +17,7 @@ import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.converters.impl.channel
 import dev.kordex.core.extensions.Extension
+import dev.kordex.core.utils.permissionsForMember
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ReadableChannelCommand : Extension() {
@@ -73,7 +74,9 @@ class ReadableChannelCommand : Extension() {
 
                     // コマンド実行者が対象テキストチャンネルの管理権限を持っているか確認
                     val member = guild?.getMember(user.id)
-                    if (member == null || member.permissions == null || !member.permissions!!.contains(Permission.ManageChannels)) {
+                    if (member == null || targetTextChannel.permissionsForMember(member)
+                            .contains(Permission.ManageChannels).not()
+                    ) {
                         respondEmbed(
                             ":face_with_symbols_over_mouth: Insufficient Permissions",
                             "この操作を実行するには、${targetTextChannel.mention} の管理権限が必要です。"
