@@ -6,6 +6,7 @@ import com.jaoafa.vcspeaker.models.original.twitter.Tweet
 import com.jaoafa.vcspeaker.models.response.steam.SteamAppDetail
 import com.jaoafa.vcspeaker.models.response.steam.SteamAppDetailData
 import com.jaoafa.vcspeaker.models.response.youtube.YouTubeOEmbedResponse
+import com.jaoafa.vcspeaker.stores.ReadableChannelStore
 import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
@@ -25,10 +26,19 @@ import kotlinx.coroutines.flow.flow
 import java.io.File
 
 class UrlReplacerTest : FunSpec({
-    // テスト前にモックを初期化
-    beforeTest {
+    // テスト前に早期にモックを初期化
+    beforeSpec {
         mockkObject(VCSpeaker)
         every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
+        VCSpeaker.storeFolder.mkdirs()
+        // ReadableChannelStore用の空のファイルを作成 (マイグレーション前のフォーマット)
+        val readableChannelFile = File(VCSpeaker.storeFolder, "readablechannels.json")
+        readableChannelFile.writeText("[]")
+    }
+    
+    // テスト前にモックを初期化
+    beforeTest {
+        mockkObject(ReadableChannelStore)
     }
 
     // テスト後にモックを削除
@@ -45,6 +55,9 @@ class UrlReplacerTest : FunSpec({
     context("Make message URLs readable.") {
         // 既知の通常のメッセージURLを置き換える
         test("URL(s) to another message(s) on known server's channel should be replaced with readable text.") {
+            // ReadableChannelStoreをモック化して、常にfalseを返すようにする
+            coEvery { ReadableChannelStore.isReadableChannel(any(), any()) } returns false
+            
             listOf(
                 "test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678",
                 "test https://discordapp.com/channels/123456789012345678/876543210987654321/123456789012345678",
@@ -57,12 +70,36 @@ class UrlReplacerTest : FunSpec({
                     ChannelType.GuildCategory to "カテゴリ",
                     ChannelType.GuildNews to "ニュースチャンネル",
                 ).forEach { (channelType, channelTypeText) ->
+                    // GuildTextの場合はTextChannelのモックを作成、それ以外は通常のGuildChannelのモック
+                    val channelMock = if (channelType == ChannelType.GuildText) {
+                        mockk<dev.kord.core.entity.channel.TextChannel> {
+                            val channel = this
+                            every { name } returns "test-channel"
+                            every { type } returns channelType
+                            every { id } returns Snowflake(876543210987654321)
+                            every { supplier } returns mockk {
+                                coEvery { getChannel(Snowflake(876543210987654321)) } returns channel
+                            }
+                            coEvery { getMessageOrNull(any()) } returns null
+                        }
+                    } else {
+                        mockk {
+                            val channel = this
+                            every { name } returns "test-channel"
+                            every { type } returns channelType
+                            every { id } returns Snowflake(876543210987654321)
+                            every { supplier } returns mockk {
+                                coEvery { getChannel(Snowflake(876543210987654321)) } returns channel
+                            }
+                        }
+                    }
+                    
                     every { VCSpeaker.kord } returns mockk {
-                        every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+                        every { resources } returns mockk<ClientResources>()
                         coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                            coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns mockk {
-                                every { name } returns "test-channel" // テスト用のチャンネル名
-                                every { type } returns channelType
+                            coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                            every { supplier } returns mockk {
+                                coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
                             }
                         }
                     }
@@ -87,26 +124,48 @@ class UrlReplacerTest : FunSpec({
 
         // 既知のスレッドチャンネルメッセージURLを置き換える
         test("URL(s) to another message(s) on known thread channel should be replaced with readable text.") {
+            // ReadableChannelStoreをモック化して、常にfalseを返すようにする
+            coEvery { ReadableChannelStore.isReadableChannel(any(), any()) } returns false
+            
             mapOf(
                 ChannelType.GuildText to "テキストチャンネル",
                 ChannelType.GuildNews to "ニュースチャンネル",
             ).forEach { (channelType, channelTypeText) ->
-                every { VCSpeaker.kord } returns mockk {
-                    every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                    coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns mockk<ThreadChannel> {
-                            every { name } returns "test-thread-channel" // テスト用のスレッドチャンネル名
-                            every { type } returns ChannelType.PublicGuildThread
-                            coEvery { asChannelOf<ThreadChannel>() } returns mockk {
-                                every { name } returns "test-thread-channel" // テスト用のスレッドチャンネル名
-                                every { type } returns channelType
-                                every { parent } returns mockk {
-                                    coEvery { asChannel() } returns mockk {
-                                        every { name } returns "test-thread-parent-channel" // テスト用のチャンネル名
-                                        every { type } returns channelType
-                                    }
-                                }
+                val parentChannelMock = mockk<dev.kord.core.entity.channel.TextChannel> {
+                    val parent = this
+                    every { name } returns "test-thread-parent-channel"
+                    every { type } returns channelType
+                    every { supplier } returns mockk {
+                        coEvery { getChannel(any()) } returns parent
+                    }
+                }
+                
+                val threadChannelMock = mockk<ThreadChannel> {
+                    val thread = this
+                    every { name } returns "test-thread-channel"
+                    every { type } returns ChannelType.PublicGuildThread
+                    every { id } returns Snowflake(876543210987654321)
+                    every { supplier } returns mockk {
+                        coEvery { getChannel(any()) } returns thread
+                    }
+                    coEvery { asChannelOf<ThreadChannel>() } returns mockk {
+                        every { name } returns "test-thread-channel"
+                        every { type } returns channelType
+                        every { parent } returns mockk {
+                            every { supplier } returns mockk {
+                                coEvery { getChannel(any()) } returns parentChannelMock
                             }
+                            coEvery { asChannel() } returns parentChannelMock
+                        }
+                    }
+                }
+                
+                every { VCSpeaker.kord } returns mockk {
+                    every { resources } returns mockk<ClientResources>()
+                    coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns threadChannelMock
+                        every { supplier } returns mockk {
+                            coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns threadChannelMock
                         }
                     }
                 }

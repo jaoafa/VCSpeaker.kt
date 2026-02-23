@@ -438,11 +438,14 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getMessageDetailText(guild: Guild, channel: GuildChannel, messageId: Snowflake): String? {
         if (channel.type != ChannelType.GuildText) return null
 
+        // ReadableChannelStoreのチェックを先に行う（asChannelOfを呼ぶ前に）
+        // これにより、テストでasChannelOfのモックが不要になる
+        val isReadableChannelRegistered = ReadableChannelStore.data.any { 
+            it.guildId == guild.id && it.channelId == channel.id 
+        }
+        if (!isReadableChannelRegistered) return null
+
         val textChannel = channel.asChannelOf<dev.kord.core.entity.channel.TextChannel>()
-
-        val isReadableChannel = ReadableChannelStore.isReadableChannel(guild.id, textChannel)
-        if (!isReadableChannel) return null
-
         val channelType = getChannelTypeText(channel)
 
         val message = textChannel.getMessageOrNull(messageId) ?: return null
