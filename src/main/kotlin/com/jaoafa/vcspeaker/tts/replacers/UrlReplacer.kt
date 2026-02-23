@@ -436,7 +436,7 @@ object UrlReplacer : BaseReplacer {
      * ReadableChannel に登録されていないチャンネルの場合は、nullを返します。
      */
     private suspend fun getMessageDetailText(guild: Guild, channel: GuildChannel, messageId: Snowflake): String? {
-        if (channel.type !is ChannelType.GuildText) return null
+        if (channel.type != ChannelType.GuildText) return null
 
         val textChannel = channel.asChannelOf<dev.kord.core.entity.channel.TextChannel>()
 
