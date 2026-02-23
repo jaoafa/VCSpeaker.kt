@@ -10,6 +10,7 @@ import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import dev.kord.common.entity.ChannelType
+import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.channel.asChannelOfOrNull
 import dev.kord.core.entity.channel.TextChannel
 import dev.kordex.core.annotations.AlwaysPublicResponse
@@ -63,6 +64,19 @@ class ReadableChannelCommand : Extension() {
                         respondEmbed(
                             ":face_with_symbols_over_mouth: Not Found",
                             "${targetTextChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルにすでに追加されています。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        return@action
+                    }
+
+                    // コマンド実行者が対象テキストチャンネルの管理権限を持っているか確認
+                    val member = guild?.getMember(user.id)
+                    if (member == null || member.permissions == null || !member.permissions!!.contains(Permission.ManageChannels)) {
+                        respondEmbed(
+                            ":face_with_symbols_over_mouth: Insufficient Permissions",
+                            "この操作を実行するには、${targetTextChannel.mention} の管理権限が必要です。"
                         ) {
                             authorOf(user)
                             errorColor()
