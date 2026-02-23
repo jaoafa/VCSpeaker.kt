@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.features.Ignore.shouldIgnoreOn
 import com.jaoafa.vcspeaker.reload.state.UseState
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.stores.VoiceStore
@@ -100,6 +101,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
         guild: Guild,
         actor: SpeechActor
     ) {
+        if (text.shouldIgnoreOn(guildId)) return
+
         val sounds = soundRegex.findAll(text).mapNotNull {
             val id = it.groupValues[1].toLongOrNull() ?: return@mapNotNull null
             it.value to id
