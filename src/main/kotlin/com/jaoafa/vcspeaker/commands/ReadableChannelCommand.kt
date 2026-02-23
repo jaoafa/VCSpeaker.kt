@@ -46,16 +46,6 @@ class ReadableChannelCommand : Extension() {
                 action {
                     val guildId = guild!!.id
                     val targetChannel = arguments.channel
-                    if (targetChannel.type != ChannelType.GuildText) {
-                        respondEmbed(
-                            ":face_with_symbols_over_mouth: Invalid Channel Type",
-                            "${targetChannel.mention} はテキストチャンネルではありません。"
-                        ) {
-                            authorOf(user)
-                            errorColor()
-                        }
-                        return@action
-                    }
 
                     val targetTextChannel = targetChannel.asChannelOfOrNull<TextChannel>()
                     if (targetTextChannel == null) {
@@ -103,16 +93,6 @@ class ReadableChannelCommand : Extension() {
                 action {
                     val guildId = guild!!.id
                     val targetChannel = arguments.channel
-                    if (targetChannel.type != ChannelType.GuildText) {
-                        respondEmbed(
-                            ":face_with_symbols_over_mouth: Invalid Channel Type",
-                            "${targetChannel.mention} はテキストチャンネルではありません。"
-                        ) {
-                            authorOf(user)
-                            errorColor()
-                        }
-                        return@action
-                    }
 
                     val targetTextChannel = targetChannel.asChannelOfOrNull<TextChannel>()
                     if (targetTextChannel == null) {
