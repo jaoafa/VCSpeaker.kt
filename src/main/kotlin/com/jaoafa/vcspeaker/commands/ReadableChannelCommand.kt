@@ -62,7 +62,7 @@ class ReadableChannelCommand : Extension() {
                     if (ReadableChannelStore.isReadableChannel(guildId, targetTextChannel)) {
                         respondEmbed(
                             ":face_with_symbols_over_mouth: Not Found",
-                            "${targetTextChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルに追加されていません。"
+                            "${targetTextChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルにすでに追加されています。"
                         ) {
                             authorOf(user)
                             errorColor()
