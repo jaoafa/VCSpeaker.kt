@@ -35,7 +35,7 @@ class ReadableChannelCommand : Extension() {
     inner class RemoveOptions : Options() {
         val channel by channel {
             name = "channel"
-            description = "メッセージ内容の読み上げを許可するテキストチャンネル"
+            description = "メッセージ内容の読み上げを行わなくするテキストチャンネル"
             requiredChannelTypes += ChannelType.GuildText
         }
     }
@@ -63,8 +63,8 @@ class ReadableChannelCommand : Extension() {
 
                     if (ReadableChannelStore.isReadableChannel(guildId, targetTextChannel)) {
                         respondEmbed(
-                            ":face_with_symbols_over_mouth: Not Found",
-                            "${targetTextChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルにすでに追加されています。"
+                            ":speaking_head: Already Added",
+                            "${targetTextChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルに既に追加されています。"
                         ) {
                             authorOf(user)
                             errorColor()
@@ -127,6 +127,21 @@ class ReadableChannelCommand : Extension() {
                         respondEmbed(
                             ":face_with_symbols_over_mouth: Not Found",
                             "${targetChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルに追加されていません。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        return@action
+                    }
+
+                    // コマンド実行者が対象テキストチャンネルの管理権限を持っているか確認
+                    val member = guild?.getMember(user.id)
+                    if (member == null || targetTextChannel.permissionsForMember(member)
+                            .contains(Permission.ManageChannels).not()
+                    ) {
+                        respondEmbed(
+                            ":face_with_symbols_over_mouth: Insufficient Permissions",
+                            "この操作を実行するには、${targetTextChannel.mention} の管理権限が必要です。"
                         ) {
                             authorOf(user)
                             errorColor()
