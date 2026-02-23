@@ -5,6 +5,7 @@ import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
+import com.jaoafa.vcspeaker.stores.ReadableChannelStore
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
@@ -399,9 +400,10 @@ object UrlReplacer : BaseReplacer {
      */
     private suspend fun replaceMessageUrl(text: String, guildId: Snowflake) =
         messageUrlRegex.replaceAll(text) { replacedText, matchResult ->
-            val (urlGuildIdRaw, urlChannelIdRaw) = matchResult.destructured
+            val (urlGuildIdRaw, urlChannelIdRaw, urlMessageIdRaw) = matchResult.destructured
             val urlGuildId = Snowflake(urlGuildIdRaw)
             val urlChannelId = Snowflake(urlChannelIdRaw)
+            val urlMessageId = Snowflake(urlMessageIdRaw)
 
             // URLに含まれているIDをもとに、エンティティを取得する
             val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId)
@@ -412,6 +414,10 @@ object UrlReplacer : BaseReplacer {
                     matchResult.value,
                     "どこかのチャンネルで送信したメッセージのリンク"
                 )
+
+            val messageDetail = getMessageDetailText(guild, channel, urlMessageId)
+            if (messageDetail != null)
+                return@replaceAll replacedText.replace(matchResult.value, messageDetail)
 
             val channelType = getChannelTypeText(channel)
             val thread = getThread(guild, urlChannelId)
@@ -424,6 +430,32 @@ object UrlReplacer : BaseReplacer {
 
             replacedText.replace(matchResult.value, replaceTo)
         }
+
+    /**
+     * メッセージの内容を取得して、読み上げるテキストを生成します。取得できない場合はnullを返します。
+     * ReadableChannel に登録されていないチャンネルの場合は、nullを返します。
+     */
+    private suspend fun getMessageDetailText(guild: Guild, channel: GuildChannel, messageId: Snowflake): String? {
+        if (channel.type !is ChannelType.GuildText) return null
+
+        val textChannel = channel.asChannelOf<dev.kord.core.entity.channel.TextChannel>()
+
+        val isReadableChannel = ReadableChannelStore.isReadableChannel(guild.id, textChannel)
+        if (!isReadableChannel) return null
+
+        val channelType = getChannelTypeText(channel)
+
+        val message = textChannel.getMessageOrNull(messageId) ?: return null
+        val authorName = message.author?.username ?: "不明なユーザー"
+        val content = message.content.ifBlank { "添付ファイルのみのメッセージ" }
+
+        val contentText = content.substringByCodePoints(
+            0,
+            180.coerceAtMost(content.lengthByCodePoints().toInt())
+        ) + if (content.lengthByCodePoints() > 180) " 以下略" else ""
+
+        return "$channelType「${channel.name}」でユーザー「$authorName」が送信したメッセージ「$contentText」へのリンク"
+    }
 
     /**
      * チャンネルURLを置換します。
