@@ -149,7 +149,7 @@ class ReadableChannelCommand : Extension() {
                 }
             }
 
-            publicSubCommand("list", "メッセージ内容の読み上げを許可するテキストチャンネルの一覧を表示します.") {
+            publicSubCommand("list", "メッセージ内容の読み上げを許可するテキストチャンネルの一覧を表示します。") {
                 action {
                     val guildId = guild!!.id
                     val readableChannels = ReadableChannelStore.data.filter { it.guildId == guildId }
