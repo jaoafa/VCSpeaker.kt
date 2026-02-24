@@ -16,7 +16,6 @@ import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.asChannelOf
-import dev.kord.core.behavior.channel.asChannelOfOrNull
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.channel.GuildChannel
 import dev.kord.core.entity.channel.TextChannel
@@ -440,7 +439,7 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getMessageDetailText(guild: Guild, channel: GuildChannel, messageId: Snowflake): String? {
         if (channel.type != ChannelType.GuildText) return null
 
-        val textChannel = channel.asChannelOfOrNull<TextChannel>() ?: return null
+        val textChannel = channel as? TextChannel ?: return null
 
         val isReadableChannel = ReadableChannelStore.isReadableChannel(guild.id, textChannel)
         if (!isReadableChannel) return null

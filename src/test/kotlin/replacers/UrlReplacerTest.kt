@@ -97,6 +97,7 @@ class UrlReplacerTest : FunSpec({
                     every { VCSpeaker.kord } returns mockk {
                         every { resources } returns mockk<ClientResources>()
                         coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                            every { id } returns Snowflake(123456789012345678)
                             coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
                             every { supplier } returns mockk {
                                 coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
@@ -163,6 +164,7 @@ class UrlReplacerTest : FunSpec({
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>()
                     coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                        every { id } returns Snowflake(123456789012345678)
                         coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns threadChannelMock
                         every { supplier } returns mockk {
                             coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns threadChannelMock
@@ -209,6 +211,216 @@ class UrlReplacerTest : FunSpec({
             )
 
             processedTokens shouldBe expectedTokens
+        }
+
+        // ReadableChannelStoreに登録されているチャンネルのメッセージ内容を含むテキストに置き換える
+        test("URL(s) to message(s) on readable channel should include message content and author.") {
+            // ReadableChannelStoreのモックを解除して実際のストアを使う
+            unmockkObject(ReadableChannelStore)
+
+            val authorMock = mockk<dev.kord.core.entity.User> {
+                every { username } returns "TestUser"
+            }
+
+            val messageMock = mockk<Message> {
+                every { author } returns authorMock
+                every { content } returns "これはテストメッセージです"
+            }
+
+            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+                every { name } returns "test-channel"
+                every { type } returns ChannelType.GuildText
+                every { id } returns Snowflake(876543210987654321)
+                coEvery { getMessageOrNull(any()) } returns messageMock
+            }
+
+            // ReadableChannelStoreに直接追加
+            ReadableChannelStore.data.add(
+                com.jaoafa.vcspeaker.stores.ReadableChannelData(
+                    guildId = Snowflake(123456789012345678),
+                    channelId = Snowflake(876543210987654321),
+                    addedByUserId = Snowflake(0)
+                )
+            )
+
+            every { VCSpeaker.kord } returns mockk {
+                every { resources } returns mockk<ClientResources>()
+                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    every { supplier } returns mockk {
+                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    }
+                }
+            }
+
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+            val expectedTokens =
+                mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「TestUser」が送信したメッセージ「これはテストメッセージです」へのリンク"))
+
+            val processedTokens = UrlReplacer.replace(
+                tokens, Snowflake(123456789012345678)
+            )
+
+            processedTokens shouldBe expectedTokens
+
+            // テスト後にデータをクリア
+            ReadableChannelStore.data.clear()
+        }
+
+        // ReadableChannelStoreに登録されているが、メッセージ内容が長い場合は180文字で切り詰める
+        test("URL(s) to message(s) on readable channel with long content should be truncated at 180 code points.") {
+            unmockkObject(ReadableChannelStore)
+
+            val authorMock = mockk<dev.kord.core.entity.User> {
+                every { username } returns "TestUser"
+            }
+
+            val longContent = "あ".repeat(200)
+            val messageMock = mockk<Message> {
+                every { author } returns authorMock
+                every { content } returns longContent
+            }
+
+            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+                every { name } returns "test-channel"
+                every { type } returns ChannelType.GuildText
+                every { id } returns Snowflake(876543210987654321)
+                coEvery { getMessageOrNull(any()) } returns messageMock
+            }
+
+            ReadableChannelStore.data.add(
+                com.jaoafa.vcspeaker.stores.ReadableChannelData(
+                    guildId = Snowflake(123456789012345678),
+                    channelId = Snowflake(876543210987654321),
+                    addedByUserId = Snowflake(0)
+                )
+            )
+
+            every { VCSpeaker.kord } returns mockk {
+                every { resources } returns mockk<ClientResources>()
+                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    every { supplier } returns mockk {
+                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    }
+                }
+            }
+
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+            val expectedContent = "あ".repeat(180) + " 以下略"
+            val expectedTokens =
+                mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「TestUser」が送信したメッセージ「$expectedContent」へのリンク"))
+
+            val processedTokens = UrlReplacer.replace(
+                tokens, Snowflake(123456789012345678)
+            )
+
+            processedTokens shouldBe expectedTokens
+            ReadableChannelStore.data.clear()
+        }
+
+        // ReadableChannelStoreに登録されているが、メッセージ内容が空の場合のフォールバック
+        test("URL(s) to message(s) on readable channel with empty content should show fallback text.") {
+            unmockkObject(ReadableChannelStore)
+
+            val authorMock = mockk<dev.kord.core.entity.User> {
+                every { username } returns "TestUser"
+            }
+
+            val messageMock = mockk<Message> {
+                every { author } returns authorMock
+                every { content } returns ""
+            }
+
+            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+                every { name } returns "test-channel"
+                every { type } returns ChannelType.GuildText
+                every { id } returns Snowflake(876543210987654321)
+                coEvery { getMessageOrNull(any()) } returns messageMock
+            }
+
+            ReadableChannelStore.data.add(
+                com.jaoafa.vcspeaker.stores.ReadableChannelData(
+                    guildId = Snowflake(123456789012345678),
+                    channelId = Snowflake(876543210987654321),
+                    addedByUserId = Snowflake(0)
+                )
+            )
+
+            every { VCSpeaker.kord } returns mockk {
+                every { resources } returns mockk<ClientResources>()
+                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    every { supplier } returns mockk {
+                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    }
+                }
+            }
+
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+            val expectedTokens =
+                mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「TestUser」が送信したメッセージ「添付ファイルのみのメッセージ」へのリンク"))
+
+            val processedTokens = UrlReplacer.replace(
+                tokens, Snowflake(123456789012345678)
+            )
+
+            processedTokens shouldBe expectedTokens
+            ReadableChannelStore.data.clear()
+        }
+
+        // ReadableChannelStoreに登録されているが、作者が不明な場合のフォールバック
+        test("URL(s) to message(s) on readable channel with unknown author should show fallback text.") {
+            unmockkObject(ReadableChannelStore)
+
+            val messageMock = mockk<Message> {
+                every { author } returns null
+                every { content } returns "テストメッセージ"
+            }
+
+            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+                every { name } returns "test-channel"
+                every { type } returns ChannelType.GuildText
+                every { id } returns Snowflake(876543210987654321)
+                coEvery { getMessageOrNull(any()) } returns messageMock
+            }
+
+            ReadableChannelStore.data.add(
+                com.jaoafa.vcspeaker.stores.ReadableChannelData(
+                    guildId = Snowflake(123456789012345678),
+                    channelId = Snowflake(876543210987654321),
+                    addedByUserId = Snowflake(0)
+                )
+            )
+
+            every { VCSpeaker.kord } returns mockk {
+                every { resources } returns mockk<ClientResources>()
+                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    every { supplier } returns mockk {
+                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    }
+                }
+            }
+
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+            val expectedTokens =
+                mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「不明なユーザー」が送信したメッセージ「テストメッセージ」へのリンク"))
+
+            val processedTokens = UrlReplacer.replace(
+                tokens, Snowflake(123456789012345678)
+            )
+
+            processedTokens shouldBe expectedTokens
+            ReadableChannelStore.data.clear()
         }
     }
 
