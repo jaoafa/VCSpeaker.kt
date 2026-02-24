@@ -16,8 +16,10 @@ import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.asChannelOf
+import dev.kord.core.behavior.channel.asChannelOfOrNull
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.channel.GuildChannel
+import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.entity.channel.thread.ThreadChannel
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -438,14 +440,11 @@ object UrlReplacer : BaseReplacer {
     private suspend fun getMessageDetailText(guild: Guild, channel: GuildChannel, messageId: Snowflake): String? {
         if (channel.type != ChannelType.GuildText) return null
 
-        // ReadableChannelStoreのチェックを先に行う（asChannelOfを呼ぶ前に）
-        // これにより、テストでasChannelOfのモックが不要になる
-        val isReadableChannelRegistered = ReadableChannelStore.data.any { 
-            it.guildId == guild.id && it.channelId == channel.id 
-        }
-        if (!isReadableChannelRegistered) return null
+        val textChannel = channel.asChannelOfOrNull<TextChannel>() ?: return null
 
-        val textChannel = channel.asChannelOf<dev.kord.core.entity.channel.TextChannel>()
+        val isReadableChannel = ReadableChannelStore.isReadableChannel(guild.id, textChannel)
+        if (!isReadableChannel) return null
+
         val channelType = getChannelTypeText(channel)
 
         val message = textChannel.getMessageOrNull(messageId) ?: return null
