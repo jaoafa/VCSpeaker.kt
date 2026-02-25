@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+    testImplementation("io.kotest:kotest-runner-junit5:6.1.4")
     testImplementation("io.mockk:mockk:1.14.7")
     implementation(kotlin("reflect"))
     implementation("junit:junit:4.13.2")
