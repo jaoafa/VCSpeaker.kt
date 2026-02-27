@@ -422,6 +422,50 @@ class UrlReplacerTest : FunSpec({
             processedTokens shouldBe expectedTokens
             ReadableChannelStore.data.clear()
         }
+
+        // ReadableChannelStore に登録済みでもメッセージ取得が失敗した場合は従来の読み上げにフォールバックする
+        test("URL(s) to message(s) on readable channel when message not found should fall back to channel name only.") {
+            unmockkObject(ReadableChannelStore)
+
+            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+                every { name } returns "test-channel"
+                every { type } returns ChannelType.GuildText
+                every { id } returns Snowflake(876543210987654321)
+                // メッセージが見つからない場合
+                coEvery { getMessageOrNull(any()) } returns null
+            }
+
+            ReadableChannelStore.data.add(
+                com.jaoafa.vcspeaker.stores.ReadableChannelData(
+                    guildId = Snowflake(123456789012345678),
+                    channelId = Snowflake(876543210987654321),
+                    addedByUserId = Snowflake(0)
+                )
+            )
+
+            every { VCSpeaker.kord } returns mockk {
+                every { resources } returns mockk<ClientResources>()
+                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
+                    every { id } returns Snowflake(123456789012345678)
+                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    every { supplier } returns mockk {
+                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                    }
+                }
+            }
+
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+            val expectedTokens =
+                mutableListOf(TextToken("test テキストチャンネル「test-channel」で送信したメッセージのリンク"))
+
+            val processedTokens = UrlReplacer.replace(
+                tokens, Snowflake(123456789012345678)
+            )
+
+            processedTokens shouldBe expectedTokens
+            ReadableChannelStore.data.clear()
+        }
     }
 
     // チャンネルURLの置き換え
