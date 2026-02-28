@@ -45,17 +45,17 @@ class ReadableChannelStoreTest : FunSpec({
     // --- isReadableChannel ---
 
     context("isReadableChannel") {
-        test("登録済みのチャンネルは true を返す") {
+        test("If the channel is registered, should return true.") {
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId1, addedByUserId))
 
             ReadableChannelStore.isReadableChannel(guildId1, mockChannel(channelId1)) shouldBe true
         }
 
-        test("未登録のチャンネルは false を返す") {
+        test("If the channel is not registered, should return false.") {
             ReadableChannelStore.isReadableChannel(guildId1, mockChannel(channelId1)) shouldBe false
         }
 
-        test("チャンネル ID が一致してもギルド ID が異なる場合は false を返す") {
+        test("If the guild ID differs even if the channel ID matches, should return false.") {
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId1, addedByUserId))
 
             ReadableChannelStore.isReadableChannel(guildId2, mockChannel(channelId1)) shouldBe false
@@ -65,21 +65,21 @@ class ReadableChannelStoreTest : FunSpec({
     // --- add ---
 
     context("add") {
-        test("チャンネルを追加するとデータが増える") {
+        test("If a channel is added, the data count should increase.") {
             ReadableChannelStore.add(guildId1, mockChannel(channelId1), addedByUserId)
 
             ReadableChannelStore.data shouldHaveSize 1
             ReadableChannelStore.data.first().channelId shouldBe channelId1
         }
 
-        test("同一チャンネルを重複して追加してもデータが増えない") {
+        test("If the same channel is added twice, the data count should not increase.") {
             ReadableChannelStore.add(guildId1, mockChannel(channelId1), addedByUserId)
             ReadableChannelStore.add(guildId1, mockChannel(channelId1), addedByUserId)
 
             ReadableChannelStore.data shouldHaveSize 1
         }
 
-        test("異なるギルドの同一チャンネル ID は別エントリとして追加される") {
+        test("If the same channel ID is added for different guilds, they should be stored as separate entries.") {
             ReadableChannelStore.add(guildId1, mockChannel(channelId1), addedByUserId)
             ReadableChannelStore.add(guildId2, mockChannel(channelId1), addedByUserId)
 
@@ -90,7 +90,7 @@ class ReadableChannelStoreTest : FunSpec({
     // --- remove ---
 
     context("remove") {
-        test("指定したチャンネルのデータが削除される") {
+        test("If a channel is removed, the data for that channel should be deleted.") {
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId1, addedByUserId))
 
             ReadableChannelStore.remove(guildId1, mockChannel(channelId1))
@@ -98,7 +98,7 @@ class ReadableChannelStoreTest : FunSpec({
             ReadableChannelStore.data shouldHaveSize 0
         }
 
-        test("同一チャンネル ID でもギルドが異なるデータは削除されない") {
+        test("If a channel is removed, data for the same channel ID in a different guild should not be deleted.") {
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId1, addedByUserId))
             ReadableChannelStore.data.add(ReadableChannelData(guildId2, channelId1, addedByUserId))
 
@@ -108,7 +108,7 @@ class ReadableChannelStoreTest : FunSpec({
             ReadableChannelStore.data.first().guildId shouldBe guildId2
         }
 
-        test("同一ギルドでも別チャンネルのデータは削除されない") {
+        test("If a channel is removed, data for a different channel in the same guild should not be deleted.") {
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId1, addedByUserId))
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId2, addedByUserId))
 
@@ -122,7 +122,7 @@ class ReadableChannelStoreTest : FunSpec({
     // --- removeForGuild ---
 
     context("removeForGuild") {
-        test("指定したギルドの全データが削除される") {
+        test("If removeForGuild is called, all data for the specified guild should be deleted.") {
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId1, addedByUserId))
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId2, addedByUserId))
 
@@ -131,7 +131,7 @@ class ReadableChannelStoreTest : FunSpec({
             ReadableChannelStore.data shouldHaveSize 0
         }
 
-        test("異なるギルドのデータは削除されない") {
+        test("If removeForGuild is called, data for a different guild should not be deleted.") {
             ReadableChannelStore.data.add(ReadableChannelData(guildId1, channelId1, addedByUserId))
             ReadableChannelStore.data.add(ReadableChannelData(guildId2, channelId1, addedByUserId))
 
