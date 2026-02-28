@@ -264,6 +264,7 @@ class VCSpeakerCommand : Extension() {
                                     AliasStore.removeForGuild(guildId)
                                     IgnoreStore.removeForGuild(guildId)
                                     ReadableBotStore.removeForGuild(guildId)
+                                    ReadableChannelStore.removeForGuild(guildId)
                                     TitleStore.removeForGuild(guildId)
                                     GuildStore.remove(guildData)
                                     edit {
