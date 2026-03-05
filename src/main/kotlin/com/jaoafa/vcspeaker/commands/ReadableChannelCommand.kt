@@ -185,7 +185,7 @@ class ReadableChannelCommand : Extension() {
                         if (channel != null) {
                             "${channel.mention} (Added by <@${data.addedByUserId}>)"
                         } else {
-                            "Unknown Channel (ID: ${data.channelId}, Added by <@${data.addedByUserId}>)"
+                            "Unknown Channel (ID: `${data.channelId}`, Added by <@${data.addedByUserId}>)"
                         }
                     }
                     val description = descriptionLines.joinToString("\n")
