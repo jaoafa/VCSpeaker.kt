@@ -43,7 +43,7 @@ class ReplacerProcessorTest : FunSpec({
     }
 
     // 全てのテスト後にフォルダを削除
-    finalizeSpec {
+    afterSpec {
         VCSpeaker.storeFolder.deleteRecursively()
     }
 

@@ -38,7 +38,7 @@ class EmojiReplacerTest : FunSpec({
     }
 
     // 全てのテスト後にフォルダを削除
-    finalizeSpec {
+    afterSpec {
         VCSpeaker.storeFolder.deleteRecursively()
     }
 

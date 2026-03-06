@@ -41,7 +41,7 @@ class SoundboardReplacerTest : FunSpec({
         clearAllMocks()
     }
 
-    finalizeSpec {
+    afterSpec {
         VCSpeaker.storeFolder.deleteRecursively()
     }
 
