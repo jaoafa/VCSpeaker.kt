@@ -75,7 +75,7 @@ jobs:
             type=raw,value=latest-${{ matrix.architecture }}
 
       - name: 🚀 Build Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
