@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
+    kotlin("plugin.serialization") version "2.3.10"
     id("io.kotest.multiplatform") version "6.0.0-LOCAL"
     id("com.gradleup.shadow") version "9.3.1"
     application
