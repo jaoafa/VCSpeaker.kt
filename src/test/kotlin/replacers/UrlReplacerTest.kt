@@ -47,8 +47,8 @@ class UrlReplacerTest : FunSpec({
     }
 
     // 全てのテスト後にフォルダを削除
-    finalizeSpec {
-        VCSpeaker.storeFolder.deleteRecursively()
+    afterSpec {
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // メッセージURLの置き換え
