@@ -44,7 +44,7 @@ class ReplacerProcessorTest : FunSpec({
 
     // 全てのテスト後にフォルダを削除
     afterSpec {
-        File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker").deleteRecursively()
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // テキストが変更されないことを確認

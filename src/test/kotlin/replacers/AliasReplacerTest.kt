@@ -38,7 +38,7 @@ class AliasReplacerTest : FunSpec({
 
     // 全てのテスト後にフォルダを削除
     afterSpec {
-        File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker").deleteRecursively()
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // テキストエイリアスを設定した場合、正しく置き換えられる

@@ -42,7 +42,7 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     afterSpec {
-        File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker").deleteRecursively()
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     test("If a soundboard alias matches the content, the replaced text should be returned.") {

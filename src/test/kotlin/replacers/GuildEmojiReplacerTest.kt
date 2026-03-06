@@ -41,7 +41,7 @@ class GuildEmojiReplacerTest : FunSpec({
 
     // 全てのテスト後にフォルダを削除
     afterSpec {
-        File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker").deleteRecursively()
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // サーバ絵文字が絵文字名に置き換わること
