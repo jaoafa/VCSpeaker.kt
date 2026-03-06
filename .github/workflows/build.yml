@@ -121,7 +121,7 @@ jobs:
           gradle build -Pversion=${{ env.version }}
 
       - name: 📦 Upload the artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: VCSpeaker.kt ${{ env.version }} Shadow Jar
           path: build/libs/vcspeaker-${{ env.version }}-all.jar
