@@ -1,11 +1,11 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "2.3.10"
-    kotlin("plugin.serialization") version "2.3.10"
-    id("io.kotest.multiplatform") version "6.0.0-LOCAL"
-    id("com.gradleup.shadow") version "9.3.2"
-    application
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotest)
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.application)
 }
 
 group = "com.jaoafa"
@@ -22,48 +22,14 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-    testImplementation("io.kotest:kotest-runner-junit5:6.1.4")
-    testImplementation("io.mockk:mockk:1.14.9")
-    implementation(kotlin("reflect"))
-    implementation("junit:junit:4.13.2")
+    testImplementation(libs.bundles.testing)
 
-    // Logging
-    implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3")
-    implementation("org.apache.logging.log4j:log4j-core:2.25.3")
-    implementation("io.github.oshai:kotlin-logging-jvm:8.0.01")
-
-    // Discord Related
-    implementation("dev.kord:kord-core:0.18.0")
-    implementation("dev.kordex:kord-extensions:2.2.1-SNAPSHOT")
-    implementation("dev.schlaubi.lavakord:kord:9.2.0")
-
-    // Ktor Client
-    implementation("io.ktor:ktor-client-cio-jvm:3.4.1")
-    implementation("io.ktor:ktor-client-cio:3.4.1")
-    implementation("io.ktor:ktor-client-content-negotiation:3.4.1")
-    implementation("io.ktor:ktor-client-core:3.4.1")
-
-    // Ktor Server
-    implementation("io.ktor:ktor-server-core:3.4.1")
-    implementation("io.ktor:ktor-server-cio:3.4.1")
-    implementation("io.ktor:ktor-server-content-negotiation:3.4.1")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.1")
-    implementation("io.ktor:ktor-server-auth:3.4.1")
-
-    // Kotlinx
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
-
-    // Other Libraries
-    implementation("io.sentry:sentry:8.34.1")
-    implementation("org.jsoup:jsoup:1.22.1")
-    implementation("org.reflections:reflections:0.10.2")
-    implementation("com.google.cloud:google-cloud-vision:3.84.0")
-    implementation("com.sksamuel.scrimage:scrimage-core:4.3.8")
-    implementation("com.github.ajalt.clikt:clikt:5.1.0")
-    implementation("com.uchuhimo:konf:1.1.2")
+    implementation(libs.bundles.logging)
+    implementation(libs.bundles.discord)
+    implementation(libs.bundles.ktor.client)
+    implementation(libs.bundles.ktor.server)
+    implementation(libs.bundles.kotlinx)
+    implementation(libs.bundles.other)
 }
 
 tasks.withType<Test> {

@@ -1,0 +1,98 @@
+[versions]
+kotlin = "2.3.10"
+kotest = "6.0.0-LOCAL"
+shadow = "9.3.2"
+
+# Logging
+slf4j = "2.1.0-alpha1"
+log4j = "2.25.3"
+kotlin-logging = "8.0.01"
+
+# Test and Kotlin
+kotest-runner-junit5 = "6.1.4"
+mockk = "1.14.9"
+junit = "4.13.2"
+
+# Discord
+kord-core = "0.18.0"
+kord-extensions = "2.2.1-SNAPSHOT"
+lavakord = "9.2.0"
+
+# Ktor
+ktor = "3.4.1"
+
+# Kotlinx
+coroutines = "1.10.2"
+kotlinx-serialization-json = "1.10.0"
+
+# Other Libraries
+sentry = "8.34.1"
+jsoup = "1.22.1"
+reflections = "0.10.2"
+google-cloud-vision = "3.84.0"
+scrimage = "4.3.8"
+clikt = "5.1.0"
+konf = "1.1.2"
+
+[libraries]
+# Kotlin
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+
+# Test
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-runner-junit5" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+# Logging
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
+
+# Discord
+kord-core = { module = "dev.kord:kord-core", version.ref = "kord-core" }
+kord-extensions = { module = "dev.kordex:kord-extensions", version.ref = "kord-extensions" }
+lavakord = { module = "dev.schlaubi.lavakord:kord", version.ref = "lavakord" }
+
+# Ktor Client
+ktor-client-cio-jvm = { module = "io.ktor:ktor-client-cio-jvm", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+
+# Ktor Server
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+
+# Kotlinx
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
+
+# Other Libraries
+sentry = { module = "io.sentry:sentry", version.ref = "sentry" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+reflections = { module = "org.reflections:reflections", version.ref = "reflections" }
+google-cloud-vision = { module = "com.google.cloud:google-cloud-vision", version.ref = "google-cloud-vision" }
+scrimage-core = { module = "com.sksamuel.scrimage:scrimage-core", version.ref = "scrimage" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+konf = { module = "com.uchuhimo:konf", version.ref = "konf" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+application = { id = "application" }
+
+[bundles]
+testing = ["kotlin-test", "kotest-runner-junit5", "mockk"]
+logging = ["slf4j-api", "log4j-slf4j-impl", "log4j-core", "kotlin-logging"]
+discord = ["kord-core", "kord-extensions", "lavakord"]
+ktor-client = ["ktor-client-cio-jvm", "ktor-client-cio", "ktor-client-content-negotiation", "ktor-client-core"]
+ktor-server = ["ktor-server-core", "ktor-server-cio", "ktor-server-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-server-auth"]
+kotlinx = ["kotlinx-coroutines-core", "kotlinx-serialization-json"]
+other = ["kotlin-reflect", "junit", "sentry", "jsoup", "reflections", "google-cloud-vision", "scrimage-core", "clikt", "konf"]
