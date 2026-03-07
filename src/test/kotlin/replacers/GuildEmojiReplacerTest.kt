@@ -40,8 +40,8 @@ class GuildEmojiReplacerTest : FunSpec({
     }
 
     // 全てのテスト後にフォルダを削除
-    finalizeSpec {
-        VCSpeaker.storeFolder.deleteRecursively()
+    afterSpec {
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // サーバ絵文字が絵文字名に置き換わること

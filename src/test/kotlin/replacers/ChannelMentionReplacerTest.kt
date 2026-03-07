@@ -24,8 +24,8 @@ class ChannelMentionReplacerTest : FunSpec({
     }
 
     // 全てのテスト後にフォルダを削除
-    finalizeSpec {
-        VCSpeaker.storeFolder.deleteRecursively()
+    afterSpec {
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // 既知のチャンネルメンションを置き換える

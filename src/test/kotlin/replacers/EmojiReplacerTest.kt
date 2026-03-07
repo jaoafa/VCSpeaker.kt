@@ -38,8 +38,8 @@ class EmojiReplacerTest : FunSpec({
     }
 
     // 全てのテスト後にフォルダを削除
-    finalizeSpec {
-        VCSpeaker.storeFolder.deleteRecursively()
+    afterSpec {
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // 絵文字エイリアスを設定した場合、正しく置き換えられる
