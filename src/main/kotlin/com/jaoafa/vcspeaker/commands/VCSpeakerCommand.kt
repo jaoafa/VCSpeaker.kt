@@ -13,6 +13,11 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tts.DEFAULT_EMOTION_LEVEL
+import com.jaoafa.vcspeaker.tts.DEFAULT_PITCH
+import com.jaoafa.vcspeaker.tts.DEFAULT_SPEED
+import com.jaoafa.vcspeaker.tts.DEFAULT_VOLUME
+import com.jaoafa.vcspeaker.tts.EmotionData
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
@@ -127,26 +132,23 @@ class VCSpeakerCommand : Extension() {
                         guildId = guildId,
                         channelId = arguments.channel?.id ?: oldGuildData?.channelId,
                         prefix = arguments.prefix ?: oldGuildData?.prefix,
-                        voice = arguments.run {
-                            val newEmotion = if (emotion == "none") {
-                                null
-                            } else if (emotion != null) {
-                                Emotion.valueOf(emotion!!)
-                            } else {
-                                currentVoice?.emotion
-                            }
-
-                            val newEmotionLevel = if (newEmotion != null) {
-                                emotionLevel ?: currentVoice?.emotionLevel
-                            } else null
+                        voice = arguments.let { args ->
+                            val givenEmotion = args.emotion
+                            val emotion = if (givenEmotion != null) {
+                                if (givenEmotion == "none") null else Emotion.valueOf(givenEmotion)
+                            } else currentVoice?.emotion
 
                             Voice(
-                                speaker = Speaker.valueOf(speaker ?: currentVoice?.speaker?.name ?: "Haruka"),
-                                emotion = newEmotion,
-                                emotionLevel = newEmotionLevel ?: 2,
-                                pitch = pitch ?: currentVoice?.pitch ?: 100,
-                                speed = speed ?: currentVoice?.speed ?: 100,
-                                volume = volume ?: currentVoice?.volume ?: 100
+                                speaker = Speaker.valueOf(args.speaker ?: currentVoice?.speaker?.name ?: "Haruka"),
+                                emotionData = emotion?.let {
+                                    EmotionData(
+                                        emotion = it,
+                                        level = args.emotionLevel ?: currentVoice?.emotionLevel ?: DEFAULT_EMOTION_LEVEL
+                                    )
+                                },
+                                pitch = args.pitch ?: currentVoice?.pitch ?: DEFAULT_PITCH,
+                                speed = args.speed ?: currentVoice?.speed ?: DEFAULT_SPEED,
+                                volume = args.volume ?: currentVoice?.volume ?: DEFAULT_VOLUME
                             )
                         },
                         autoJoin = arguments.autoJoin ?: oldGuildData?.autoJoin ?: true
@@ -186,7 +188,7 @@ class VCSpeakerCommand : Extension() {
                         }
                         field {
                             name = ":signal_strength: 感情レベル"
-                            value = newGuildData.voice.emotionLevel.let { "`Level $it`" }
+                            value = newGuildData.voice.emotionLevel?.let { "`Level $it`" } ?: "未設定"
                             inline = true
                         }
                         field {

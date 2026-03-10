@@ -21,14 +21,23 @@ object GuildStore : StoreStruct<GuildData>(
     GuildData.serializer(),
     { Json.decodeFromString(this) },
 
-    version = 1,
+    version = 2,
     migrators = mapOf(
         1 to { file ->
-            val list = Json.decodeFromString<List<GuildData>>(file.readText())
+            val list = Json.decodeFromString<List<GuildDataV1>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(GuildDataV1.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        },
+        2 to { file ->
+            val list = Json.decodeFromString<TypedStore<GuildDataV1>>(file.readText()).list.map { it.toV2() }
             file.writeText(
                 Json.encodeToString(
                     TypedStore.serializer(GuildData.serializer()),
-                    TypedStore(1, list)
+                    TypedStore(2, list)
                 )
             )
         }
