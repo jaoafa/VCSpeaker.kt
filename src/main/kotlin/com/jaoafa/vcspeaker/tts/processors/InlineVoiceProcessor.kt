@@ -20,15 +20,21 @@ class InlineVoiceProcessor : BaseProcessor() {
             key to value
         }
 
+        val newEmotion = parameterMap["emotion"]?.let {
+            Emotion.valueOf(it.capitalizeWords())
+        } ?: voice.emotion
+
+        val newEmotionLevel = parameterMap["emotion_level"]?.toIntOrNull() ?: voice.emotionLevel
+
         val newVoice = voice.copyNotNull(
             speaker = parameterMap["speaker"]?.let { Speaker.valueOf(it.capitalizeWords()) },
             pitch = parameterMap["pitch"]?.toIntOrNull(),
             speed = parameterMap["speed"]?.toIntOrNull()
         ).copy(
-            emotionData = parameterMap["emotion"]?.let {
+            emotionData = newEmotion?.let {
                 EmotionData(
-                    Emotion.valueOf(it.capitalizeWords()),
-                    parameterMap["emotion_level"]?.toIntOrNull()
+                    newEmotion,
+                    newEmotionLevel
                 )
             }
         )
