@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tts.processors
 
+import com.jaoafa.vcspeaker.tts.EmotionData
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
@@ -14,17 +15,28 @@ class InlineVoiceProcessor : BaseProcessor() {
     override suspend fun process(message: Message?, content: String, voice: Voice): Pair<String, Voice> {
         val parameters = syntax.findAll(message?.content ?: content).map { it.value }
 
-        val parameterMap = parameters.map {
+        val parameterMap = parameters.associate {
             val (key, value) = it.split(":")
             key to value
-        }.toMap()
+        }
+
+        val newEmotion = parameterMap["emotion"]?.let {
+            Emotion.valueOf(it.capitalizeWords())
+        } ?: voice.emotion
+
+        val newEmotionLevel = parameterMap["emotion_level"]?.toIntOrNull() ?: voice.emotionLevel
 
         val newVoice = voice.copyNotNull(
             speaker = parameterMap["speaker"]?.let { Speaker.valueOf(it.capitalizeWords()) },
-            emotion = parameterMap["emotion"]?.let { Emotion.valueOf(it.capitalizeWords()) },
-            emotionLevel = parameterMap["emotion_level"]?.toIntOrNull(),
             pitch = parameterMap["pitch"]?.toIntOrNull(),
             speed = parameterMap["speed"]?.toIntOrNull()
+        ).copy(
+            emotionData = newEmotion?.let {
+                EmotionData(
+                    newEmotion,
+                    newEmotionLevel
+                )
+            }
         )
 
         val newText = parameters.fold(content) { replacedText, parameterText ->

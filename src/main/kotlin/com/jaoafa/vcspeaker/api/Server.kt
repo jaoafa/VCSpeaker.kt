@@ -91,7 +91,7 @@ class Server(val type: ServerType, var targetToken: String? = null, var targetId
         accept(ContentType.Application.Json)
 
         basicAuth(
-            username = selfId.toString(),
+            username = selfId,
             password = targetToken ?: ""
         )
 

@@ -64,7 +64,7 @@ class BatchProvider(private val link: Link, private val contexts: List<ProviderC
                     val track = when (val item = link.loadItem(VCSpeaker.config[EnvSpec.lavalinkCachePath] + file.name)) {
                         is LoadResult.TrackLoaded -> item.data
                         is LoadResult.LoadFailed -> throw UnexpectedException(item.data.causeStackTrace)
-                        else -> throw UnexpectedException("Code should not reach here")
+                        else -> throw UnexpectedException("Code should not reach here: $item")
                     }
 
                     trackList[i] = track

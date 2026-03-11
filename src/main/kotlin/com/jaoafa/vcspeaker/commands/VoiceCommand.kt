@@ -8,6 +8,8 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tts.DEFAULT_EMOTION_LEVEL
+import com.jaoafa.vcspeaker.tts.EmotionData
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kordex.core.checks.anyGuild
@@ -79,17 +81,23 @@ class VoiceCommand : Extension() {
                 action {
                     val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
 
-                    val emotion = arguments.emotion?.let {
-                        if (it == "none") null else Emotion.valueOf(it)
-                    }
+                    val givenEmotion = arguments.emotion
+                    val emotion = if (givenEmotion != null) {
+                        if (givenEmotion == "none") null else Emotion.valueOf(givenEmotion)
+                    } else oldVoice.emotion
 
                     val newVoice = oldVoice.copyNotNull(
                         speaker = arguments.speaker?.let { Speaker.valueOf(it) },
-                        emotion = emotion,
-                        emotionLevel = if (emotion != null) arguments.emotionLevel else null,
                         pitch = arguments.pitch,
                         speed = arguments.speed,
                         volume = arguments.volume
+                    ).copy(
+                        emotionData = emotion?.let {
+                            EmotionData(
+                                it,
+                                arguments.emotionLevel ?: oldVoice.emotionLevel ?: DEFAULT_EMOTION_LEVEL
+                            )
+                        }
                     )
 
                     VoiceStore[event.interaction.user.id] = newVoice
@@ -116,7 +124,7 @@ class VoiceCommand : Extension() {
                         }
                         field {
                             name = ":signal_strength: 感情レベル"
-                            value = newVoice.emotionLevel.let { "`Level $it`" }
+                            value = newVoice.emotionLevel?.let { "`Level $it`" } ?: "未設定"
                             inline = true
                         }
                         field {

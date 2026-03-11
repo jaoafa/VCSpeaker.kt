@@ -18,14 +18,23 @@ object VoiceStore : StoreStruct<VoiceData>(
     VoiceData.serializer(),
     { Json.decodeFromString(this) },
 
-    version = 1,
+    version = 2,
     migrators = mapOf(
         1 to { file ->
-            val list = Json.decodeFromString<List<VoiceData>>(file.readText())
+            val list = Json.decodeFromString<List<VoiceDataV1>>(file.readText())
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(VoiceDataV1.serializer()),
+                    TypedStore(1, list)
+                )
+            )
+        },
+        2 to { file ->
+            val list = Json.decodeFromString<TypedStore<VoiceDataV1>>(file.readText()).list.map { it.toV2() }
             file.writeText(
                 Json.encodeToString(
                     TypedStore.serializer(VoiceData.serializer()),
-                    TypedStore(1, list)
+                    TypedStore(2, list)
                 )
             )
         }

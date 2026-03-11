@@ -1,5 +1,6 @@
 package processors
 
+import com.jaoafa.vcspeaker.tts.EmotionData
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
@@ -50,8 +51,10 @@ class InlineVoiceProcessorTest : FunSpec({
         processedText shouldBe "test"
         processedVoice shouldBe voice.copy(
             speaker = Speaker.Haruka,
-            emotion = Emotion.Happiness,
-            emotionLevel = 1,
+            emotionData = EmotionData(
+                emotion = Emotion.Happiness,
+                level = 1
+            ),
             pitch = 100,
             speed = 100
         )
@@ -145,5 +148,43 @@ class InlineVoiceProcessorTest : FunSpec({
 
         processedText shouldBe "test invalid:syntax"
         processedVoice shouldBe voice
+    }
+
+    test("If emotion level specified without emotion, the emotion level should be ignored.") {
+        val content = "test emotion_level:1"
+
+        val message = mockk<Message>()
+        every { message.content } returns content
+        val processor = InlineVoiceProcessor()
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val (processedText, processedVoice) = processor.process(message, content, voice)
+
+        processedText shouldBe "test"
+        processedVoice shouldBe voice
+    }
+
+    test("If emotion level specified with voice emotion, the emotion level should be applied.") {
+        val content = "test emotion_level:1"
+
+        val message = mockk<Message>()
+        every { message.content } returns content
+        val processor = InlineVoiceProcessor()
+        val voice = Voice(
+            speaker = Speaker.Hikari,
+            emotionData = EmotionData(
+                emotion = Emotion.Happiness
+            )
+        )
+
+        val (processedText, processedVoice) = processor.process(message, content, voice)
+
+        processedText shouldBe "test"
+        processedVoice shouldBe voice.copy(
+            emotionData = EmotionData(
+                emotion = Emotion.Happiness,
+                level = 1
+            )
+        )
     }
 })
