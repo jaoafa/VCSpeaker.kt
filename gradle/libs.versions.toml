@@ -25,6 +25,10 @@ ktor = "3.4.1"
 coroutines = "1.10.2"
 kotlinx-serialization-json = "1.10.0"
 
+# Database
+exposed = "1.1.1"
+h2 = "2.4.240"
+
 # Other Libraries
 sentry = "8.34.1"
 jsoup = "1.22.1"
@@ -74,6 +78,13 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 
+# Database
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
+
 # Other Libraries
 sentry = { module = "io.sentry:sentry", version.ref = "sentry" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
@@ -97,4 +108,5 @@ discord = ["kord-core", "kord-extensions", "lavakord"]
 ktor-client = ["ktor-client-cio-jvm", "ktor-client-cio", "ktor-client-content-negotiation", "ktor-client-core", "ktor-client-resources", "ktor-client-logging"]
 ktor-server = ["ktor-server-core", "ktor-server-cio", "ktor-server-content-negotiation", "ktor-serialization-kotlinx-json", "ktor-server-auth"]
 kotlinx = ["kotlinx-coroutines-core", "kotlinx-serialization-json"]
+database = ["exposed-core", "exposed-dao", "exposed-jdbc", "exposed-datetime", "h2"]
 other = ["kotlin-reflect", "junit", "sentry", "jsoup", "reflections", "google-cloud-vision", "scrimage-core", "clikt", "konf"]

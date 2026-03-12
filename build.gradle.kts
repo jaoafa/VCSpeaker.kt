@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.bundles.ktor.client)
     implementation(libs.bundles.ktor.server)
     implementation(libs.bundles.kotlinx)
+    implementation(libs.bundles.database)
     implementation(libs.bundles.other)
 }
 
