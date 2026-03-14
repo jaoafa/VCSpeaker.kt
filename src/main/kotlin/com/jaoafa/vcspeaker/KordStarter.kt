@@ -3,7 +3,9 @@ package com.jaoafa.vcspeaker
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.stores.CacheStore
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions
 import com.jaoafa.vcspeaker.tools.getClassesIn
+import dev.kord.rest.builder.message.embed
 import dev.kordex.core.ExtensibleBot
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.sentry.SentryAdapter
@@ -42,6 +44,15 @@ object KordStarter {
                     for (extensionClass in getClassesIn<Extension>(it)) {
                         add { extensionClass.kotlin.createInstance() }
                     }
+                }
+            }
+
+            errorResponse { message, type ->
+                logger.error { "KordEx Error: $message ($type)" }
+                embed {
+                    title = "エラーが発生しました"
+                    description = message
+                    color = DiscordExtensions.EmbedColors.error
                 }
             }
         }

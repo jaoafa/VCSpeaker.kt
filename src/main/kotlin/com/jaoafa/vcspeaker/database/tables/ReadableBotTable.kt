@@ -1,5 +1,6 @@
-package com.jaoafa.vcspeaker.tables
+package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.tools.DatabaseUtil.transformSnowflake
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
@@ -24,6 +25,6 @@ class ReadableBotEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ReadableBotEntity>(ReadableBotTable)
 
     var guildEntity by GuildEntity referencedOn ReadableBotTable.guildDid
-    var botDid by ReadableBotTable.botDid
-    var creatorDid by ReadableBotTable.creatorDid
+    var botDid by ReadableBotTable.botDid.transformSnowflake()
+    var creatorDid by ReadableBotTable.creatorDid.transformSnowflake()
 }

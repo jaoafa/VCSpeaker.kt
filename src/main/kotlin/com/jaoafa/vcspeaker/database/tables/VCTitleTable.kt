@@ -1,5 +1,6 @@
-package com.jaoafa.vcspeaker.tables
+package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.tools.DatabaseUtil.transformSnowflake
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
@@ -25,6 +26,6 @@ class VCTitleEntity(id: EntityID<Int>) : IntEntity(id) {
     var guildEntity by GuildEntity referencedOn VCTitleTable.guildDid
     var title by VCTitleTable.title
     var originalTitle by VCTitleTable.originalTitle
-    var channelDid by VCTitleTable.channelDid
-    var creatorDid by VCTitleTable.creatorDid
+    var channelDid by VCTitleTable.channelDid.transformSnowflake()
+    var creatorDid by VCTitleTable.creatorDid.transformSnowflake()
 }

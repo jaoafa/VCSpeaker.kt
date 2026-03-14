@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.tables
+package com.jaoafa.vcspeaker.database.tables
 
 import org.jetbrains.exposed.v1.core.dao.id.CompositeID
 import org.jetbrains.exposed.v1.core.dao.id.CompositeIdTable

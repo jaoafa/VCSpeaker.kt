@@ -2,6 +2,8 @@ package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.GuildTable
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
@@ -15,6 +17,7 @@ import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.User
 import dev.kord.core.entity.channel.Channel
+import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
@@ -30,6 +33,7 @@ import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 typealias Options = Arguments
 
@@ -65,6 +69,60 @@ object DiscordExtensions {
      * Embed の Author を [user] に設定します。
      */
     suspend fun EmbedBuilder.authorOf(user: UserBehavior) = authorOf(user.asUser())
+
+    suspend fun EmbedBuilder.guildParameterOf(entity: GuildEntity) {
+        val values = transaction { entity.readValues }
+        field {
+            name = ":hash: 読み上げチャンネル"
+            value = values[GuildTable.channelDid]?.toSnowflake()?.asChannelOf<TextChannel>()?.mention ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":symbols: プレフィックス"
+            value = values[GuildTable.prefix]?.let { "`$it`" } ?: "未設定"
+            inline = true
+        }
+
+        val voice = transaction { entity.speakerVoiceEntity }
+
+        field {
+            name = ":grinning: 話者"
+            value = voice.speaker.speakerName
+            inline = true
+        }
+
+        val emotion = voice.emotion
+        field {
+            name = "${emotion?.emoji ?: ":neutral_face:"} 感情"
+            value = emotion?.emotionName ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":signal_strength: 感情レベル"
+            value = voice.emotionLevel?.let { "`Level $it`" } ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":arrow_up_down: ピッチ"
+            value = voice.pitch.let { "`$it%`" }
+            inline = true
+        }
+        field {
+            name = ":fast_forward: 速度"
+            value = voice.speed.let { "`$it%`" }
+            inline = true
+        }
+        field {
+            name = ":loud_sound: 音量"
+            value = voice.volume.let { "`$it%`" }
+            inline = true
+        }
+        field {
+            name = ":inbox_tray: 自動入退室"
+            value = if (values[GuildTable.autoJoin]) "有効" else "無効"
+            inline = true
+        }
+    }
 
     object EmbedColors {
         val success = Color(0xa6e3a1)
@@ -223,4 +281,8 @@ object DiscordExtensions {
             }
         }
     }
+
+    fun Snowflake.toLong() = this.value.toLong()
+
+    fun Long.toSnowflake() = Snowflake(this)
 }

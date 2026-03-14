@@ -1,23 +1,17 @@
-package com.jaoafa.vcspeaker.tables
+package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
-import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.core.between
+import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
-import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.core.isNotNull
-import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
 
 object VoiceTable : IntIdTable("voice") {
-    val speaker = varchar("speaker", 16)
-        .check { it inList Speaker.entries.map(Speaker::name) }
-    val emotion = varchar("emotion", 16)
-        .check { it inList Emotion.entries.map(Emotion::name) }
+    val speaker = enumerationByName<Speaker>("speaker", 16)
+    val emotion = enumerationByName<Emotion>("emotion", 16)
+        .nullable()
     val emotionLevel = integer("emotion_level")
         .default(2).nullable()
         .check { it.between(1, 4) }
@@ -32,8 +26,8 @@ object VoiceTable : IntIdTable("voice") {
         .check { it.between(50, 200) }
 
     init {
-        check {
-            (emotion.isNotNull() and emotionLevel.isNotNull()) or (emotion.isNull() and emotionLevel.isNull())
+        check("check_voice_emotion_consistency") {
+            not(emotion.isNull() and emotionLevel.isNotNull())
         }
     }
 }

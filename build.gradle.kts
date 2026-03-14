@@ -73,3 +73,17 @@ tasks.named("shadowJar", ShadowJar::class) {
 
     mergeServiceFiles()
 }
+
+tasks.register<JavaExec>("generateMigration") {
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "com.jaoafa.vcspeaker.database.GenerateMigrationKt"
+
+    doFirst {
+        environment["MIGRATION_NAME"] = project.properties["migrationName"] ?: "migration"
+    }
+}
+
+tasks.register<JavaExec>("runMigration") {
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "com.jaoafa.vcspeaker.database.RunMigrationKt"
+}

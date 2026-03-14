@@ -1,5 +1,6 @@
-package com.jaoafa.vcspeaker.tables
+package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.tools.DatabaseUtil.transformSnowflakeNullable
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
@@ -19,7 +20,7 @@ object GuildTable : LongIdTable("guild", columnName = "did") {
 class GuildEntity(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<GuildEntity>(GuildTable)
 
-    var channelDid by GuildTable.channelDid
+    var channelDid by GuildTable.channelDid.transformSnowflakeNullable()
     var prefix by GuildTable.prefix
     var autoJoin by GuildTable.autoJoin
     var speakerVoiceEntity by VoiceEntity referencedOn GuildTable.speakerVoiceId
