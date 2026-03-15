@@ -26,7 +26,7 @@ coroutines = "1.10.2"
 kotlinx-serialization-json = "1.10.0"
 
 # Other Libraries
-sentry = "8.34.1"
+sentry = "8.35.0"
 jsoup = "1.22.1"
 reflections = "0.10.2"
 google-cloud-vision = "3.84.0"
