@@ -2,18 +2,22 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
-import com.jaoafa.vcspeaker.stores.AliasData
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.database.tables.AliasEntity
+import com.jaoafa.vcspeaker.database.tables.AliasTable
+import com.jaoafa.vcspeaker.tools.DatabaseUtil.getEntityOrNull
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiUtils
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toLong
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import dev.kordex.core.DiscordRelayedException
 import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
@@ -24,12 +28,15 @@ import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.utils.capitalizeWords
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
 
-    inner class CreateOptions : Options() {
+    class CreateOptions : Options() {
         val type by stringChoice {
             name = "type"
             description = "エイリアスの種類"
@@ -48,7 +55,7 @@ class AliasCommand : Extension() {
         }
     }
 
-    inner class UpdateOptions : Options() {
+    class UpdateOptions : Options() {
         val alias by string {
             name = "alias"
             description = "更新するエイリアス"
@@ -74,7 +81,7 @@ class AliasCommand : Extension() {
         }
     }
 
-    inner class DeleteOptions : Options() {
+    class DeleteOptions : Options() {
         val search by string {
             name = "alias"
             description = "削除するエイリアス"
@@ -89,19 +96,44 @@ class AliasCommand : Extension() {
             check { anyGuild() }
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
+                    val guild = guild ?: return@action
                     val type = AliasType.valueOf(arguments.type)
                     val search = arguments.search
                     val replace = arguments.replace
 
                     if (!validateSoundboardAlias(type, replace)) return@action
 
-                    val duplicate = AliasStore.find(guild!!.id, search)
-                    val isUpdate = duplicate != null
-                    val oldReplace = duplicate?.replace
+                    // todo
+                    val (oldAlias, newAlias) = transaction {
+                        val oldAlias = AliasEntity.find {
+                            (AliasTable.guildDid eq guild.id.toLong()) and (AliasTable.search eq search)
+                        }.singleOrNull()
+                        val isUpdate = oldAlias != null
 
-                    if (isUpdate) AliasStore.remove(duplicate)
+                        var newAlias: AliasEntity
 
-                    AliasStore.create(AliasData(guild!!.id, user.id, type, search, replace))
+                        // DAO pattern doesn't support upsert. Using DSL instead.
+                        if (isUpdate) {
+                            oldAlias.creatorDid = user.id
+                            oldAlias.type = type
+                            oldAlias.replace = replace
+
+                            newAlias = oldAlias
+                        } else {
+                            newAlias = AliasEntity.new {
+                                guildEntity = guild.getEntityOrNull() ?: throw DiscordRelayedException("サーバーが登録されていません。")
+                                creatorDid = user.id
+                                this.type = type
+                                this.search = search
+                                this.replace = replace
+                            }
+                        }
+
+                        Pair(oldAlias, newAlias)
+                    }
+
+                    val isUpdate = oldAlias != null
+                    val oldReplace = oldAlias?.replace
 
                     respondEmbed(
                         ":loudspeaker: Alias ${if (isUpdate) "Updated" else "Created"}",
