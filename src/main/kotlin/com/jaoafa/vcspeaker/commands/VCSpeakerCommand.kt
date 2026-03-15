@@ -183,13 +183,16 @@ class VCSpeakerCommand : Extension() {
                     var modified = false
 
                     transaction {
+                        // modifies GuildEntity
                         guildEntity.run {
+                            // if the argument exists (non-null), update it
                             arguments.channel?.id?.also { channelDid = it; modified = true }
                             arguments.prefix?.also { prefix = it; modified = true }
                             arguments.autoJoin?.also { autoJoin = it; modified = true }
                         }
 
                         guildEntity.speakerVoiceEntity.run {
+                            // if emotion is set to be null, also set emotion level to null and stop modification lambda
                             if (arguments.emotion == "none") {
                                 emotion = null
                                 emotionLevel = null
@@ -227,11 +230,19 @@ class VCSpeakerCommand : Extension() {
 
             publicSubCommand("remove", "VCSpeaker の登録を削除します。") {
                 action {
-                    val guildId = guild!!.id
-                    val guildData = GuildStore[guildId]
+                    val guildId = guild?.id ?: return@action
+                    val guildEntity = transaction {
+                        GuildEntity.findById(guildId.toLong())
+                    }
 
-                    if (guildData == null) {
-                        respond("**:x: このサーバーは登録されていません。**")
+                    if (guildEntity == null) {
+                        respondEmbed(
+                            ":x: Not Registered",
+                            "このサーバーは登録されていません。先に `/vcspeaker register` コマンドを実行してください。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
                         return@action
                     }
 
@@ -266,13 +277,21 @@ class VCSpeakerCommand : Extension() {
                                         return@buttonAction
                                     }
 
+                                    transaction {
+                                        val voiceEntity = guildEntity.speakerVoiceEntity
+                                        guildEntity.delete()
+                                        voiceEntity.delete()
+                                    }
+
                                     // 各種データを削除
                                     AliasStore.removeForGuild(guildId)
                                     IgnoreStore.removeForGuild(guildId)
                                     ReadableBotStore.removeForGuild(guildId)
                                     ReadableChannelStore.removeForGuild(guildId)
                                     TitleStore.removeForGuild(guildId)
-                                    GuildStore.remove(guildData)
+                                    // GuildStore.remove(guildData)
+
+                                    transaction {  }
                                     edit {
                                         embed {
                                             title = ":wastebasket: Registration removed"
