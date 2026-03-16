@@ -1,6 +1,5 @@
 package com.jaoafa.vcspeaker.database
 
-import com.jaoafa.vcspeaker.tools.DatabaseUtil
 import org.jetbrains.exposed.v1.core.ExperimentalDatabaseMigrationApi
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils

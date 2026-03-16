@@ -1,6 +1,5 @@
-package com.jaoafa.vcspeaker.tools
+package com.jaoafa.vcspeaker.database
 
-import com.jaoafa.vcspeaker.database.tables.AliasEntity.Companion.transform
 import com.jaoafa.vcspeaker.database.tables.AliasTable
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.GuildTable
@@ -13,9 +12,8 @@ import com.jaoafa.vcspeaker.database.tables.VCTitleTable
 import com.jaoafa.vcspeaker.database.tables.VisionAPICounterTable
 import com.jaoafa.vcspeaker.database.tables.VoiceTable
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toLong
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toSnowflake
 import dev.kord.core.behavior.GuildBehavior
-import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
@@ -59,15 +57,5 @@ object DatabaseUtil {
         }
     }
 
-    fun Column<Long>.transformSnowflake() = this.transform({
-        it.toLong()
-    }, {
-        it.toSnowflake()
-    })
-
-    fun Column<Long?>.transformSnowflakeNullable() = this.transform({
-        it?.toLong()
-    }, {
-        it?.toSnowflake()
-    })
+    fun Table.version() = integer("version").default(0)
 }

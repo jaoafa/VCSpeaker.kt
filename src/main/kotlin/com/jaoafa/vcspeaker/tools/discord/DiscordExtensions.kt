@@ -74,7 +74,7 @@ object DiscordExtensions {
         val values = transaction { entity.readValues }
         field {
             name = ":hash: 読み上げチャンネル"
-            value = values[GuildTable.channelDid]?.toSnowflake()?.asChannelOf<TextChannel>()?.mention ?: "未設定"
+            value = values[GuildTable.channelDid]?.asChannelOf<TextChannel>()?.mention ?: "未設定"
             inline = true
         }
         field {

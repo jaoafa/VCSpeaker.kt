@@ -1,23 +1,20 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.database.diffUpsert
+import com.jaoafa.vcspeaker.database.tables.AliasTable
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
 import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
-import com.jaoafa.vcspeaker.database.tables.AliasEntity
-import com.jaoafa.vcspeaker.database.tables.AliasTable
-import com.jaoafa.vcspeaker.tools.DatabaseUtil.getEntityOrNull
-import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiUtils
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toLong
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import dev.kordex.core.DiscordRelayedException
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiUtils
 import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
@@ -28,8 +25,6 @@ import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.utils.capitalizeWords
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class AliasCommand : Extension() {
@@ -103,37 +98,18 @@ class AliasCommand : Extension() {
 
                     if (!validateSoundboardAlias(type, replace)) return@action
 
-                    // todo
-                    val (oldAlias, newAlias) = transaction {
-                        val oldAlias = AliasEntity.find {
-                            (AliasTable.guildDid eq guild.id.toLong()) and (AliasTable.search eq search)
-                        }.singleOrNull()
-                        val isUpdate = oldAlias != null
-
-                        var newAlias: AliasEntity
-
-                        // DAO pattern doesn't support upsert. Using DSL instead.
-                        if (isUpdate) {
-                            oldAlias.creatorDid = user.id
-                            oldAlias.type = type
-                            oldAlias.replace = replace
-
-                            newAlias = oldAlias
-                        } else {
-                            newAlias = AliasEntity.new {
-                                guildEntity = guild.getEntityOrNull() ?: throw DiscordRelayedException("サーバーが登録されていません。")
-                                creatorDid = user.id
-                                this.type = type
-                                this.search = search
-                                this.replace = replace
-                            }
+                    val (old, new) = transaction {
+                        AliasTable.diffUpsert {
+                            it[guildDid] = guild.id
+                            it[creatorDid] = user.id
+                            it[this.type] = AliasType.valueOf(arguments.type)
+                            it[this.search] = search
+                            it[this.replace] = replace
                         }
-
-                        Pair(oldAlias, newAlias)
                     }
-
-                    val isUpdate = oldAlias != null
-                    val oldReplace = oldAlias?.replace
+                    val isUpdate = old != null && old != new
+                    val oldReplace = old?.replace
+                    val newReplace = new.replace
 
                     respondEmbed(
                         ":loudspeaker: Alias ${if (isUpdate) "Updated" else "Created"}",
@@ -144,7 +120,7 @@ class AliasCommand : Extension() {
                         fieldAliasFrom(type, search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            if (isUpdate) "$oldReplace → **$replace**" else replace
+                            if (isUpdate) "$oldReplace → **$newReplace**" else newReplace
                         }
 
                         successColor()
@@ -155,7 +131,7 @@ class AliasCommand : Extension() {
 
                     log(logger) { guild, user ->
                         "[${guild.name}] Alias ${verb.capitalizeWords()}: @${user.username} $verb $typeName alias that replaces \"$search\" to \"$replace\"" +
-                                if (isUpdate) " (updated from \"$oldReplace\")" else ""
+                                if (isUpdate) " (updated from \"${oldReplace}\")" else ""
                     }
                 }
             }

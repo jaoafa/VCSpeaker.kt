@@ -1,5 +1,7 @@
 package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.version
+import com.jaoafa.vcspeaker.database.VersionedTable
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import org.jetbrains.exposed.v1.core.*
@@ -8,7 +10,7 @@ import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
 
-object VoiceTable : IntIdTable("voice") {
+object VoiceTable : IntIdTable("voice"), VersionedTable {
     val speaker = enumerationByName<Speaker>("speaker", 16)
     val emotion = enumerationByName<Emotion>("emotion", 16)
         .nullable()
@@ -24,6 +26,7 @@ object VoiceTable : IntIdTable("voice") {
     val volume = integer("volume")
         .default(100)
         .check { it.between(50, 200) }
+    override val version = version()
 
     init {
         check("check_voice_emotion_consistency") {

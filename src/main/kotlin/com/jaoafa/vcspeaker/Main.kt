@@ -12,7 +12,7 @@ import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
-import com.jaoafa.vcspeaker.tools.DatabaseUtil
+import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.tools.discord.DiscordCommandCleaner
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml

@@ -1,20 +1,26 @@
 package com.jaoafa.vcspeaker.database.tables
 
-import com.jaoafa.vcspeaker.tools.DatabaseUtil.transformSnowflake
+import com.jaoafa.vcspeaker.database.DatabaseUtil.version
+import com.jaoafa.vcspeaker.database.EntitySnowflakeTransformer
+import com.jaoafa.vcspeaker.database.SnowflakeTransformer
+import com.jaoafa.vcspeaker.database.VersionedTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
 
-object ReadableBotTable : IntIdTable("readable_bot") {
+object ReadableBotTable : IntIdTable("readable_bot"), VersionedTable {
     val guildDid = reference(
         "guild_did", GuildTable,
         fkName = "fk_readable_bot_guild",
         onDelete = ReferenceOption.CASCADE
-    ).index("idx_readable_bot_guild")
+    ).index("idx_readable_bot_guild").transform(EntitySnowflakeTransformer())
     val botDid = long("bot_did")
+        .transform(SnowflakeTransformer())
     val creatorDid = long("creator_did")
+        .transform(SnowflakeTransformer())
+    override val version = version()
 
     init {
         uniqueIndex(guildDid, botDid)
@@ -25,6 +31,6 @@ class ReadableBotEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ReadableBotEntity>(ReadableBotTable)
 
     var guildEntity by GuildEntity referencedOn ReadableBotTable.guildDid
-    var botDid by ReadableBotTable.botDid.transformSnowflake()
-    var creatorDid by ReadableBotTable.creatorDid.transformSnowflake()
+    var botDid by ReadableBotTable.botDid
+    var creatorDid by ReadableBotTable.creatorDid
 }
