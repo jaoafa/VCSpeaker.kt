@@ -227,8 +227,6 @@ class AliasCommand : Extension() {
                             successColor()
                         }
 
-                        val username = user.asUser().username
-
                         log(logger) { guild, user ->
                             "[${guild.name}] Alias Deleted: @${user.username} deleted $type alias that replaces \"$search\" to \"$replace\""
                         }
