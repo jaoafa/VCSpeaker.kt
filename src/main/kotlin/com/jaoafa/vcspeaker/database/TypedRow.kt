@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker.database
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
-import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.full.primaryConstructor
 
 /**
@@ -12,7 +11,15 @@ import kotlin.reflect.full.primaryConstructor
  * @property row ResultRow
  */
 abstract class TypedRow(val row: ResultRow, val table: Table) {
-    protected fun <T> column(col: Column<T>) = ReadOnlyProperty<TypedRow, T> { _, _ -> row[col] }
+    val columnMap = mutableMapOf<String, Any?>()
+
+    protected fun <T> column(col: Column<T>): T {
+        columnMap[col.name] = row[col]
+        return row[col]
+    }
+
+    override fun toString() =
+        table.tableName.uppercase() + "(${columnMap.entries.joinToString(", ") { "${it.key}=${it.value}" }})"
 }
 
 /**

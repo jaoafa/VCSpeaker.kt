@@ -35,8 +35,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-typealias Options = Arguments
-
 /**
  * Discord 関連の拡張関数をまとめたオブジェクト。
  */

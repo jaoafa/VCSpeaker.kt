@@ -6,6 +6,7 @@ import com.jaoafa.vcspeaker.database.EntitySnowflakeTransformer
 import com.jaoafa.vcspeaker.database.SnowflakeTransformer
 import com.jaoafa.vcspeaker.database.TypedRow
 import com.jaoafa.vcspeaker.database.VersionedTable
+import com.jaoafa.vcspeaker.database.toTyped
 import com.jaoafa.vcspeaker.stores.AliasType
 import dev.kord.common.entity.Snowflake
 import org.jetbrains.exposed.v1.core.*
@@ -45,13 +46,21 @@ class AliasEntity(id: EntityID<Int>) : IntEntity(id) {
     var search by AliasTable.search
     var replace by AliasTable.replace
     var version by AliasTable.version
+
+    fun getRow() = readValues.toTyped<AliasRow>()
 }
 
-data class AliasRow(val resultRow: ResultRow) : TypedRow(resultRow, AliasTable) {
-    val guildDid by column(AliasTable.guildDid)
-    val creatorDid by column(AliasTable.creatorDid)
-    val type by column(AliasTable.type)
-    val search by column(AliasTable.search)
-    val replace by column(AliasTable.replace)
-    val version by column(AliasTable.version)
+class AliasRow(resultRow: ResultRow) : TypedRow(resultRow, AliasTable) {
+    val guildDid = column(AliasTable.guildDid)
+    val creatorDid = column(AliasTable.creatorDid)
+    val type = column(AliasTable.type)
+    val search = column(AliasTable.search)
+    val replace = column(AliasTable.replace)
+    val version = column(AliasTable.version)
+
+    private val searchDisplay = if (type == AliasType.Regex) " `$search` " else "「$search」"
+
+    private fun describe() = "${type.displayName}${searchDisplay}→「$replace」<@$creatorDid>"
+
+    fun describeWithEmoji() = "${type.emoji} ${describe()}"
 }
