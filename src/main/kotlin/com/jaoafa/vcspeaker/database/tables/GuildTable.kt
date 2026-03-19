@@ -1,14 +1,11 @@
 package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.database.NullableSnowflakeTransformer
-import com.jaoafa.vcspeaker.database.VersionedTable
+import dev.kord.common.entity.Snowflake
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
-import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
-import org.jetbrains.exposed.v1.dao.LongEntity
-import org.jetbrains.exposed.v1.dao.LongEntityClass
 
-object GuildTable : LongIdTable("guild", columnName = "did"), VersionedTable {
+object GuildTable : SnowflakeIdTable("guild", columnName = "did"), VersionedTable {
     val channelDid = long("channel_did").nullable()
         .transform(NullableSnowflakeTransformer())
     val prefix = varchar("prefix", 16).nullable()
@@ -21,8 +18,8 @@ object GuildTable : LongIdTable("guild", columnName = "did"), VersionedTable {
     override val version = version()
 }
 
-class GuildEntity(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<GuildEntity>(GuildTable)
+class GuildEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id) {
+    companion object : SnowflakeEntityClass<GuildEntity>(GuildTable)
 
     var channelDid by GuildTable.channelDid
     var prefix by GuildTable.prefix

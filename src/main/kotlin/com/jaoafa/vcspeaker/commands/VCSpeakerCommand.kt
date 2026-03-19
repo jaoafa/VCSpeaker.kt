@@ -10,7 +10,6 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.infoColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toLong
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.warningColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
@@ -123,7 +122,7 @@ class VCSpeakerCommand : Extension() {
                     val guildId = guild?.id ?: return@action
 
                     val registered = transaction {
-                        GuildEntity.findById(guildId.toLong())
+                        GuildEntity.findById(guildId)
                     }
 
                     if (registered != null) {
@@ -145,7 +144,7 @@ class VCSpeakerCommand : Extension() {
                             emotion = null
                             emotionLevel = null
                         }
-                        GuildEntity.new(id = guildId.toLong()) {
+                        GuildEntity.new(id = guildId) {
                             speakerVoiceEntity = voice
                         }
                     }
@@ -166,7 +165,7 @@ class VCSpeakerCommand : Extension() {
                     val guildId = guild?.id ?: return@action
 
                     val guildEntity = transaction {
-                        GuildEntity.findById(guildId.toLong())
+                        GuildEntity.findById(guildId)
                     }
 
                     if (guildEntity == null) {
@@ -232,7 +231,7 @@ class VCSpeakerCommand : Extension() {
                 action {
                     val guildId = guild?.id ?: return@action
                     val guildEntity = transaction {
-                        GuildEntity.findById(guildId.toLong())
+                        GuildEntity.findById(guildId)
                     }
 
                     if (guildEntity == null) {

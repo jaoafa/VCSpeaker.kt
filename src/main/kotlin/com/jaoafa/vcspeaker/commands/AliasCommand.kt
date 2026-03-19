@@ -1,18 +1,19 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.isNotRegistered
 import com.jaoafa.vcspeaker.database.diffUpsert
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
-import com.jaoafa.vcspeaker.database.tables.AliasRow
 import com.jaoafa.vcspeaker.database.tables.AliasTable
-import com.jaoafa.vcspeaker.database.toTyped
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbedOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
+import com.jaoafa.vcspeaker.tools.discord.EmbedTemplates.GuildNotRegistered
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
@@ -28,7 +29,7 @@ import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.utils.capitalizeWords
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException
+import org.h2.api.ErrorCode.DUPLICATE_KEY_1
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -98,6 +99,15 @@ class AliasCommand : Extension() {
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
                     val guild = guild ?: return@action
+
+                    if (guild.isNotRegistered()) {
+                        respondEmbedOf(GuildNotRegistered) {
+                            authorOf(user)
+                        }
+
+                        return@action
+                    }
+
                     val type = AliasType.valueOf(arguments.type)
                     val search = arguments.search
                     val replace = arguments.replace
@@ -147,7 +157,7 @@ class AliasCommand : Extension() {
                         AliasEntity.findById(arguments.aliasId)
                     }
                     val oldRow = transaction {
-                        aliasEntity?.readValues?.toTyped<AliasRow>()
+                        aliasEntity?.getRow()
                     }
 
                     if (aliasEntity == null || oldRow == null) {
@@ -181,8 +191,8 @@ class AliasCommand : Extension() {
                             aliasEntity.version += 1
                         }
                     } catch (e: ExposedSQLException) {
-                        when (e.cause) {
-                            is JdbcSQLIntegrityConstraintViolationException -> {
+                        when (e.sqlState.toInt()) {
+                            DUPLICATE_KEY_1 -> {
                                 respondEmbed(
                                     ":x: Duplicated Alias",
                                     "「$updatedSearch」を置き換えるエイリアスはすでに存在します。"
@@ -203,7 +213,7 @@ class AliasCommand : Extension() {
 
 
                     val newRow = transaction {
-                        aliasEntity.readValues.toTyped<AliasRow>()
+                        aliasEntity.getRow()
                     }
 
                     respondEmbed(
@@ -264,12 +274,11 @@ class AliasCommand : Extension() {
                     }
 
                     val row = transaction {
-                        aliasEntity.getRow()
+                        val row = aliasEntity.getRow()
+                        aliasEntity.delete()
+                        row
                     }
 
-                    transaction {
-                        aliasEntity.delete()
-                    }
                     respondEmbed(
                         ":wastebasket: Alias Deleted",
                         "${row.type.displayName}エイリアスを削除しました。"

@@ -1,7 +1,6 @@
 package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.database.EntitySnowflakeTransformer
 import com.jaoafa.vcspeaker.database.SnowflakeTransformer
 import com.jaoafa.vcspeaker.database.VersionedTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -15,7 +14,7 @@ object VCTitleTable : IntIdTable("vc_title"), VersionedTable {
         "guild_did", GuildTable,
         fkName = "fk_vc_title_guild",
         onDelete = ReferenceOption.CASCADE
-    ).index("idx_vc_title_guild").transform(EntitySnowflakeTransformer())
+    ).index("idx_vc_title_guild")
     val title = varchar("title", 255)
     val originalTitle = varchar("original_title", 255)
     val channelDid = long("channel_did")

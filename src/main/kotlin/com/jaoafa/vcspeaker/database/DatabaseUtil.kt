@@ -1,17 +1,6 @@
 package com.jaoafa.vcspeaker.database
 
-import com.jaoafa.vcspeaker.database.tables.AliasTable
-import com.jaoafa.vcspeaker.database.tables.GuildEntity
-import com.jaoafa.vcspeaker.database.tables.GuildTable
-import com.jaoafa.vcspeaker.database.tables.IgnoreTable
-import com.jaoafa.vcspeaker.database.tables.ReadableBotTable
-import com.jaoafa.vcspeaker.database.tables.ReadableChannelTable
-import com.jaoafa.vcspeaker.database.tables.SpeechCacheTable
-import com.jaoafa.vcspeaker.database.tables.UserTable
-import com.jaoafa.vcspeaker.database.tables.VCTitleTable
-import com.jaoafa.vcspeaker.database.tables.VisionAPICounterTable
-import com.jaoafa.vcspeaker.database.tables.VoiceTable
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toLong
+import com.jaoafa.vcspeaker.database.tables.*
 import dev.kord.core.behavior.GuildBehavior
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -53,9 +42,11 @@ object DatabaseUtil {
 
     fun GuildBehavior.getEntityOrNull(): GuildEntity? {
         return transaction {
-            GuildEntity.findById(this@getEntityOrNull.id.toLong())
+            GuildEntity.findById(this@getEntityOrNull.id)
         }
     }
+
+    fun GuildBehavior.isNotRegistered() = getEntityOrNull() == null
 
     fun Table.version() = integer("version").default(0)
 }

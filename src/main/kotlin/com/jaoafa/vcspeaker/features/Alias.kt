@@ -13,8 +13,8 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object Alias {
     val autocomplete: suspend AutoCompleteInteraction.(AutoCompleteInteractionCreateEvent) -> Unit =
-        interaction@{ event ->
-            val guildId = event.interaction.getChannel().data.guildId.value ?: return@interaction
+        autocomplete@{ event ->
+            val guildId = event.interaction.getChannel().data.guildId.value ?: return@autocomplete
 
             val stringMap = transaction {
                 AliasEntity

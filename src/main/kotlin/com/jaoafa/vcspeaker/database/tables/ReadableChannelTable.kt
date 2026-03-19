@@ -1,7 +1,6 @@
 package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.database.EntitySnowflakeTransformer
 import com.jaoafa.vcspeaker.database.SnowflakeTransformer
 import com.jaoafa.vcspeaker.database.VersionedTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -15,7 +14,7 @@ object ReadableChannelTable : IntIdTable("readable_channel"), VersionedTable {
         "guild_did", GuildTable,
         fkName = "fk_readable_channel_guild",
         onDelete = ReferenceOption.CASCADE
-    ).index("idx_readable_channel_guild").transform(EntitySnowflakeTransformer())
+    ).index("idx_readable_channel_guild")
     val channelDid = long("channel_did")
         .transform(SnowflakeTransformer())
     val creatorDid = long("creator_did")
