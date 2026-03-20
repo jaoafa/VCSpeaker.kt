@@ -45,7 +45,7 @@ class IgnoreRow(resultRow: ResultRow) : TypedRow(resultRow, IgnoreTable) {
     val search = column(IgnoreTable.search)
     val version = column(IgnoreTable.version)
 
-    fun describe() = "${type.displayName}「$search」<@$creatorDid>"
+    override fun describe() = "${type.displayName}「$search」<@$creatorDid>"
 
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
 }

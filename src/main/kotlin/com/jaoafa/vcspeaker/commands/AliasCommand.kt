@@ -1,9 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
 import com.jaoafa.vcspeaker.database.DatabaseUtil.isNotRegistered
 import com.jaoafa.vcspeaker.database.diffUpsert
-import com.jaoafa.vcspeaker.database.tables.AliasEntity
-import com.jaoafa.vcspeaker.database.tables.AliasTable
+import com.jaoafa.vcspeaker.database.tables.AliasEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.AliasTable as Table
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
 import com.jaoafa.vcspeaker.stores.AliasType
@@ -101,9 +102,9 @@ class AliasCommand : Extension() {
                     val guild = guild ?: return@action
 
                     if (guild.isNotRegistered()) {
-                        respondEmbedOf(GuildNotRegistered) {
+                        respondEmbedOf(GuildNotRegistered().buildSuspended {
                             authorOf(user)
-                        }
+                        })
 
                         return@action
                     }
@@ -115,7 +116,7 @@ class AliasCommand : Extension() {
                     if (!validateSoundboardAlias(type, replace)) return@action
 
                     val (old, new) = transaction {
-                        AliasTable.diffUpsert {
+                        Table.diffUpsert {
                             it[guildDid] = guild.id
                             it[creatorDid] = user.id
                             it[this.type] = AliasType.valueOf(arguments.type)
@@ -154,7 +155,7 @@ class AliasCommand : Extension() {
             publicSubCommand("update", "エイリアスを更新します。", ::UpdateOptions) {
                 action {
                     val aliasEntity = transaction {
-                        AliasEntity.findById(arguments.aliasId)
+                        Entity.findById(arguments.aliasId)
                     }
                     val oldRow = transaction {
                         aliasEntity?.getRow()
@@ -254,7 +255,7 @@ class AliasCommand : Extension() {
             publicSubCommand("delete", "エイリアスを削除します。", ::DeleteOptions) {
                 action {
                     val aliasEntity = transaction {
-                        AliasEntity.findById(arguments.aliasId)
+                        Entity.findById(arguments.aliasId)
                     }
 
                     if (aliasEntity == null) {
@@ -304,7 +305,7 @@ class AliasCommand : Extension() {
                 action {
                     val guildId = guild?.id ?: return@action
                     val aliasEntities = transaction {
-                        AliasEntity.find { AliasTable.guildDid eq guildId }.map { it.getRow() }
+                        Entity.find { Table.guildDid eq guildId }.getRows()
                     }
 
                     if (aliasEntities.isEmpty()) {

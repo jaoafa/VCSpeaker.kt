@@ -1,9 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntityOrNull
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
 import com.jaoafa.vcspeaker.database.DatabaseUtil.isNotRegistered
-import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
-import com.jaoafa.vcspeaker.database.tables.IgnoreTable
+import com.jaoafa.vcspeaker.database.tables.IgnoreEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.IgnoreTable as Table
 import com.jaoafa.vcspeaker.features.Ignore
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
@@ -64,9 +65,9 @@ class IgnoreCommand : Extension() {
                     val guild = guild ?: return@action
 
                     if (guild.isNotRegistered()) {
-                        respondEmbedOf(GuildNotRegistered) {
+                        respondEmbedOf(GuildNotRegistered().buildSuspended {
                             authorOf(user)
-                        }
+                        })
 
                         return@action
                     }
@@ -78,7 +79,7 @@ class IgnoreCommand : Extension() {
                         val entity = transaction {
                             val guildEntity = guild.getEntityOrNull()
                                 ?: throw IllegalStateException("GuildEntity not found for guild ${guild.id}")
-                            IgnoreEntity.new {
+                            Entity.new {
                                 this.guildEntity = guildEntity
                                 creatorDid = user.id
                                 this.type = type
@@ -128,7 +129,7 @@ class IgnoreCommand : Extension() {
             publicSubCommand("delete", "無視条件を削除します。", ::DeleteOptions) {
                 action {
                     val ignoreEntity = transaction {
-                        IgnoreEntity.findById(arguments.ignoreId)
+                        Entity.findById(arguments.ignoreId)
                     }
 
                     if (ignoreEntity == null) {
@@ -173,7 +174,7 @@ class IgnoreCommand : Extension() {
                 action {
                     val guildId = guild?.id ?: return@action
                     val ignoreEntities = transaction {
-                        IgnoreEntity.find { IgnoreTable.guildDid eq guildId }.map { it.getRow() }
+                        Entity.find { Table.guildDid eq guildId }.getRows()
                     }
 
                     if (ignoreEntities.isEmpty()) {

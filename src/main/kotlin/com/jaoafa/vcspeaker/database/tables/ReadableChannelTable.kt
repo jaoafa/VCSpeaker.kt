@@ -2,8 +2,12 @@ package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import com.jaoafa.vcspeaker.database.SnowflakeTransformer
+import com.jaoafa.vcspeaker.database.TypedEntity
+import com.jaoafa.vcspeaker.database.TypedRow
 import com.jaoafa.vcspeaker.database.VersionedTable
+import com.jaoafa.vcspeaker.database.toTyped
 import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
@@ -26,10 +30,22 @@ object ReadableChannelTable : IntIdTable("readable_channel"), VersionedTable {
     }
 }
 
-class ReadableChannelEntity(id: EntityID<Int>) : IntEntity(id) {
+class ReadableChannelEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<ReadableChannelRow> {
     companion object : IntEntityClass<ReadableChannelEntity>(ReadableChannelTable)
 
     var guildEntity by GuildEntity referencedOn ReadableChannelTable.guildDid
     var channelDid by ReadableChannelTable.channelDid
     var creatorDid by ReadableChannelTable.creatorDid
+    var version by ReadableChannelTable.version
+
+    override fun getRow() = readValues.toTyped<ReadableChannelRow>()
+}
+
+class ReadableChannelRow(resultRow: ResultRow) : TypedRow(resultRow, ReadableChannelTable) {
+    val guildDid = column(ReadableChannelTable.guildDid)
+    val channelDid = column(ReadableChannelTable.channelDid)
+    val creatorDid = column(ReadableChannelTable.creatorDid)
+    val version = column(ReadableChannelTable.version)
+
+    override fun describe() = "<#${channelDid}> (Added by <@${creatorDid}>)"
 }

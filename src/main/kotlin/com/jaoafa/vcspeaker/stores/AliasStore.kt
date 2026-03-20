@@ -5,6 +5,7 @@ import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+// todo: move to features/
 @Serializable
 enum class AliasType(
     val displayName: String,
@@ -21,6 +22,7 @@ private val aliasJson = Json {
 }
 
 @Serializable
+@Deprecated("Use database instead")
 data class AliasData(
     val guildId: Snowflake,
     val userId: Snowflake,
@@ -35,6 +37,7 @@ data class AliasData(
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
 }
 
+@Deprecated("Use database instead")
 object AliasStore : StoreStruct<AliasData>(
     VCSpeaker.Files.aliases.path,
     AliasData.serializer(),

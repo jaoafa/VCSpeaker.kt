@@ -1,6 +1,8 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.stores.IgnoreStore
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
+import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
+import com.jaoafa.vcspeaker.database.tables.IgnoreTable
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.Emoji.containsEmojis
 import com.jaoafa.vcspeaker.tools.Emoji.getEmojis
@@ -14,11 +16,13 @@ import com.jaoafa.vcspeaker.tts.processors.ReplacerProcessor
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class ParseCommand : Extension() {
     override val name = this::class.simpleName!!
 
-    inner class ParseOptions : Options() {
+    class ParseOptions : Options() {
         val text by string {
             name = "message"
             description = "試すメッセージ"
@@ -29,10 +33,14 @@ class ParseCommand : Extension() {
         publicSlashCommand("parse", "読み上げる文章の処理をテストします", ::ParseOptions) {
             check { anyGuild() }
             action {
-                val guildId = guild!!.id
+                val guildId = guild?.id ?: return@action
                 val text = arguments.text
 
-                fun effectiveIgnores(text: String) = IgnoreStore.filter(guildId).filter {
+                val ignoreRows = transaction {
+                    IgnoreEntity.find { IgnoreTable.guildDid eq guildId }.getRows()
+                }
+
+                fun effectiveIgnores(text: String) = ignoreRows.filter {
                     when (it.type) {
                         IgnoreType.Equals -> text == it.search
                         IgnoreType.Contains -> text.contains(it.search)
@@ -99,7 +107,7 @@ class ParseCommand : Extension() {
                 if (effectiveIgnores.isNotEmpty()) {
                     respondStepEmbed(
                         checkIgnore = effectiveIgnores.joinToString("\n") {
-                            it.toDisplay()
+                            it.describe()
                         },
                         result = "＊無視されました。",
                         ignored = true
@@ -109,6 +117,7 @@ class ParseCommand : Extension() {
                 }
 
                 // step 2: apply alias
+                // fixme
                 val tokens = ReplacerProcessor().replacers.fold(mutableListOf(TextToken(text))) { tokens, replacer ->
                     replacer.replace(tokens, guildId)
                 }
@@ -136,7 +145,7 @@ class ParseCommand : Extension() {
                         checkIgnore = "＊無視されませんでした。",
                         applyAlias = replaceResult,
                         recheckIgnore = annotatedEffectiveIgnores.joinToString("\n") {
-                            it.toDisplay()
+                            it.describe()
                         },
                         result = "＊無視されました。",
                         ignored = true

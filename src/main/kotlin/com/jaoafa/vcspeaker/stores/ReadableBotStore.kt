@@ -7,12 +7,14 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 @Serializable
+@Deprecated("Use database instead")
 data class ReadableBotData(
     val guildId: Snowflake,
     val userId: Snowflake,
     val addedByUserId: Snowflake,
 )
 
+@Deprecated("Use database instead")
 object ReadableBotStore : StoreStruct<ReadableBotData>(
     VCSpeaker.Files.readableBot.path,
     ReadableBotData.serializer(),

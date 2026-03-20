@@ -20,6 +20,8 @@ abstract class TypedRow(val row: ResultRow, val table: Table) {
 
     override fun toString() =
         table.tableName.uppercase() + "(${columnMap.entries.joinToString(", ") { "${it.key}=${it.value}" }})"
+
+    abstract fun describe(): String
 }
 
 /**

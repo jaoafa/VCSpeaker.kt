@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Serializable
+@Deprecated("Use database instead")
 data class VisionApiCounterData(
     /** 年月 (yyyy/MM) */
     val yearMonth: String,
@@ -16,6 +17,7 @@ data class VisionApiCounterData(
     val limitReachedAt: Long? = null
 )
 
+@Deprecated("Use database instead")
 object VisionApiCounterStore : StoreStruct<VisionApiCounterData>(
     VCSpeaker.Files.visionApiCounter.path,
     VisionApiCounterData.serializer(),

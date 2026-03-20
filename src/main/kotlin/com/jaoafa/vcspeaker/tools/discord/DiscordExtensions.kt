@@ -35,7 +35,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-typealias EmbedBuilderLambda = suspend EmbedBuilder.() -> Unit
+typealias EmbedBuilderLambdaSuspend = suspend EmbedBuilder.() -> Unit
+typealias EmbedBuilderLambda = EmbedBuilder.() -> Unit
 
 /**
  * Discord 関連の拡張関数をまとめたオブジェクト。
@@ -178,7 +179,7 @@ object DiscordExtensions {
     suspend fun PublicSlashCommandContext<*, *>.respondEmbed(
         title: String,
         description: String? = null,
-        builder: EmbedBuilderLambda = {}
+        builder: EmbedBuilderLambdaSuspend = {}
     ) = this.respond {
         embed(title, description, builder)
     }
@@ -190,8 +191,8 @@ object DiscordExtensions {
      * @param override builder を上書きする EmbedBuilder
      */
     suspend fun PublicSlashCommandContext<*, *>.respondEmbedOf(
-        builder: EmbedBuilderLambda,
-        override: EmbedBuilderLambda? = null
+        builder: EmbedBuilderLambdaSuspend,
+        override: EmbedBuilderLambdaSuspend? = null
     ) = this.respond {
         embed {
             apply { builder() }
@@ -211,7 +212,7 @@ object DiscordExtensions {
     suspend fun FollowupMessageCreateBuilder.embed(
         title: String,
         description: String? = null,
-        builder: EmbedBuilderLambda = {}
+        builder: EmbedBuilderLambdaSuspend = {}
     ) = this.embed {
         this.title = title
         this.description = description

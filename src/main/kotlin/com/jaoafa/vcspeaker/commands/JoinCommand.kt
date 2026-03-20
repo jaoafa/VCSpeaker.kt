@@ -22,7 +22,7 @@ class JoinCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
 
-    inner class JoinOptions : Options() {
+    class JoinOptions : Options() {
         val channel by optionalChannel {
             name = "channel"
             description = "参加する VC"

@@ -10,12 +10,14 @@ import java.io.File
 import kotlin.concurrent.timer
 
 @Serializable
+@Deprecated("Use database instead")
 data class CacheData(
     val providerId: String,
     val hash: String,
     val lastUsed: Long
 )
 
+@Deprecated("Use database instead")
 object CacheStore : StoreStruct<CacheData>(
     VCSpeaker.Files.caches.path,
     CacheData.serializer(),

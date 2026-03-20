@@ -56,7 +56,7 @@ class AliasRow(resultRow: ResultRow) : TypedRow(resultRow, AliasTable) {
 
     private val searchDisplay = if (type == AliasType.Regex) " `$search` " else "「$search」"
 
-    fun describe() = "${type.displayName}${searchDisplay}→「$replace」<@$creatorDid>"
+    override fun describe() = "${type.displayName}${searchDisplay}→「$replace」<@$creatorDid>"
 
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
 }
