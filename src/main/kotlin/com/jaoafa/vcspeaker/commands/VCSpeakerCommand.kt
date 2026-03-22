@@ -2,6 +2,12 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionLevelOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.PitchOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeakerOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeedOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.VolumeOption
 import com.jaoafa.vcspeaker.stores.*
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
@@ -15,6 +21,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.ButtonStyle
@@ -37,7 +44,7 @@ class VCSpeakerCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger {}
 
-    class SettingsOptions : Options() {
+    class SettingsOptions : Options(), VoiceOptions {
         val channel by optionalChannel {
             name = "channel"
             description = "読み上げるテキストチャンネル"
@@ -49,55 +56,12 @@ class VCSpeakerCommand : Extension() {
             description = "チャットコマンドのプレフィックス"
         }
 
-        val speaker by optionalStringChoice {
-            name = "speaker"
-            description = "話者"
-
-            for (value in Speaker.entries)
-                choice(value.speakerName, value.name)
-        }
-
-        val emotion by optionalStringChoice {
-            name = "emotion"
-            description = "感情"
-
-            for (value in Emotion.entries)
-                choice(value.emotionName, value.name)
-
-            choice("なし", "none")
-        }
-
-        val emotionLevel by optionalInt {
-            name = "emotion-level"
-            description = "感情レベル"
-
-            maxValue = 4
-            minValue = 1
-        }
-
-        val pitch by optionalInt {
-            name = "pitch"
-            description = "ピッチ"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val speed by optionalInt {
-            name = "speed"
-            description = "速度"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val volume by optionalInt {
-            name = "volume"
-            description = "音量"
-
-            maxValue = 200
-            minValue = 50
-        }
+        override val speaker by optionalStringChoice(SpeakerOption)
+        override val emotion by optionalStringChoice(EmotionOption)
+        override val emotionLevel by optionalInt(EmotionLevelOption)
+        override val pitch by optionalInt(PitchOption)
+        override val speed by optionalInt(SpeedOption)
+        override val volume by optionalInt(VolumeOption)
 
         val autoJoin by optionalBoolean {
             name = "auto-join"
@@ -290,7 +254,7 @@ class VCSpeakerCommand : Extension() {
                                     TitleStore.removeForGuild(guildId)
                                     // GuildStore.remove(guildData)
 
-                                    transaction {  }
+                                    transaction { }
                                     edit {
                                         embed {
                                             title = ":wastebasket: Registration removed"

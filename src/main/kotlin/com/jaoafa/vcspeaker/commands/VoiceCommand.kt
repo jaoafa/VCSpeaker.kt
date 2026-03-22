@@ -1,5 +1,12 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.features.EMOTION_LEVEL_DEFAULT
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionLevelOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.PitchOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeakerOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeedOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.VolumeOption
 import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -8,7 +15,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.jaoafa.vcspeaker.tts.DEFAULT_EMOTION_LEVEL
+import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
 import com.jaoafa.vcspeaker.tts.EmotionData
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
@@ -22,62 +29,19 @@ class VoiceCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger {}
 
-    inner class VoiceOptions : Options() {
-        val speaker by optionalStringChoice {
-            name = "speaker"
-            description = "話者"
-
-            for (value in Speaker.entries)
-                choice(value.speakerName, value.name)
-        }
-
-        val emotion by optionalStringChoice {
-            name = "emotion"
-            description = "感情"
-
-            for (value in Emotion.entries)
-                choice(value.emotionName, value.name)
-
-            choice("なし", "none")
-        }
-
-        val emotionLevel by optionalInt {
-            name = "emotion-level"
-            description = "感情レベル"
-
-            maxValue = 4
-            minValue = 1
-        }
-
-        val pitch by optionalInt {
-            name = "pitch"
-            description = "ピッチ"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val speed by optionalInt {
-            name = "speed"
-            description = "速度"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val volume by optionalInt {
-            name = "volume"
-            description = "音量"
-
-            maxValue = 200
-            minValue = 50
-        }
+    class VoiceSetOptions : Options(), VoiceOptions {
+        override val speaker by optionalStringChoice(SpeakerOption)
+        override val emotion by optionalStringChoice(EmotionOption)
+        override val emotionLevel by optionalInt(EmotionLevelOption)
+        override val pitch by optionalInt(PitchOption)
+        override val speed by optionalInt(SpeedOption)
+        override val volume by optionalInt(VolumeOption)
     }
 
     override suspend fun setup() {
         publicSlashCommand("voice", "自分の声を設定します。") {
             check { anyGuild() }
-            publicSubCommand("set", "自分の声を設定します。", ::VoiceOptions) {
+            publicSubCommand("set", "自分の声を設定します。", ::VoiceSetOptions) {
                 action {
                     val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
 
@@ -95,7 +59,7 @@ class VoiceCommand : Extension() {
                         emotionData = emotion?.let {
                             EmotionData(
                                 it,
-                                arguments.emotionLevel ?: oldVoice.emotionLevel ?: DEFAULT_EMOTION_LEVEL
+                                arguments.emotionLevel ?: oldVoice.emotionLevel ?: EMOTION_LEVEL_DEFAULT
                             )
                         }
                     )

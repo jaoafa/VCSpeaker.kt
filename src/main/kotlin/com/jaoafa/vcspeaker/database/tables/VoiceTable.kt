@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import com.jaoafa.vcspeaker.database.VersionedTable
+import com.jaoafa.vcspeaker.features.*
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import org.jetbrains.exposed.v1.core.*
@@ -15,17 +16,17 @@ object VoiceTable : IntIdTable("voice"), VersionedTable {
     val emotion = enumerationByName<Emotion>("emotion", 16)
         .nullable()
     val emotionLevel = integer("emotion_level")
-        .default(2).nullable()
-        .check { it.between(1, 4) }
+        .default(EMOTION_LEVEL_DEFAULT).nullable()
+        .check { it.between(EMOTION_LEVEL_MIN, EMOTION_LEVEL_MAX) }
     val pitch = integer("pitch")
-        .default(100)
-        .check { it.between(50, 200) }
+        .default(PITCH_DEFAULT)
+        .check { it.between(PITCH_MIN, PITCH_MAX) }
     val speed = integer("speed")
-        .default(120)
-        .check { it.between(50, 200) }
+        .default(SPEED_DEFAULT)
+        .check { it.between(SPEED_MIN, SPEED_MAX) }
     val volume = integer("volume")
-        .default(100)
-        .check { it.between(50, 200) }
+        .default(VOLUME_DEFAULT)
+        .check { it.between(VOLUME_MIN, VOLUME_MAX) }
     override val version = version()
 
     init {

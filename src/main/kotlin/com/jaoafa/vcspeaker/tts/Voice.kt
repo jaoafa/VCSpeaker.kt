@@ -1,29 +1,28 @@
 package com.jaoafa.vcspeaker.tts
 
+import com.jaoafa.vcspeaker.features.EMOTION_LEVEL_DEFAULT
+import com.jaoafa.vcspeaker.features.PITCH_DEFAULT
+import com.jaoafa.vcspeaker.features.SPEED_DEFAULT
+import com.jaoafa.vcspeaker.features.VOLUME_DEFAULT
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-const val DEFAULT_EMOTION_LEVEL = 2
-
 @Serializable
 data class EmotionData(
     val emotion: Emotion,
-    val level: Int? = DEFAULT_EMOTION_LEVEL
+    val level: Int? = EMOTION_LEVEL_DEFAULT
 )
 
-const val DEFAULT_PITCH = 100
-const val DEFAULT_SPEED = 120
-const val DEFAULT_VOLUME = 100
 
 @Serializable
 data class Voice(
     val speaker: Speaker,
     val emotionData: EmotionData? = null,
-    val pitch: Int = DEFAULT_PITCH,
-    val speed: Int = DEFAULT_SPEED,
-    val volume: Int = DEFAULT_VOLUME
+    val pitch: Int = PITCH_DEFAULT,
+    val speed: Int = SPEED_DEFAULT,
+    val volume: Int = VOLUME_DEFAULT
 ) {
     val emotion: Emotion?
         get() = emotionData?.emotion
