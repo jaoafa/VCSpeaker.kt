@@ -12,7 +12,7 @@ import com.jaoafa.vcspeaker.tools.discord.EmbedTemplates
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.jaoafa.vcspeaker.tools.discord.isGuildRegistered
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.channel.asChannelOf
@@ -82,7 +82,7 @@ class ReadableChannelCommand : Extension() {
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("readablechannel", "メッセージ内容の読み上げを許可するテキストチャンネルを設定します。") {
-            check { isGuildRegistered() }
+            check { anyGuildRegistered() }
             publicSubCommand("add", "メッセージ内容の読み上げを許可するテキストチャンネルを追加します。", ::AddOptions) {
                 check { hasChannelPermission() }
                 action {

@@ -9,7 +9,7 @@ import dev.kordex.core.checks.guildFor
 import dev.kordex.core.checks.types.CheckContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-suspend fun CheckContext<ChatInputCommandInteractionCreateEvent>.isGuildRegistered() {
+suspend fun CheckContext<ChatInputCommandInteractionCreateEvent>.anyGuildRegistered() {
     if (!passed) return
 
     val logger = KotlinLogging.logger("com.jaoafa.vcspeaker.tools.discord.isGuildRegistered")

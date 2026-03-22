@@ -1,26 +1,21 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.DatabaseUtil.isNotRegistered
 import com.jaoafa.vcspeaker.database.diffUpsert
-import com.jaoafa.vcspeaker.database.tables.AliasEntity as Entity
-import com.jaoafa.vcspeaker.database.tables.AliasTable as Table
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbedOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
-import com.jaoafa.vcspeaker.tools.discord.EmbedTemplates.GuildNotRegistered
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiUtils
 import dev.kordex.core.annotations.AlwaysPublicResponse
-import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
 import dev.kordex.core.commands.application.slash.converters.impl.stringChoice
@@ -34,10 +29,12 @@ import org.h2.api.ErrorCode.DUPLICATE_KEY_1
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import com.jaoafa.vcspeaker.database.tables.AliasEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.AliasTable as Table
 
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
-    private val logger = KotlinLogging.logger { }
+    private val logger = KotlinLogging.logger {}
 
     class CreateOptions : Options() {
         val type by stringChoice {
@@ -96,18 +93,10 @@ class AliasCommand : Extension() {
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("alias", "エイリアスを設定します。") {
-            check { anyGuild() }
+            check { anyGuildRegistered() }
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
                     val guild = guild ?: return@action
-
-                    if (guild.isNotRegistered()) {
-                        respondEmbedOf(GuildNotRegistered().buildSuspended {
-                            authorOf(user)
-                        })
-
-                        return@action
-                    }
 
                     val type = AliasType.valueOf(arguments.type)
                     val search = arguments.search

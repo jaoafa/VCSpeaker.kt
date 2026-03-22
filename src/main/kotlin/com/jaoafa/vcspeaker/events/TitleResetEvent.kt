@@ -1,16 +1,16 @@
 package com.jaoafa.vcspeaker.events
 
-import com.jaoafa.vcspeaker.features.Title.resetTitle
+import com.jaoafa.vcspeaker.features.Title
 import com.jaoafa.vcspeaker.stores.GuildStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
-import dev.kordex.core.extensions.Extension
-import dev.kordex.core.extensions.event
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
+import dev.kordex.core.extensions.Extension
+import dev.kordex.core.extensions.event
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.count
 
@@ -27,13 +27,11 @@ class TitleResetEvent : Extension() {
             }
 
             action {
-                val user = event.state.getMember()
+                val member = event.state.getMember()
+                val channel = event.old?.getChannelOrNull() ?: return@action
+                val (old, new) = Title.resetTitleOf(channel, member) ?: return@action
 
-                val (oldData, newData) = event.old!!.getChannelOrNull()!!.resetTitle(user) // checked
-
-                if (newData == null) return@action
-
-                val textChannel =
+                val textChannel = // fixme
                     GuildStore[event.state.guildId]?.channelId?.asChannelOf<TextChannel>() ?: return@action
                 val voiceChannel = event.old?.getChannelOrNull()!!
 
@@ -41,23 +39,23 @@ class TitleResetEvent : Extension() {
                     title = ":broom: Title Reset"
                     description = "${voiceChannel.mention} のタイトルはリセットされました。"
 
-                    authorOf(user)
+                    authorOf(member)
 
                     field(":regional_indicator_o: チャンネル名", true) {
-                        "`${newData.original}` (デフォルト)"
+                        "`${new.originalTitle}` (デフォルト)"
                     }
 
                     field(":white_medium_small_square: 旧タイトル", true) {
-                        oldData?.title!!.let { "`$it`" }
+                        old?.title?.let { "`$it`" } ?: "未登録"
                     }
 
                     successColor()
                 }
 
                 val guildName = event.state.getGuild().name
-                val voiceName = voiceChannel.name()
+                val voiceName = voiceChannel.getName()
 
-                logger.info { "[$guildName] Title Reset: Title of $voiceName has been reset" }
+                logger.info { "[$guildName] Auto Title Reset: Title of $voiceName has been reset due to empty channel" }
             }
         }
     }

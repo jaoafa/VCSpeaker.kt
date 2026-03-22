@@ -4,10 +4,13 @@ import com.jaoafa.vcspeaker.database.tables.*
 import dev.kord.core.behavior.GuildBehavior
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.SizedIterable
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transactionManager
 
 object DatabaseUtil {
     val tables = listOf(
@@ -48,9 +51,29 @@ object DatabaseUtil {
     fun GuildBehavior.getEntity() =
         getEntityOrNull() ?: throw IllegalStateException("Guild ${id.value} is not registered.")
 
-    fun GuildBehavior.isNotRegistered() = getEntityOrNull() == null
-
     fun Table.version() = integer("version").default(0)
 
     inline fun <reified T : TypedRow, reified E : TypedEntity<T>> SizedIterable<E>.getRows() = map { it.getRow() }
+}
+
+fun <T> committingTransaction(
+    db: Database? = null,
+    transactionIsolation: Int? = db?.transactionManager?.defaultIsolationLevel,
+    readOnly: Boolean? = db?.transactionManager?.defaultReadOnly,
+    statement: JdbcTransaction.() -> T
+) = transaction(db, transactionIsolation, readOnly) {
+    val result = statement()
+    commit()
+    result
+}
+
+suspend fun <T> commitingSuspendTransaction(
+    db: Database? = null,
+    transactionIsolation: Int? = db?.transactionManager?.defaultIsolationLevel,
+    readOnly: Boolean? = db?.transactionManager?.defaultReadOnly,
+    statement: suspend JdbcTransaction.() -> T
+) = suspendTransaction(db, transactionIsolation, readOnly) {
+    val result = statement()
+    commit()
+    result
 }

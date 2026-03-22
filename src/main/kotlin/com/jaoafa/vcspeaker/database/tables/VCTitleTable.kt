@@ -2,8 +2,12 @@ package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import com.jaoafa.vcspeaker.database.SnowflakeTransformer
+import com.jaoafa.vcspeaker.database.TypedEntity
+import com.jaoafa.vcspeaker.database.TypedRow
 import com.jaoafa.vcspeaker.database.VersionedTable
+import com.jaoafa.vcspeaker.database.toTyped
 import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
@@ -15,7 +19,7 @@ object VCTitleTable : IntIdTable("vc_title"), VersionedTable {
         fkName = "fk_vc_title_guild",
         onDelete = ReferenceOption.CASCADE
     ).index("idx_vc_title_guild")
-    val title = varchar("title", 255)
+    val title = varchar("title", 255).nullable()
     val originalTitle = varchar("original_title", 255)
     val channelDid = long("channel_did")
         .uniqueIndex("idx_vc_title_channel")
@@ -25,7 +29,7 @@ object VCTitleTable : IntIdTable("vc_title"), VersionedTable {
     override val version = version()
 }
 
-class VCTitleEntity(id: EntityID<Int>) : IntEntity(id) {
+class VCTitleEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<VCTitleRow> {
     companion object : IntEntityClass<VCTitleEntity>(VCTitleTable)
 
     var guildEntity by GuildEntity referencedOn VCTitleTable.guildDid
@@ -33,4 +37,18 @@ class VCTitleEntity(id: EntityID<Int>) : IntEntity(id) {
     var originalTitle by VCTitleTable.originalTitle
     var channelDid by VCTitleTable.channelDid
     var creatorDid by VCTitleTable.creatorDid
+    var version by VCTitleTable.version
+
+    override fun getRow() = readValues.toTyped<VCTitleRow>()
+}
+
+class VCTitleRow(resultRow: ResultRow) : TypedRow(resultRow, VCTitleTable) {
+    val guildDid = column(VCTitleTable.guildDid)
+    val title = column(VCTitleTable.title)
+    val originalTitle = column(VCTitleTable.originalTitle)
+    val channelDid = column(VCTitleTable.channelDid)
+    val creatorDid = column(VCTitleTable.creatorDid)
+    val version = column(VCTitleTable.version)
+
+    override fun describe() = "$title <#$channelDid> by <@$creatorDid> ($originalTitle)"
 }

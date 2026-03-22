@@ -2,23 +2,18 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntityOrNull
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.DatabaseUtil.isNotRegistered
-import com.jaoafa.vcspeaker.database.tables.IgnoreEntity as Entity
-import com.jaoafa.vcspeaker.database.tables.IgnoreTable as Table
 import com.jaoafa.vcspeaker.features.Ignore
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbedOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
-import com.jaoafa.vcspeaker.tools.discord.EmbedTemplates.GuildNotRegistered
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kordex.core.annotations.AlwaysPublicResponse
-import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.converters.impl.stringChoice
 import dev.kordex.core.commands.converters.impl.int
 import dev.kordex.core.commands.converters.impl.string
@@ -28,6 +23,8 @@ import org.h2.api.ErrorCode.DUPLICATE_KEY_1
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import com.jaoafa.vcspeaker.database.tables.IgnoreEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.IgnoreTable as Table
 
 class IgnoreCommand : Extension() {
     override val name = this::class.simpleName!!
@@ -59,18 +56,10 @@ class IgnoreCommand : Extension() {
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("ignore", "無視機能を設定します。") {
-            check { anyGuild() }
+            check { anyGuildRegistered() }
             publicSubCommand("create", "無視条件を作成します。", ::CreateOptions) {
                 action {
                     val guild = guild ?: return@action
-
-                    if (guild.isNotRegistered()) {
-                        respondEmbedOf(GuildNotRegistered().buildSuspended {
-                            authorOf(user)
-                        })
-
-                        return@action
-                    }
 
                     val type = IgnoreType.valueOf(arguments.type)
                     val search = arguments.search

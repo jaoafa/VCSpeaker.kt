@@ -253,7 +253,7 @@ object DiscordExtensions {
     /**
      * [BaseVoiceChannelBehavior] のチャンネル名を取得します。
      */
-    suspend fun BaseVoiceChannelBehavior.name() = this.asChannel().name
+    suspend fun BaseVoiceChannelBehavior.getName() = this.asChannel().name
 
     /**
      * [Channel] がスレッドかどうか。

@@ -1,112 +1,140 @@
 package com.jaoafa.vcspeaker.features
 
-import com.jaoafa.vcspeaker.stores.TitleData
-import com.jaoafa.vcspeaker.stores.TitleStore
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntity
+import com.jaoafa.vcspeaker.database.commitingSuspendTransaction
+import com.jaoafa.vcspeaker.database.committingTransaction
+import com.jaoafa.vcspeaker.database.tables.VCTitleRow
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
+import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.rename
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
-import dev.kord.core.behavior.channel.edit
-import dev.kord.core.entity.channel.StageChannel
-import dev.kord.core.entity.channel.VoiceChannel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import com.jaoafa.vcspeaker.database.tables.VCTitleEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.VCTitleTable as Table
 
 object Title {
-    suspend fun BaseVoiceChannelBehavior.setTitle(title: String, user: UserBehavior): TitleData {
-        val data = getTitleData()
+    val logger = KotlinLogging.logger {}
 
-        val latestData = if (data != null) { // update
-            val updatedData = data.copy(
-                title = title,
-                userId = user.id
-            )
+    fun getTitleEntityOf(channel: BaseVoiceChannelBehavior) = transaction {
+        Entity.find { Table.channelDid eq channel.id }.singleOrNull()
+    }
 
-            TitleStore.replace(data, updatedData)
-        } else { // create
-            val newData = TitleData(guild.id, id, user.id, title, this.asChannel().name)
+    suspend fun setTitleOf(
+        channel: BaseVoiceChannelBehavior,
+        title: String,
+        creator: UserBehavior
+    ): Pair<VCTitleRow?, VCTitleRow> = suspendTransaction transaction@{
+        val entity = getTitleEntityOf(channel)
+        val oldRow = entity?.getRow()
 
-            TitleStore.create(newData)
-        }
+        val originalName = channel.getName()
 
-        CoroutineScope(Dispatchers.Default).launch {
-            when (this@setTitle) {
-                is VoiceChannel -> edit { name = title }
-                is StageChannel -> edit { name = title }
+        channel.rename(title)
+
+        val newEntity = committingTransaction {
+            if (entity != null) {
+                entity.title = title
+                entity.creatorDid = creator.id
+                entity.version += 1
+                entity
+            } else {
+                Entity.new {
+                    this.title = title
+                    this.channelDid = channel.id
+                    this.guildEntity = channel.guild.getEntity()
+                    this.creatorDid = creator.id
+                    this.originalTitle = originalName
+                }
             }
         }
 
-        return latestData
+        val newRow = newEntity.getRow()
+
+        logger.info { "Title Set: $oldRow -> $newRow" }
+
+        return@transaction oldRow to newRow
     }
 
-    suspend fun BaseVoiceChannelBehavior.resetTitle(user: UserBehavior): Pair<TitleData?, TitleData?> {
-        val data = getTitleData()
+    /**
+     * [channel] に設定されたタイトルをリセットします。
+     *
+     * @param channel 対象のボイスチャンネル
+     * @param creator 操作の実行者
+     * @return リセットが行われなかった場合は null, リセットが行われた場合は操作前後のレコードを返します。
+     */
+    suspend fun resetTitleOf(channel: BaseVoiceChannelBehavior, creator: UserBehavior): Pair<VCTitleRow?, VCTitleRow>? =
+        suspendTransaction transaction@{
+            val entity = getTitleEntityOf(channel)
+            val oldRow = entity?.getRow()
 
-        return if (data?.title != null) {
-            val newData = data.copy(
-                title = null,
-                userId = user.id
-            )
+            if (entity == null || oldRow?.title == null) {
+                return@transaction null
+            }
 
-            TitleStore.replace(data, newData)
+            channel.rename(oldRow.originalTitle)
 
-            CoroutineScope(Dispatchers.Default).launch {
-                when (this@resetTitle) {
-                    is VoiceChannel -> edit { name = newData.original }
-                    is StageChannel -> edit { name = newData.original }
+            committingTransaction {
+                entity.title = null
+                entity.creatorDid = creator.id
+                entity.version += 1
+            }
+
+            val newRow = entity.getRow()
+
+            logger.info { "Title Reset: $oldRow -> $newRow" }
+
+            return@transaction oldRow to newRow
+
+        }
+
+    /**
+     * 現在のボイスチャットのチャンネル名を、元のタイトルとして保存します。
+     *
+     * @param channel 対象のボイスチャンネル
+     * @param creator 操作の実行者
+     * @return レコードが存在しない場合は null, 保存が行われた場合は操作前後のレコードを返します。
+     */
+    suspend fun saveTitleOf(channel: BaseVoiceChannelBehavior, creator: UserBehavior): Pair<VCTitleRow, VCTitleRow>? =
+        suspendTransaction transaction@{
+            val entity = getTitleEntityOf(channel) ?: return@transaction null
+            val oldRow = entity.getRow()
+
+            commitingSuspendTransaction {
+                entity.originalTitle = channel.getName()
+                entity.title = null
+                entity.creatorDid = creator.id
+                entity.version += 1
+            }
+
+            val newRow = entity.getRow()
+
+            logger.info { "Title Saved: $oldRow -> $newRow" }
+
+            return@transaction oldRow to newRow
+        }
+
+    suspend fun saveAllTitlesOf(guild: GuildBehavior, creator: UserBehavior): Map<VCTitleRow, VCTitleRow> =
+        suspendTransaction transaction@{
+            val entities = Entity.find { Table.guildDid eq guild.id }.toList()
+            val oldRows = entities.map { it.getRow() }
+
+            commitingSuspendTransaction {
+                for (entity in entities) {
+                    val channel = guild.getChannel(entity.channelDid)
+
+                    entity.originalTitle = channel.name
+                    entity.title = null
+                    entity.creatorDid = creator.id
+                    entity.version += 1
                 }
             }
 
-            data to newData
-        } else null to null
-    }
+            val newRows = entities.map { it.getRow() }
 
-    suspend fun BaseVoiceChannelBehavior.saveTitle(user: UserBehavior): Pair<TitleData?, TitleData?> {
-        val data = getTitleData()
-
-        return if (data != null) {
-            val newData = data.copy(
-                original = name(),
-                title = null,
-                userId = user.id
-            )
-
-            TitleStore.replace(data, newData)
-
-            CoroutineScope(Dispatchers.Default).launch {
-                when (this@saveTitle) {
-                    is VoiceChannel -> edit { name = newData.original }
-                    is StageChannel -> edit { name = newData.original }
-                }
-            }
-
-            data to newData
-        } else null to null
-    }
-
-    suspend fun GuildBehavior.saveTitleAll(user: UserBehavior): Map<TitleData, TitleData> {
-        val guildTitles = TitleStore.filterGuild(id)
-
-        return guildTitles.associateWith { data ->
-            val newData = data.copy(
-                original = getChannel(data.channelId).name,
-                title = null,
-                userId = user.id
-            )
-
-            TitleStore.replace(data, newData)
-
-            CoroutineScope(Dispatchers.Default).launch {
-                when (val channel = getChannel(data.channelId)) {
-                    is VoiceChannel -> channel.edit { name = newData.original }
-                    is StageChannel -> channel.edit { name = newData.original }
-                }
-            }
-
-            newData
+            return@transaction oldRows.zip(newRows).toMap()
         }
-    }
-
-    fun BaseVoiceChannelBehavior.getTitleData() = TitleStore.find(id)
 }

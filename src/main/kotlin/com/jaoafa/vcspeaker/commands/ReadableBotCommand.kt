@@ -12,7 +12,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.jaoafa.vcspeaker.tools.discord.isGuildRegistered
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.commands.converters.impl.user
 import dev.kordex.core.extensions.Extension
@@ -44,7 +44,7 @@ class ReadableBotCommand : Extension() {
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("readablebot", "読み上げを許可するBotを設定します。") {
-            check { isGuildRegistered() }
+            check { anyGuildRegistered() }
             publicSubCommand("add", "読み上げを許可するBotを追加します。", ::AddOptions) {
                 action {
                     val guild = guild ?: return@action
