@@ -3,14 +3,14 @@ package com.jaoafa.vcspeaker.database.tables
 import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import com.jaoafa.vcspeaker.stores.AliasType
-import dev.kord.common.entity.Snowflake
-import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
 
-object AliasTable : IntIdTable("alias"), DiffUpsertableTable<AliasRow>, VersionedTable {
+object AliasTable : IntIdTable("alias"), VersionedTable {
     val guildDid = reference(
         "guild_did", GuildTable,
         fkName = "fk_alias_guild",
@@ -21,12 +21,6 @@ object AliasTable : IntIdTable("alias"), DiffUpsertableTable<AliasRow>, Versione
     val search = varchar("search", 255)
     val replace = varchar("replace", 255)
     override val version = version()
-
-    override val uniqueColumns = listOf(guildDid, search)
-    override fun getConflictOp(values: Map<Column<*>, Any?>): Op<Boolean> {
-        @Suppress("UNCHECKED_CAST")
-        return (guildDid eq values[guildDid] as EntityID<Snowflake>) and (search eq values[search] as String)
-    }
 
     init {
         uniqueIndex(guildDid, search)

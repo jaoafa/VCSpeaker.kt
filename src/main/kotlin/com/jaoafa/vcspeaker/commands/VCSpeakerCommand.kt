@@ -1,8 +1,9 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.committingTransaction
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionLevelOption
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionOption
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.PitchOption
@@ -141,7 +142,7 @@ class VCSpeakerCommand : Extension() {
 
                     var modified = false
 
-                    committingTransaction {
+                    transactionResulting(commit = true) {
                         // modifies GuildEntity
                         guildEntity.run {
                             // if the argument exists (non-null), update it
@@ -151,7 +152,7 @@ class VCSpeakerCommand : Extension() {
                         }
 
                         modified = modified || guildEntity.speakerVoiceEntity.modifyByOptions(arguments)
-                    }
+                    }.unwrap()
 
                     val (guildRow, voiceRow) = transaction {
                         guildEntity.getRow() to guildEntity.speakerVoiceEntity.getRow()

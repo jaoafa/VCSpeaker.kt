@@ -1,11 +1,11 @@
 package com.jaoafa.vcspeaker.api
 
 import com.jaoafa.vcspeaker.api.types.UpdateError
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.createApplicationPlugin
-import io.ktor.server.request.uri
-import io.ktor.server.response.respond
-import io.ktor.util.AttributeKey
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.util.*
 
 class ServerTypePluginConfig {
     var type: ServerType = ServerType.Unknown

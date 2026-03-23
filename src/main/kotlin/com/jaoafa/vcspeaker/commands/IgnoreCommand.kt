@@ -1,7 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntityOrNull
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntity
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
+import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Ignore
 import com.jaoafa.vcspeaker.stores.IgnoreType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
@@ -19,9 +22,7 @@ import dev.kordex.core.commands.converters.impl.int
 import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.h2.api.ErrorCode.DUPLICATE_KEY_1
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import com.jaoafa.vcspeaker.database.tables.IgnoreEntity as Entity
 import com.jaoafa.vcspeaker.database.tables.IgnoreTable as Table
@@ -64,39 +65,29 @@ class IgnoreCommand : Extension() {
                     val type = IgnoreType.valueOf(arguments.type)
                     val search = arguments.search
 
-                    val row = try {
-                        val entity = transaction {
-                            val guildEntity = guild.getEntityOrNull()
-                                ?: throw IllegalStateException("GuildEntity not found for guild ${guild.id}")
-                            Entity.new {
-                                this.guildEntity = guildEntity
-                                creatorDid = user.id
-                                this.type = type
-                                this.search = search
-                            }
+                    val entity = transactionResulting {
+                        Entity.new {
+                            this.guildEntity = guild.getEntity()
+                            creatorDid = user.id
+                            this.type = type
+                            this.search = search
                         }
-                        transaction {
-                            entity.getRow()
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":x: Duplicated Ignore",
+                            "「$search」を無視するルールはすでに存在します。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
                         }
-                    } catch (e: ExposedSQLException) {
-                        when (e.sqlState.toInt()) {
-                            DUPLICATE_KEY_1 -> {
-                                respondEmbed(
-                                    ":x: Duplicated Ignore",
-                                    "「$search」を無視するルールはすでに存在します。"
-                                ) {
-                                    authorOf(user)
-                                    errorColor()
-                                }
-                                log(logger) { guild, user ->
-                                    "[${guild.name}] Duplicated Ignore: @${user.username} attempted to create ignore with $arguments but failed due to duplication."
-                                }
-                            }
-
-                            else -> throw e
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Duplicated Ignore: @${user.username} attempted to create ignore with $arguments but failed due to duplication."
                         }
-
                         return@action
+                    }.unwrap()
+
+                    val row = transaction {
+                        entity.getRow()
                     }
 
                     val typeText = if (row.type == IgnoreType.Contains) "を含む" else "と一致する"

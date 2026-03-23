@@ -7,7 +7,10 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.*
+import com.github.ajalt.clikt.parameters.types.boolean
+import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.long
+import com.github.ajalt.clikt.parameters.types.path
 import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec

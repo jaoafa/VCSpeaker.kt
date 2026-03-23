@@ -1,9 +1,10 @@
 package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntity
-import com.jaoafa.vcspeaker.database.commitingSuspendTransaction
-import com.jaoafa.vcspeaker.database.committingTransaction
+import com.jaoafa.vcspeaker.database.suspendTransactionResulting
 import com.jaoafa.vcspeaker.database.tables.VCTitleRow
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.rename
 import dev.kord.core.behavior.GuildBehavior
@@ -35,7 +36,7 @@ object Title {
 
         channel.rename(title)
 
-        val newEntity = committingTransaction {
+        val newEntity = transactionResulting(commit = true) {
             if (entity != null) {
                 entity.title = title
                 entity.creatorDid = creator.id
@@ -50,7 +51,7 @@ object Title {
                     this.originalTitle = originalName
                 }
             }
-        }
+        }.unwrap()
 
         val newRow = newEntity.getRow()
 
@@ -77,11 +78,11 @@ object Title {
 
             channel.rename(oldRow.originalTitle)
 
-            committingTransaction {
+            transactionResulting(commit = true) {
                 entity.title = null
                 entity.creatorDid = creator.id
                 entity.version += 1
-            }
+            }.unwrap()
 
             val newRow = entity.getRow()
 
@@ -103,12 +104,12 @@ object Title {
             val entity = getTitleEntityOf(channel) ?: return@transaction null
             val oldRow = entity.getRow()
 
-            commitingSuspendTransaction {
+            suspendTransactionResulting(commit = true) {
                 entity.originalTitle = channel.getName()
                 entity.title = null
                 entity.creatorDid = creator.id
                 entity.version += 1
-            }
+            }.unwrap()
 
             val newRow = entity.getRow()
 
@@ -122,7 +123,7 @@ object Title {
             val entities = Entity.find { Table.guildDid eq guild.id }.toList()
             val oldRows = entities.map { it.getRow() }
 
-            commitingSuspendTransaction {
+            suspendTransactionResulting(commit = true) {
                 for (entity in entities) {
                     val channel = guild.getChannel(entity.channelDid)
 
@@ -131,7 +132,7 @@ object Title {
                     entity.creatorDid = creator.id
                     entity.version += 1
                 }
-            }
+            }.unwrap()
 
             val newRows = entities.map { it.getRow() }
 

@@ -2,8 +2,9 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntity
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.tables.ReadableBotEntity as Entity
-import com.jaoafa.vcspeaker.database.tables.ReadableBotTable as Table
+import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -17,11 +18,11 @@ import dev.kordex.core.annotations.AlwaysPublicResponse
 import dev.kordex.core.commands.converters.impl.user
 import dev.kordex.core.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.h2.api.ErrorCode.DUPLICATE_KEY_1
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import com.jaoafa.vcspeaker.database.tables.ReadableBotEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.ReadableBotTable as Table
 
 class ReadableBotCommand : Extension() {
     override val name = this::class.simpleName!!
@@ -50,31 +51,23 @@ class ReadableBotCommand : Extension() {
                     val guild = guild ?: return@action
                     val targetUser = arguments.user
 
-                    try {
-                        transaction {
-                            Entity.new {
-                                this.guildEntity = guild.getEntity()
-                                this.botDid = targetUser.id
-                                this.creatorDid = user.id
-                            }
+                    transactionResulting(commit = true) {
+                        Entity.new {
+                            this.guildEntity = guild.getEntity()
+                            this.botDid = targetUser.id
+                            this.creatorDid = user.id
                         }
-                    } catch (e: ExposedSQLException) {
-                        when (e.sqlState.toInt()) {
-                            DUPLICATE_KEY_1 -> {
-                                respondEmbed(
-                                    ":speaking_head: Already Added",
-                                    "${targetUser.mention} は既に読み上げを許可するBotに追加されています。"
-                                ) {
-                                    authorOf(user)
-                                    errorColor()
-                                }
-
-                                return@action
-                            }
-
-                            else -> throw e
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":speaking_head: Already Added",
+                            "${targetUser.mention} は既に読み上げを許可するBotに追加されています。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
                         }
-                    }
+
+                        return@action
+                    }.unwrap()
 
                     respondEmbed(
                         ":speaking_head: Added Readable Bot",

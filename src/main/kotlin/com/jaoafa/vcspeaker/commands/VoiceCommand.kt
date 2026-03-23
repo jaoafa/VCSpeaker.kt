@@ -1,8 +1,9 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.committingTransaction
 import com.jaoafa.vcspeaker.database.tables.UserEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionLevelOption
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionOption
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.PitchOption
@@ -52,9 +53,9 @@ class VoiceCommand : Extension() {
                         }
                     }
 
-                    val modified = committingTransaction {
+                    val modified = transactionResulting(commit = true) {
                         userEntity.voiceEntity.modifyByOptions(arguments)
-                    }
+                    }.unwrap()
 
                     val new = transaction {
                         userEntity.voiceEntity.getRow()
@@ -91,11 +92,11 @@ class VoiceCommand : Extension() {
                         return@action
                     }
 
-                    committingTransaction {
+                    transactionResulting(commit = true) {
                         val voiceEntity = userEntity.voiceEntity
                         userEntity.voiceEntity = VoiceEntity.new { }
                         voiceEntity.delete()
-                    }
+                    }.unwrap()
 
                     respondEmbed(":broom: Voice Reset", "声を初期化しました。") {
                         authorOf(user)

@@ -1,7 +1,10 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntity
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.diffUpsert
+import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
 import com.jaoafa.vcspeaker.stores.AliasType
@@ -23,11 +26,8 @@ import dev.kordex.core.commands.converters.impl.int
 import dev.kordex.core.commands.converters.impl.optionalString
 import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
-import dev.kordex.core.utils.capitalizeWords
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.h2.api.ErrorCode.DUPLICATE_KEY_1
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import com.jaoafa.vcspeaker.database.tables.AliasEntity as Entity
 import com.jaoafa.vcspeaker.database.tables.AliasTable as Table
@@ -104,39 +104,48 @@ class AliasCommand : Extension() {
 
                     if (!validateSoundboardAlias(type, replace)) return@action
 
-                    val (old, new) = transaction {
-                        Table.diffUpsert {
-                            it[guildDid] = guild.id
-                            it[creatorDid] = user.id
-                            it[this.type] = AliasType.valueOf(arguments.type)
-                            it[this.search] = search
-                            it[this.replace] = replace
+                    val entity = transactionResulting {
+                        Entity.new {
+                            this.guildEntity = guild.getEntity()
+                            this.creatorDid = user.id
+                            this.type = AliasType.valueOf(arguments.type)
+                            this.search = search
+                            this.replace = replace
                         }
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":x: Duplicated Alias",
+                            "「$search」を置き換えるエイリアスはすでに存在します。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Duplicated Alias: @${user.username} attempted to create alias with $arguments but failed due to duplication."
+                        }
+                        return@action
+                    }.unwrap()
+
+                    val row = transaction {
+                        entity.getRow()
                     }
-                    val isUpdate = old != null && old != new
-                    val oldReplace = old?.replace
-                    val newReplace = new.replace
 
                     respondEmbed(
-                        ":loudspeaker: Alias ${if (isUpdate) "Updated" else "Created"}",
-                        "${type.displayName}のエイリアスを${if (isUpdate) "更新" else "作成"}しました"
+                        ":loudspeaker: Alias Created",
+                        "${row.type.displayName}のエイリアスを作成しました"
                     ) {
                         authorOf(user)
-
-                        fieldAliasFrom(type, search)
+                        fieldAliasFrom(row.type, row.search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            if (isUpdate) "$oldReplace → **$newReplace**" else newReplace
+                            row.replace
                         }
 
                         successColor()
                     }
 
-                    val verb = if (isUpdate) "updated" else "created"
-
                     log(logger) { guild, user ->
-                        "[${guild.name}] Alias ${verb.capitalizeWords()}: @${user.username} $verb alias: $new" +
-                                if (isUpdate) " (updated from \"$old\")" else ""
+                        "[${guild.name}] Alias Created: @${user.username} created alias $row"
                     }
                 }
             }
@@ -145,12 +154,7 @@ class AliasCommand : Extension() {
                 action {
                     val aliasEntity = transaction {
                         Entity.findById(arguments.aliasId)
-                    }
-                    val oldRow = transaction {
-                        aliasEntity?.getRow()
-                    }
-
-                    if (aliasEntity == null || oldRow == null) {
+                    } ?: run {
                         respondEmbed(
                             ":question: Alias Not Found",
                             "エイリアスが見つかりませんでした。"
@@ -166,6 +170,10 @@ class AliasCommand : Extension() {
                         return@action
                     }
 
+                    val oldRow = transaction {
+                        aliasEntity.getRow()
+                    }
+
                     val updatedType =
                         arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: oldRow.type
                     val updatedSearch = arguments.search ?: oldRow.search
@@ -173,34 +181,24 @@ class AliasCommand : Extension() {
 
                     if (!validateSoundboardAlias(updatedType, updatedReplace)) return@action
 
-                    try {
-                        transaction {
-                            aliasEntity.type = updatedType
-                            aliasEntity.search = updatedSearch
-                            aliasEntity.replace = updatedReplace
-                            aliasEntity.version += 1
+                    transactionResulting(commit = true) {
+                        aliasEntity.type = updatedType
+                        aliasEntity.search = updatedSearch
+                        aliasEntity.replace = updatedReplace
+                        aliasEntity.version += 1
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":x: Duplicated Alias",
+                            "「$updatedSearch」を置き換えるエイリアスはすでに存在します。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
                         }
-                    } catch (e: ExposedSQLException) {
-                        when (e.sqlState.toInt()) {
-                            DUPLICATE_KEY_1 -> {
-                                respondEmbed(
-                                    ":x: Duplicated Alias",
-                                    "「$updatedSearch」を置き換えるエイリアスはすでに存在します。"
-                                ) {
-                                    authorOf(user)
-                                    errorColor()
-                                }
-                                log(logger) { guild, user ->
-                                    "[${guild.name}] Duplicated Alias: @${user.username} attempted to update $oldRow with $arguments but failed due to duplication."
-                                }
-                            }
-
-                            else -> throw e
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Duplicated Alias: @${user.username} attempted to update $oldRow with $arguments but failed due to duplication."
                         }
-
                         return@action
-                    }
-
+                    }.unwrap()
 
                     val newRow = transaction {
                         aliasEntity.getRow()

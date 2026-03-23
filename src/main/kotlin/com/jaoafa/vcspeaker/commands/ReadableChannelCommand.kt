@@ -2,6 +2,9 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntity
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
+import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -29,10 +32,8 @@ import dev.kordex.core.commands.converters.impl.channel
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.utils.permissionsForMember
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.h2.api.ErrorCode.DUPLICATE_KEY_1
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import com.jaoafa.vcspeaker.database.tables.ReadableChannelEntity as Entity
 import com.jaoafa.vcspeaker.database.tables.ReadableChannelTable as Table
@@ -97,31 +98,23 @@ class ReadableChannelCommand : Extension() {
                         return@action
                     }
 
-                    try {
-                        transaction {
-                            Entity.new {
-                                this.guildEntity = guild.getEntity()
-                                this.channelDid = targetChannel.id
-                                this.creatorDid = user.id
-                            }
+                    transactionResulting(commit = true) {
+                        Entity.new {
+                            this.guildEntity = guild.getEntity()
+                            this.channelDid = targetChannel.id
+                            this.creatorDid = user.id
                         }
-                    } catch (e: ExposedSQLException) {
-                        when (e.sqlState.toInt()) {
-                            DUPLICATE_KEY_1 -> {
-                                respondEmbed(
-                                    ":speaking_head: Already Added",
-                                    "${targetTextChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルに既に追加されています。"
-                                ) {
-                                    authorOf(user)
-                                    errorColor()
-                                }
-
-                                return@action
-                            }
-
-                            else -> throw e
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":speaking_head: Already Added",
+                            "${targetTextChannel.mention} はメッセージ内容の読み上げを許可するテキストチャンネルに既に追加されています。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
                         }
-                    }
+
+                        return@action
+                    }.unwrap()
 
                     respondEmbed(
                         ":speaking_head: Added Readable Channel",

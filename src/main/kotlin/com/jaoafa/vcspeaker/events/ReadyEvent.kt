@@ -1,7 +1,6 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.reload.Reload
 import com.jaoafa.vcspeaker.reload.state.StateManager

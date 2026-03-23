@@ -1,8 +1,6 @@
 package com.jaoafa.vcspeaker.reload.state
 
-import com.jaoafa.vcspeaker.KordStarter.launch
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.tts.narrators.NarratorManager
 import io.github.oshai.kotlinlogging.KotlinLogging

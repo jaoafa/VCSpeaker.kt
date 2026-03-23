@@ -1,11 +1,7 @@
 package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.database.SnowflakeTransformer
-import com.jaoafa.vcspeaker.database.TypedEntity
-import com.jaoafa.vcspeaker.database.TypedRow
-import com.jaoafa.vcspeaker.database.VersionedTable
-import com.jaoafa.vcspeaker.database.toTyped
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
