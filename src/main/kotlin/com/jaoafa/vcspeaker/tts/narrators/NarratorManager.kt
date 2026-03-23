@@ -12,6 +12,8 @@ import dev.kord.core.entity.channel.VoiceChannel
 import dev.schlaubi.lavakord.kord.connectAudio
 import dev.schlaubi.lavakord.kord.getLink
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 object NarratorManager {
     private val logger = KotlinLogging.logger { }
@@ -45,7 +47,25 @@ object NarratorManager {
             val channel = guild.getChannelOfOrNull<VoiceChannel>(channelId)
                 ?: throw IllegalStateException("Error while connecting; Channel not found: $channelId")
 
-            val link = VCSpeaker.lavalink.getLink(guild.id)
+            val link = try {
+                VCSpeaker.lavalink.getLink(guild.id)
+            } catch (e: IllegalStateException) {
+                logger.warn(e) { "No Nodes Found. Retrying..." }
+
+                try {
+                    withTimeout(1000) {
+                        VCSpeaker.addLinkNode()
+                        while (VCSpeaker.lavalink.nodes.count { it.available } == 0) {
+                            logger.debug { "Waiting for nodes to be available..." }
+                        }
+                    }
+                } catch (e: TimeoutCancellationException) {
+                    logger.warn(e) { "Timed out while adding node." }
+                }
+
+                VCSpeaker.lavalink.getLink(guild.id)
+            }
+
             link.connectAudio(channel.id)
 
             val narrator = Narrator(
