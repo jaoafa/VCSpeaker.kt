@@ -66,8 +66,13 @@ object KordStarter {
 
         this.instance = instance
 
-        VCSpeaker.lavalink = instance.kordRef.lavakord()
-        VCSpeaker.addLinkNode()
+        try {
+            VCSpeaker.lavalink = instance.kordRef.lavakord()
+            VCSpeaker.addLinkNode()
+        } catch (e: Exception) {
+            logger.error(e) { "Exception while trying to lavakord instance" }
+            throw e
+        }
 
         if (launch) {
             logger.info { "Starting Kord instance..." }

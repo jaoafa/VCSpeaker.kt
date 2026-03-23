@@ -13,6 +13,7 @@ import dev.schlaubi.lavakord.kord.connectAudio
 import dev.schlaubi.lavakord.kord.getLink
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 
 object NarratorManager {
@@ -55,8 +56,9 @@ object NarratorManager {
                 try {
                     withTimeout(1000) {
                         VCSpeaker.addLinkNode()
-                        while (VCSpeaker.lavalink.nodes.count { it.available } == 0) {
+                        while (VCSpeaker.lavalink.nodes.none { it.available }) {
                             logger.debug { "Waiting for nodes to be available..." }
+                            delay(50)
                         }
                     }
                 } catch (e: TimeoutCancellationException) {
