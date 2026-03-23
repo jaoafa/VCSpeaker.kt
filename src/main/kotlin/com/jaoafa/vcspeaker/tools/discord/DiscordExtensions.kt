@@ -1,9 +1,9 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.GuildRow
+import com.jaoafa.vcspeaker.database.tables.VoiceRow
 import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.database.tables.GuildEntity
-import com.jaoafa.vcspeaker.database.tables.GuildTable
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 typealias EmbedBuilderLambdaSuspend = suspend EmbedBuilder.() -> Unit
 typealias EmbedBuilderLambda = EmbedBuilder.() -> Unit
@@ -71,56 +70,55 @@ object DiscordExtensions {
      */
     suspend fun EmbedBuilder.authorOf(user: UserBehavior) = authorOf(user.asUser())
 
-    suspend fun EmbedBuilder.guildParameterOf(entity: GuildEntity) {
-        val values = transaction { entity.readValues }
-        field {
-            name = ":hash: 読み上げチャンネル"
-            value = values[GuildTable.channelDid]?.asChannelOf<TextChannel>()?.mention ?: "未設定"
-            inline = true
-        }
-        field {
-            name = ":symbols: プレフィックス"
-            value = values[GuildTable.prefix]?.let { "`$it`" } ?: "未設定"
-            inline = true
-        }
-
-        val voice = transaction { entity.speakerVoiceEntity }
+    fun EmbedBuilder.voiceParameterFieldsOf(row: VoiceRow) {
+        val emotionEmoji = row.emotion?.emoji ?: ":neutral_face:"
 
         field {
             name = ":grinning: 話者"
-            value = voice.speaker.speakerName
+            value = row.speaker.speakerName
             inline = true
         }
-
-        val emotion = voice.emotion
         field {
-            name = "${emotion?.emoji ?: ":neutral_face:"} 感情"
-            value = emotion?.emotionName ?: "未設定"
+            name = "$emotionEmoji 感情"
+            value = row.emotion?.emotionName ?: "未設定"
             inline = true
         }
         field {
             name = ":signal_strength: 感情レベル"
-            value = voice.emotionLevel?.let { "`Level $it`" } ?: "未設定"
+            value = row.emotionLevel?.let { "`Level $it`" } ?: "未設定"
             inline = true
         }
         field {
             name = ":arrow_up_down: ピッチ"
-            value = voice.pitch.let { "`$it%`" }
+            value = row.pitch.let { "`$it%`" }
             inline = true
         }
         field {
             name = ":fast_forward: 速度"
-            value = voice.speed.let { "`$it%`" }
+            value = row.speed.let { "`$it%`" }
             inline = true
         }
         field {
             name = ":loud_sound: 音量"
-            value = voice.volume.let { "`$it%`" }
+            value = row.volume.let { "`$it%`" }
+            inline = true
+        }
+    }
+
+    suspend fun EmbedBuilder.guildParameterFieldsOf(row: GuildRow) {
+        field {
+            name = ":hash: 読み上げチャンネル"
+            value = row.channelDid?.asChannelOf<TextChannel>()?.mention ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":symbols: プレフィックス"
+            value = row.prefix?.let { "`$it`" } ?: "未設定"
             inline = true
         }
         field {
             name = ":inbox_tray: 自動入退室"
-            value = if (values[GuildTable.autoJoin]) "有効" else "無効"
+            value = if (row.autoJoin) "有効" else "無効"
             inline = true
         }
     }

@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.database.committingTransaction
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionLevelOption
@@ -11,19 +12,19 @@ import com.jaoafa.vcspeaker.features.Voice.CommandOptions.VolumeOption
 import com.jaoafa.vcspeaker.stores.*
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.guildParameterOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.guildParameterFieldsOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.infoColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.voiceParameterFieldsOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.warningColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.ChannelType
 import dev.kord.rest.builder.message.embed
@@ -71,9 +72,8 @@ class VCSpeakerCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("vcspeaker", "VCSpeaker を操作します。") {
-            check { anyGuild() }
-
             publicSubCommand("restart", "VCSpeaker を再起動します。") {
+                check { anyGuild() }
                 action {
                     respond("**:firecracker: 再起動します。**")
                     event.kord.shutdown()
@@ -82,11 +82,16 @@ class VCSpeakerCommand : Extension() {
             }
 
             publicSubCommand("register", "このサーバに VCSpeaker を登録します。") {
+                check { anyGuild() }
                 action {
                     val guildId = guild?.id ?: return@action
 
                     val registered = transaction {
-                        GuildEntity.findById(guildId)
+                        val entity = GuildEntity.findById(guildId) ?: return@transaction null
+                        val guildRow = entity.getRow()
+                        val voiceRow = entity.speakerVoiceEntity.getRow()
+
+                        return@transaction guildRow to voiceRow
                     }
 
                     if (registered != null) {
@@ -95,22 +100,22 @@ class VCSpeakerCommand : Extension() {
                             "このサーバーはすでに登録されています。"
                         ) {
                             authorOf(user)
-                            guildParameterOf(registered)
+                            guildParameterFieldsOf(registered.first)
+                            voiceParameterFieldsOf(registered.second)
                             errorColor()
                         }
 
                         return@action
                     }
 
-                    val guildEntity = transaction {
-                        val voice = VoiceEntity.new {
-                            speaker = Speaker.Haruka
-                            emotion = null
-                            emotionLevel = null
-                        }
-                        GuildEntity.new(id = guildId) {
+                    val (guildRow, voiceRow) = transaction {
+                        val voice = VoiceEntity.new {}
+                        val guildRow = GuildEntity.new(id = guildId) {
                             speakerVoiceEntity = voice
-                        }
+                        }.getRow()
+                        val voiceRow = voice.getRow()
+
+                        return@transaction guildRow to voiceRow
                     }
 
                     respondEmbed(
@@ -118,34 +123,25 @@ class VCSpeakerCommand : Extension() {
                         "登録が完了しました！"
                     ) {
                         authorOf(user)
-                        guildParameterOf(guildEntity)
+                        guildParameterFieldsOf(guildRow)
+                        voiceParameterFieldsOf(voiceRow)
                         successColor()
                     }
                 }
             }
 
             publicSubCommand("settings", "VCSpeaker を設定します。", ::SettingsOptions) {
+                check { anyGuildRegistered() }
                 action {
                     val guildId = guild?.id ?: return@action
 
                     val guildEntity = transaction {
                         GuildEntity.findById(guildId)
-                    }
-
-                    if (guildEntity == null) {
-                        respondEmbed(
-                            ":x: Not Registered",
-                            "このサーバーは登録されていません。先に `/vcspeaker register` コマンドを実行してください。"
-                        ) {
-                            authorOf(user)
-                            errorColor()
-                        }
-                        return@action
-                    }
+                    } ?: return@action
 
                     var modified = false
 
-                    transaction {
+                    committingTransaction {
                         // modifies GuildEntity
                         guildEntity.run {
                             // if the argument exists (non-null), update it
@@ -154,26 +150,11 @@ class VCSpeakerCommand : Extension() {
                             arguments.autoJoin?.also { autoJoin = it; modified = true }
                         }
 
-                        guildEntity.speakerVoiceEntity.run {
-                            // if emotion is set to be null, also set emotion level to null and stop modification lambda
-                            if (arguments.emotion == "none") {
-                                emotion = null
-                                emotionLevel = null
-                                modified = true
-                                return@run
-                            }
+                        modified = modified || guildEntity.speakerVoiceEntity.modifyByOptions(arguments)
+                    }
 
-                            arguments.emotion?.also { emotion = Emotion.valueOf(it); modified = true }
-
-                            arguments.emotionLevel?.takeIf { emotion != null }?.also {
-                                emotionLevel = it
-                                modified = true
-                            }
-
-                            arguments.pitch?.also { pitch = it; modified = true }
-                            arguments.speed?.also { speed = it; modified = true }
-                            arguments.volume?.also { volume = it; modified = true }
-                        }
+                    val (guildRow, voiceRow) = transaction {
+                        guildEntity.getRow() to guildEntity.speakerVoiceEntity.getRow()
                     }
 
                     respondEmbed(
@@ -181,7 +162,8 @@ class VCSpeakerCommand : Extension() {
                         else ":arrows_counterclockwise: Settings Updated"
                     ) {
                         authorOf(user)
-                        guildParameterOf(guildEntity)
+                        guildParameterFieldsOf(guildRow)
+                        voiceParameterFieldsOf(voiceRow)
                         successColor()
                     }
 
@@ -192,22 +174,12 @@ class VCSpeakerCommand : Extension() {
             }
 
             publicSubCommand("remove", "VCSpeaker の登録を削除します。") {
+                check { anyGuildRegistered() }
                 action {
                     val guildId = guild?.id ?: return@action
                     val guildEntity = transaction {
                         GuildEntity.findById(guildId)
-                    }
-
-                    if (guildEntity == null) {
-                        respondEmbed(
-                            ":x: Not Registered",
-                            "このサーバーは登録されていません。先に `/vcspeaker register` コマンドを実行してください。"
-                        ) {
-                            authorOf(user)
-                            errorColor()
-                        }
-                        return@action
-                    }
+                    } ?: return@action
 
                     val confirmUser = user
 
@@ -247,6 +219,7 @@ class VCSpeakerCommand : Extension() {
                                     }
 
                                     // 各種データを削除
+                                    // fixme
                                     AliasStore.removeForGuild(guildId)
                                     IgnoreStore.removeForGuild(guildId)
                                     ReadableBotStore.removeForGuild(guildId)
