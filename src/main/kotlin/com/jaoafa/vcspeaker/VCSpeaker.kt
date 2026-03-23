@@ -81,4 +81,8 @@ object VCSpeaker {
     }
 
     fun removeShutdownHook() = Runtime.getRuntime().removeShutdownHook(instance.shutdownHook)
+
+    fun addLinkNode() {
+        lavalink.addNode(config[EnvSpec.lavalinkUri], config[EnvSpec.lavalinkPassword])
+    }
 }
