@@ -50,10 +50,10 @@ object StateManager {
                     try {
                         logger.info { "Reconnecting to the voice channel $channelId in guild $guildId" }
                         val narrator = connector.invoke()
-                        logger.info { "Reconnection successful for ${channelId} at ${guildId}" }
+                        logger.info { "Reconnection successful for $channelId at $guildId" }
                         narrator.scheduler.start()
                     } catch (e: Exception) {
-                        logger.error(e) { "Reconnection failed for ${channelId} at ${guildId}" }
+                        logger.error(e) { "Reconnection failed for $channelId at $guildId" }
                     }
                 }
             }

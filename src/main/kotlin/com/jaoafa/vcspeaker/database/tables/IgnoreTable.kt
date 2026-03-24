@@ -48,4 +48,9 @@ class IgnoreRow(resultRow: ResultRow) : TypedRow(resultRow, IgnoreTable) {
     override fun describe() = "${type.displayName}「$search」<@$creatorDid>"
 
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
+
+    fun match(text: String) = when (type) {
+        IgnoreType.Equals -> text == search
+        IgnoreType.Contains -> text.contains(search)
+    }
 }

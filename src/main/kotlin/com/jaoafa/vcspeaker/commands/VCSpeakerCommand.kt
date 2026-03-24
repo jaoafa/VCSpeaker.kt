@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntityOrNull
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.database.transactionResulting
@@ -10,7 +11,6 @@ import com.jaoafa.vcspeaker.features.Voice.CommandOptions.PitchOption
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeakerOption
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeedOption
 import com.jaoafa.vcspeaker.features.Voice.CommandOptions.VolumeOption
-import com.jaoafa.vcspeaker.stores.*
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.guildParameterFieldsOf
@@ -85,10 +85,10 @@ class VCSpeakerCommand : Extension() {
             publicSubCommand("register", "このサーバに VCSpeaker を登録します。") {
                 check { anyGuild() }
                 action {
-                    val guildId = guild?.id ?: return@action
+                    val guild = guild ?: return@action
 
                     val registered = transaction {
-                        val entity = GuildEntity.findById(guildId) ?: return@transaction null
+                        val entity = guild.getEntityOrNull() ?: return@transaction null
                         val guildRow = entity.getRow()
                         val voiceRow = entity.speakerVoiceEntity.getRow()
 
@@ -109,12 +109,17 @@ class VCSpeakerCommand : Extension() {
                         return@action
                     }
 
+                    val (voiceEntity, guildEntity) = transactionResulting {
+                        val voiceEntity = VoiceEntity.new {}
+                        val guildEntity = GuildEntity.new(id = guild.id) {
+                            speakerVoiceEntity = voiceEntity
+                        }
+                        voiceEntity to guildEntity
+                    }.unwrap()
+
                     val (guildRow, voiceRow) = transaction {
-                        val voice = VoiceEntity.new {}
-                        val guildRow = GuildEntity.new(id = guildId) {
-                            speakerVoiceEntity = voice
-                        }.getRow()
-                        val voiceRow = voice.getRow()
+                        val guildRow = guildEntity.getRow()
+                        val voiceRow = voiceEntity.getRow()
 
                         return@transaction guildRow to voiceRow
                     }
@@ -134,11 +139,9 @@ class VCSpeakerCommand : Extension() {
             publicSubCommand("settings", "VCSpeaker を設定します。", ::SettingsOptions) {
                 check { anyGuildRegistered() }
                 action {
-                    val guildId = guild?.id ?: return@action
+                    val guild = guild ?: return@action
 
-                    val guildEntity = transaction {
-                        GuildEntity.findById(guildId)
-                    } ?: return@action
+                    val guildEntity = guild.getEntityOrNull() ?: return@action
 
                     var modified = false
 
@@ -177,10 +180,8 @@ class VCSpeakerCommand : Extension() {
             publicSubCommand("remove", "VCSpeaker の登録を削除します。") {
                 check { anyGuildRegistered() }
                 action {
-                    val guildId = guild?.id ?: return@action
-                    val guildEntity = transaction {
-                        GuildEntity.findById(guildId)
-                    } ?: return@action
+                    val guild = guild ?: return@action
+                    val guildEntity = guild.getEntityOrNull() ?: return@action
 
                     val confirmUser = user
 
@@ -219,16 +220,6 @@ class VCSpeakerCommand : Extension() {
                                         voiceEntity.delete()
                                     }
 
-                                    // 各種データを削除
-                                    // fixme
-                                    AliasStore.removeForGuild(guildId)
-                                    IgnoreStore.removeForGuild(guildId)
-                                    ReadableBotStore.removeForGuild(guildId)
-                                    ReadableChannelStore.removeForGuild(guildId)
-                                    TitleStore.removeForGuild(guildId)
-                                    // GuildStore.remove(guildData)
-
-                                    transaction { }
                                     edit {
                                         embed {
                                             title = ":wastebasket: Registration removed"

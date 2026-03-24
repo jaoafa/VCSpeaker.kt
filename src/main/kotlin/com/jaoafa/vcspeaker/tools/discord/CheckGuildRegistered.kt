@@ -1,7 +1,8 @@
 package com.jaoafa.vcspeaker.tools.discord
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntityOrNull
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntityOrNull
 import dev.kord.core.behavior.interaction.respondEphemeral
+import dev.kord.core.event.Event
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.rest.builder.message.embed
 import dev.kordex.core.checks.failed
@@ -9,31 +10,32 @@ import dev.kordex.core.checks.guildFor
 import dev.kordex.core.checks.types.CheckContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-suspend fun CheckContext<ChatInputCommandInteractionCreateEvent>.anyGuildRegistered() {
+suspend fun <T : Event> CheckContext<T>.anyGuildRegistered() {
     if (!passed) return
 
-    val logger = KotlinLogging.logger("com.jaoafa.vcspeaker.tools.discord.isGuildRegistered")
+    val logger = KotlinLogging.logger {}
 
-    val guild = guildFor(event)
-
-    if (guild == null) {
+    val guild = guildFor(event) ?: run {
         logger.failed("Not in guild.")
 
-        event.interaction.respondEphemeral {
-            embed(EmbedTemplates.NotInGuild().build())
+        if (event is ChatInputCommandInteractionCreateEvent) {
+            // Apparently smart cast is impossible as Event is declared in a different module
+            (event as ChatInputCommandInteractionCreateEvent).interaction.respondEphemeral {
+                embed(EmbedTemplates.NotInGuild().build())
+            }
         }
 
         fail()
         return
     }
 
-    val guildEntity = guild.getEntityOrNull()
-
-    if (guildEntity == null) {
+    if (guild.getEntityOrNull() == null) {
         logger.failed("Guild not registered.")
 
-        event.interaction.respondEphemeral {
-            embed(EmbedTemplates.GuildNotRegistered().build())
+        if (event is ChatInputCommandInteractionCreateEvent) {
+            (event as ChatInputCommandInteractionCreateEvent).interaction.respondEphemeral {
+                embed(EmbedTemplates.GuildNotRegistered().build())
+            }
         }
 
         fail()

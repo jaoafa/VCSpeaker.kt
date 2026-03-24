@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.features
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.suspendTransactionResulting
 import com.jaoafa.vcspeaker.database.tables.VCTitleRow
 import com.jaoafa.vcspeaker.database.transactionResulting

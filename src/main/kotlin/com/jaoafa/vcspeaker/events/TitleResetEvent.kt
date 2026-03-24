@@ -1,14 +1,14 @@
 package com.jaoafa.vcspeaker.events
 
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoiceTextChannelOrNull
 import com.jaoafa.vcspeaker.features.Title
-import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kord.core.behavior.channel.createEmbed
-import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
+import dev.kordex.core.checks.isNotBot
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -21,19 +21,20 @@ class TitleResetEvent : Extension() {
     override suspend fun setup() {
         event<VoiceStateUpdateEvent> {
             check {
-                failIf(event.state.getMember().isBot)
+                anyGuildRegistered()
+                isNotBot()
                 failIf(event.old?.getChannelOrNull() == null)
                 failIf(event.old?.getChannelOrNull()?.voiceStates?.count { !it.getMember().isBot } != 0)
             }
 
             action {
+                val guild = event.state.getGuild()
                 val member = event.state.getMember()
-                val channel = event.old?.getChannelOrNull() ?: return@action
-                val (old, new) = Title.resetTitleOf(channel, member) ?: return@action
+                val voiceChannel = event.old?.getChannelOrNull() ?: return@action
 
-                val textChannel = // fixme
-                    GuildStore[event.state.guildId]?.channelId?.asChannelOf<TextChannel>() ?: return@action
-                val voiceChannel = event.old?.getChannelOrNull()!!
+                val (old, new) = Title.resetTitleOf(voiceChannel, member) ?: return@action
+
+                val textChannel = guild.getVoiceTextChannelOrNull() ?: return@action
 
                 textChannel.createEmbed {
                     title = ":broom: Title Reset"
@@ -52,10 +53,9 @@ class TitleResetEvent : Extension() {
                     successColor()
                 }
 
-                val guildName = event.state.getGuild().name
                 val voiceName = voiceChannel.getName()
 
-                logger.info { "[$guildName] Auto Title Reset: Title of $voiceName has been reset due to empty channel" }
+                logger.info { "[${guild.name}] Auto Title Reset: Title of $voiceName has been reset due to empty channel" }
             }
         }
     }

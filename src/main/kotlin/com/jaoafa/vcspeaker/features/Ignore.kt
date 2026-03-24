@@ -2,8 +2,6 @@ package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
 import com.jaoafa.vcspeaker.database.tables.IgnoreTable
-import com.jaoafa.vcspeaker.stores.IgnoreStore
-import com.jaoafa.vcspeaker.stores.IgnoreType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.interaction.AutoCompleteInteraction
 import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
@@ -26,11 +24,14 @@ object Ignore {
             suggestIntMap(stringMap, FilterStrategy.Contains)
         }
 
-    fun String.shouldIgnoreOn(guildId: Snowflake) =
-        IgnoreStore.filter(guildId).any {
-            when (it.type) {
-                IgnoreType.Equals -> this == it.search
-                IgnoreType.Contains -> contains(it.search)
-            }
-        }
+    fun getIgnoresOf(guildId: Snowflake) = transaction {
+        IgnoreEntity
+            .find { IgnoreTable.guildDid eq guildId }
+            .sortedBy { it.search.length }
+            .map { it.getRow() }
+    }
+
+    fun getEffectiveIgnoresOf(text: String, guildId: Snowflake) = getIgnoresOf(guildId).filter { it.match(text) }
+
+    fun shouldBeIgnored(text: String, guildId: Snowflake) = getIgnoresOf(guildId).any { it.match(text) }
 }

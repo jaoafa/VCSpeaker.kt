@@ -1,7 +1,6 @@
 package com.jaoafa.vcspeaker.database
 
 import com.jaoafa.vcspeaker.database.tables.*
-import dev.kord.core.behavior.GuildBehavior
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -40,20 +39,6 @@ object DatabaseUtil {
             }
         }
     }
-
-    /**
-     * GUILD テーブルに登録されている Guild のレコードを取得します。登録されていない場合は null を返します。
-     */
-    fun GuildBehavior.getEntityOrNull() = transaction {
-        GuildEntity.findById(this@getEntityOrNull.id)
-    }
-
-    /**
-     * GUILD テーブルに登録されている Guild のレコードを取得します。登録されていない場合は [IllegalStateException] をスローします。
-     * check { anyGuildRegistered() } でチェックされた後に使用されることを想定しています。
-     */
-    fun GuildBehavior.getEntity() =
-        getEntityOrNull() ?: throw IllegalStateException("Guild ${id.value} is not registered.")
 
     fun Table.version() = integer("version").default(0)
 

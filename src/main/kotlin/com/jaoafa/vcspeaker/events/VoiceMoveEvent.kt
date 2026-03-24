@@ -1,12 +1,13 @@
 package com.jaoafa.vcspeaker.events
 
-import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.autoJoinEnabled
+import com.jaoafa.vcspeaker.database.actions.GuildAction.isAutoJoinEnabled
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.leave
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
+import com.jaoafa.vcspeaker.tools.discord.isNotSelf
+import com.jaoafa.vcspeaker.tools.discord.isVoiceTextChannelSet
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
 import dev.kord.core.event.user.VoiceStateUpdateEvent
@@ -24,12 +25,9 @@ class VoiceMoveEvent : Extension() {
             // target channel is set
             // user moved from one to another voice channel
             check {
-                // Bot自身の場合は無視
-                failIf(event.state.getMember().id == VCSpeaker.kord.selfId)
-
-                // サーバー設定が存在しない場合は無視
-                val settings = GuildStore.getOrDefault(event.state.guildId)
-                failIf(settings.channelId == null)
+                isNotSelf()
+                anyGuildRegistered()
+                isVoiceTextChannelSet()
 
                 // ボイスチャンネル移動時のみ
                 val channelJoined = event.state.getChannelOrNull()
@@ -51,17 +49,17 @@ class VoiceMoveEvent : Extension() {
                 val selfChannelCount = selfChannel?.voiceStates?.count { !it.getMember().isBot }
                 val selfConnected = selfChannel != null
 
-                val autoJoin = guild.autoJoinEnabled()
+                val autoJoin = guild.isAutoJoinEnabled()
 
                 // afk channel related
                 if (channelJoined.isAfk()) { // ? -> afk
-                    // if current channel is empty, leave the channel
+                    // if the current channel is empty, leave the channel
                     if (autoJoin && selfChannelCount == 0) selfChannel.leave()
 
                     guild.announce(
                         voice = NarrationScripts.userAfk(member),
                         text = ":zzz: `@${member.username}` が AFK になりました。",
-                        isOnlyMessage = isOnlyMessage
+                        isMessageOnly = isOnlyMessage
                     )
 
                     return@action
@@ -73,7 +71,7 @@ class VoiceMoveEvent : Extension() {
                         voice = if (channelJoined == selfChannel) NarrationScripts.userAfkReturned(member)
                         else NarrationScripts.userAfkReturnedOtherChannel(member, channelJoined),
                         text = ":arrow_right: `@${member.username}` が AFK から ${channelJoined.mention} へ戻りました。",
-                        isOnlyMessage = isOnlyMessage
+                        isMessageOnly = isOnlyMessage
                     )
 
                     return@action
@@ -81,7 +79,7 @@ class VoiceMoveEvent : Extension() {
 
                 // normal channel related
                 if (autoJoin) {
-                    // if current channel is empty, move to the channel
+                    // if the current channel is empty, move to the channel
                     if (selfChannelCount == 0) channelJoined.move()
                     // if VCSpeaker not connected to any channel, join the channel
                     else if (!selfConnected) channelJoined.join()
@@ -91,7 +89,7 @@ class VoiceMoveEvent : Extension() {
                     voice = if (channelJoined == selfChannel) NarrationScripts.userJoined(member)
                     else NarrationScripts.userJoinedOtherChannel(member, channelJoined),
                     text = ":arrow_right: `@${member.username}` が ${channelLeft.mention} から ${channelJoined.mention} へ移動しました。",
-                    isOnlyMessage = isOnlyMessage
+                    isMessageOnly = isOnlyMessage
                 )
             }
         }

@@ -1,13 +1,18 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.AliasData
-import com.jaoafa.vcspeaker.stores.AliasStore
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
+import com.jaoafa.vcspeaker.database.tables.AliasEntity
+import com.jaoafa.vcspeaker.database.tables.AliasRow
+import com.jaoafa.vcspeaker.database.tables.AliasTable
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 /**
  * テキストを置換する基底クラス
@@ -21,9 +26,11 @@ interface BaseReplacer {
         tokens: MutableList<TextToken>,
         guildId: Snowflake,
         type: AliasType,
-        transform: (AliasData, MutableList<TextToken>) -> MutableList<TextToken>
+        transform: (AliasRow, MutableList<TextToken>) -> MutableList<TextToken>
     ): MutableList<TextToken> {
-        val aliases = AliasStore.filter(guildId).filter { it.type == type }
+        val aliases = transaction {
+            AliasEntity.find { AliasTable.guildDid eq guildId and (AliasTable.type eq type) }.getRows()
+        }
 
         val replacedText = aliases.fold(tokens) { replacedTokens, alias ->
             transform(alias, replacedTokens)

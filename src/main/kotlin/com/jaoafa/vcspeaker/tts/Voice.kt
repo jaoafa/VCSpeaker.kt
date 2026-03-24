@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.tts
 
+import com.jaoafa.vcspeaker.database.tables.VoiceRow
 import com.jaoafa.vcspeaker.features.EMOTION_LEVEL_DEFAULT
 import com.jaoafa.vcspeaker.features.PITCH_DEFAULT
 import com.jaoafa.vcspeaker.features.SPEED_DEFAULT
@@ -24,6 +25,16 @@ data class Voice(
     val speed: Int = SPEED_DEFAULT,
     val volume: Int = VOLUME_DEFAULT
 ) {
+    companion object {
+        fun from(row: VoiceRow) = Voice(
+            speaker = row.speaker,
+            emotionData = row.emotion?.let { EmotionData(it, row.emotionLevel) },
+            pitch = row.pitch,
+            speed = row.speed,
+            volume = row.volume
+        )
+    }
+
     val emotion: Emotion?
         get() = emotionData?.emotion
 
