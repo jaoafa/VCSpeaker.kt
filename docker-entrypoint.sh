@@ -8,7 +8,7 @@
 # 3. Current and Latest communicate via API to transfer state
 # 4. Current exits with code 0
 # 5. This script waits for Latest to finish (or keeps running)
-# 6. If Latest itself updates, the script tracks the new process (chain updates)
+# 6. Latest 自身がアップデートした場合、スクリプトは新しいプロセスを追跡し続ける（連鎖アップデート対応）
 
 # プロセスがゾンビ状態かどうかを判定する
 is_zombie_pid() {

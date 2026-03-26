@@ -203,6 +203,7 @@ object Reload {
 
     /**
      * 指定された jar archive を使用して VCSpeaker を更新します。
+     * jar は現在のワーキングディレクトリに固定ファイル名 `./update.jar` としてコピーされます（既存ファイルは上書き）。
      * 更新後は新しいプロセスが起動し、現在のプロセスは終了します。
      *
      * @param jar 更新先の jar archive
