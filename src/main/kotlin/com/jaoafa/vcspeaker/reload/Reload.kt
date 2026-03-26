@@ -216,18 +216,22 @@ object Reload {
         // Copy to a version-based filename so that different versions get different filenames,
         // avoiding overwriting a running update jar during chain updates.
         // Falls back to a timestamp if the version cannot be read from the manifest.
-        val version = jar.jarVersion() ?: System.currentTimeMillis().toString()
+        val rawVersion = jar.jarVersion() ?: System.currentTimeMillis().toString()
+        // Sanitize the version string to prevent path traversal via a malicious jar manifest
+        val version = rawVersion.replace(Regex("[^a-zA-Z0-9._-]"), "_")
         val updateJarName = "update-$version.jar"
 
-        // Delete old update-*.jar files before copying (log a warning on failure, but continue)
+        // Copy first, then clean up old update-*.jar files.
+        // Copying before deletion ensures no downtime window if the copy fails.
+        val updateJar = jar.copyTo(File("./$updateJarName"), overwrite = true)
+
+        // Delete old update-*.jar files (log a warning on failure, but continue)
         File(".").listFiles { f -> f.name.matches(Regex("update-.*\\.jar")) && f.name != updateJarName }
             ?.forEach { old ->
                 if (!old.delete()) {
                     logger.warn { "Failed to delete old update jar: ${old.absolutePath}" }
                 }
             }
-
-        val updateJar = jar.copyTo(File("./$updateJarName"), overwrite = true)
 
         val server = Server(ServerType.Current)
         VCSpeaker.apiServer?.stop()
