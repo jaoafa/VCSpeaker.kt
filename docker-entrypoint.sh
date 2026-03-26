@@ -89,9 +89,18 @@ if [[ $exit_code -eq 0 ]]; then
 
         # アップデートプロセスが終了するまで待機する
         # コンテナを生かし続けることで Docker による不要な再起動を防ぐ
-        while kill -0 "$update_pid" 2>/dev/null; do
-            sleep 1
-        done
+        # まず wait で待機し、子プロセスであれば確実に reap する
+        if ! wait "$update_pid" 2>/dev/null; then
+            # wait に失敗した場合（子プロセスでない場合など）はポーリングで監視する
+            while kill -0 "$update_pid" 2>/dev/null; do
+                # ゾンビ化した場合はループを抜ける
+                if is_zombie_pid "$update_pid"; then
+                    wait "$update_pid" 2>/dev/null || true
+                    break
+                fi
+                sleep 1
+            done
+        fi
 
         echo "Update process (PID: $update_pid) finished. Checking for chain updates..."
         chain_update=1

@@ -211,7 +211,9 @@ object Reload {
     fun updateTo(jar: File) {
         logger.info { "Updating to ${jar.name}..." }
 
-        // 固定ファイル名にコピーする。タイムスタンプ付きファイル名は蓄積の原因となるため使用しない
+        // 固定ファイル名にコピーする。タイムスタンプ付きファイル名は蓄積の原因となるため使用しない。
+        // このプロジェクトは Docker（Linux）専用であり、Linux では実行中ファイルへの上書きは
+        // アンリンク後に新しい inode を作成する挙動となるため、実行中の JVM に影響しない。
         val updateJar = jar.copyTo(File("./update.jar"), overwrite = true)
 
         val server = Server(ServerType.Current)
