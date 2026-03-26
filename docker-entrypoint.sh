@@ -59,12 +59,8 @@ if [[ $exit_code -eq 0 ]]; then
     # handles the case where update-<v1>.jar spawns update-<v2>.jar before exiting
     chain_update=0
     while true; do
-        # Wait for an update process to appear
-        # Allow up to 5 seconds on first detection (process startup time), 3 seconds for chain updates
+        # Wait up to 5 seconds for an update process to appear (accounts for JVM startup time)
         max_attempts=5
-        if [[ $chain_update -eq 1 ]]; then
-            max_attempts=3
-        fi
 
         update_pid=""
         for _ in $(seq 1 "$max_attempts"); do
