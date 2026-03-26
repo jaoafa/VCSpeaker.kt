@@ -202,28 +202,28 @@ object Reload {
     }
 
     /**
-     * 指定された jar archive を使用して VCSpeaker を更新します。
-     * jar は現在のワーキングディレクトリに `update-<version>.jar` 形式でコピーされます。
-     * バージョンが読み取れない場合はタイムスタンプをフォールバックとして使用します。
-     * コピー前に古い `update-*.jar` を削除し、ファイルの蓄積を防ぎます。
-     * 更新後は新しいプロセスが起動し、現在のプロセスは終了します。
+     * Updates VCSpeaker using the given jar archive.
+     * The jar is copied to the current working directory as `update-<version>.jar`.
+     * Falls back to a timestamp-based name if the version cannot be read from the manifest.
+     * Cleans up old `update-*.jar` files before copying to prevent accumulation.
+     * After the update, a new process is launched and the current process exits.
      *
-     * @param jar 更新先の jar archive
+     * @param jar jar archive to update to
      */
     fun updateTo(jar: File) {
         logger.info { "Updating to ${jar.name}..." }
 
-        // バージョン名を含むファイル名にコピーする。
-        // バージョンが異なれば異なるファイル名になるため、連鎖アップデート時に実行中ファイルを上書きしない。
-        // バージョンが読み取れない場合はタイムスタンプをフォールバックとして使用する。
+        // Copy to a version-based filename so that different versions get different filenames,
+        // avoiding overwriting a running update jar during chain updates.
+        // Falls back to a timestamp if the version cannot be read from the manifest.
         val version = jar.jarVersion() ?: System.currentTimeMillis().toString()
         val updateJarName = "update-$version.jar"
 
-        // 古い update-*.jar を削除する（削除失敗は警告のみで継続）
+        // Delete old update-*.jar files before copying (log a warning on failure, but continue)
         File(".").listFiles { f -> f.name.matches(Regex("update-.*\\.jar")) && f.name != updateJarName }
             ?.forEach { old ->
                 if (!old.delete()) {
-                    logger.warn { "古い update jar の削除に失敗しました: ${old.absolutePath}" }
+                    logger.warn { "Failed to delete old update jar: ${old.absolutePath}" }
                 }
             }
 

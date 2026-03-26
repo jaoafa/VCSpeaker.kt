@@ -8,13 +8,13 @@
 # 3. Current and Latest communicate via API to transfer state
 # 4. Current exits with code 0
 # 5. This script waits for Latest to finish (or keeps running)
-# 6. Latest 自身がアップデートした場合、スクリプトは新しいプロセスを追跡し続ける（連鎖アップデート対応）
+# 6. If Latest itself updates, the script tracks the new process (chain updates)
 
-# プロセスがゾンビ状態かどうかを判定する
+# Returns 0 if the given PID is a zombie process, 1 otherwise
 is_zombie_pid() {
     local pid=$1
 
-    # /proc/<pid>/stat が読めない場合はゾンビではない
+    # If /proc/<pid>/stat is not readable, the process is not a zombie
     if [[ ! -r "/proc/$pid/stat" ]]; then
         return 1
     fi
@@ -22,7 +22,7 @@ is_zombie_pid() {
     local state
     state=$(awk '{print $3}' "/proc/$pid/stat" 2>/dev/null || true)
 
-    # state が取得できなかった場合もゾンビではない
+    # If state cannot be read, treat as not a zombie
     if [[ -z "$state" ]]; then
         return 1
     fi
@@ -30,8 +30,7 @@ is_zombie_pid() {
     [[ "$state" == "Z" ]]
 }
 
-# アップデートプロセス (update-<version>.jar) の PID を取得する
-# ゾンビプロセスおよび無効なプロセスは除外する
+# Returns the PID of the update process (update-<version>.jar), excluding zombies and invalid processes
 find_update_pid() {
     local pid
     while IFS= read -r pid; do
@@ -39,7 +38,7 @@ find_update_pid() {
             continue
         fi
 
-        # ゾンビプロセスはスキップ
+        # Skip zombie processes
         if is_zombie_pid "$pid"; then
             continue
         fi
@@ -56,12 +55,12 @@ exit_code=$?
 echo "VCSpeaker exited with code: $exit_code"
 
 if [[ $exit_code -eq 0 ]]; then
-    # 連鎖アップデートを追跡するループ
-    # update.jar が次の update.jar を起動してから終了する場合にも対応する
+    # Loop to track chain updates:
+    # handles the case where update-<v1>.jar spawns update-<v2>.jar before exiting
     chain_update=0
     while true; do
-        # アップデートプロセスを検出するまで待機
-        # 初回は最大 5 秒（プロセス起動時間を考慮）、連鎖アップデート時は最大 3 秒
+        # Wait for an update process to appear
+        # Allow up to 5 seconds on first detection (process startup time), 3 seconds for chain updates
         max_attempts=5
         if [[ $chain_update -eq 1 ]]; then
             max_attempts=3
@@ -87,13 +86,13 @@ if [[ $exit_code -eq 0 ]]; then
 
         echo "Update process detected (PID: $update_pid). Waiting for it to complete..."
 
-        # アップデートプロセスが終了するまで待機する
-        # コンテナを生かし続けることで Docker による不要な再起動を防ぐ
-        # まず wait で待機し、子プロセスであれば確実に reap する
+        # Wait for the update process to finish
+        # This keeps the entrypoint alive so Docker doesn't restart the container
+        # Try wait first to properly reap child processes
         if ! wait "$update_pid" 2>/dev/null; then
-            # wait に失敗した場合（子プロセスでない場合など）はポーリングで監視する
+            # Fall back to polling if wait fails (e.g. process is not a child)
             while kill -0 "$update_pid" 2>/dev/null; do
-                # ゾンビ化した場合はループを抜ける
+                # Break out of the loop if the process has become a zombie
                 if is_zombie_pid "$update_pid"; then
                     wait "$update_pid" 2>/dev/null || true
                     break
