@@ -8,12 +8,29 @@
   "automerge": true,
   "platformAutomerge": true,
   "platformCommit": "enabled",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^build\\.gradle\\.kts$"],
+      "matchStrings": ["jvmToolchain\\((?<currentValue>\\d+)\\)"],
+      "depNameTemplate": "azul/zulu-openjdk-alpine",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^(?<major>\\d+)-latest$",
+      "extractVersionTemplate": "{{major}}"
+    }
+  ],
   "packageRules": [
     {
       "groupName": "mkdocs",
       "matchPackageNames": [
         "mkdocs",
         "/^mkdocs-/"
+      ]
+    },
+    {
+      "groupName": "Java version",
+      "matchPackageNames": [
+        "azul/zulu-openjdk-alpine"
       ]
     }
   ]

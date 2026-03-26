@@ -7,6 +7,7 @@ import com.jaoafa.vcspeaker.tools.getClassesIn
 import dev.kordex.core.ExtensibleBot
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.sentry.SentryAdapter
+import dev.schlaubi.lavakord.kord.lavakord
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import java.net.SocketException
@@ -65,7 +66,13 @@ object KordStarter {
 
         this.instance = instance
 
-        initLavaLink(instance.kordRef, config[EnvSpec.lavalinkUri], config[EnvSpec.lavalinkPassword])
+        try {
+            VCSpeaker.lavalink = instance.kordRef.lavakord()
+            VCSpeaker.addLinkNode()
+        } catch (e: Exception) {
+            logger.error(e) { "Exception while trying to lavakord instance" }
+            throw e
+        }
 
         if (launch) {
             logger.info { "Starting Kord instance..." }

@@ -1,6 +1,5 @@
 package com.jaoafa.vcspeaker.configs
 
-import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration
 import com.uchuhimo.konf.ConfigSpec
 
 object EnvSpec : ConfigSpec() {
@@ -30,10 +29,6 @@ object EnvSpec : ConfigSpec() {
      * The Sentry environment.
      */
     val sentryEnv by optional<String?>(null)
-
-    val resamplingQuality by optional<AudioConfiguration.ResamplingQuality>(AudioConfiguration.ResamplingQuality.HIGH)
-
-    val encodingQuality by optional<Int>(10)
 
     val updateRepo by optional<String>("jaoafa/VCSpeaker.kt")
 

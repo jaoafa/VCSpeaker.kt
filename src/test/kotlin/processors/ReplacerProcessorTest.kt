@@ -43,8 +43,8 @@ class ReplacerProcessorTest : FunSpec({
     }
 
     // 全てのテスト後にフォルダを削除
-    finalizeSpec {
-        VCSpeaker.storeFolder.deleteRecursively()
+    afterSpec {
+        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // テキストが変更されないことを確認
@@ -177,6 +177,60 @@ class ReplacerProcessorTest : FunSpec({
 
         val text = "Hello, <:world:123456789012345678>!"
         val expected = "Hello, world!"
+
+        val (processedText, processedVoice) = ReplacerProcessor().process(message, text, voice)
+
+        processedText shouldBe expected
+        processedVoice shouldBe voice
+    }
+
+    // サウンドボードのエイリアスがある場合、SoundboardReplacer が適用されること
+    test("If there is a soundboard alias, the SoundboardReplacer should be applied.") {
+        val message = mockk<Message>()
+        coEvery { message.getGuild() } returns mockk {
+            every { id } returns Snowflake(0)
+        }
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        AliasStore.create(
+            AliasData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = AliasType.Soundboard,
+                search = "boom",
+                replace = "https://cdn.discordapp.com/soundboard-sounds/123456789012345678.mp3"
+            )
+        )
+
+        val text = "boom!"
+        val expected = "<sound:0:123456789012345678>!"
+
+        val (processedText, processedVoice) = ReplacerProcessor().process(message, text, voice)
+
+        processedText shouldBe expected
+        processedVoice shouldBe voice
+    }
+
+    // サウンドボードのエイリアスがある場合、絵文字置換より先に適用されること
+    test("Soundboard alias should be applied before guild emoji replacement.") {
+        val message = mockk<Message>()
+        coEvery { message.getGuild() } returns mockk {
+            every { id } returns Snowflake(0)
+        }
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        AliasStore.create(
+            AliasData(
+                guildId = Snowflake(0),
+                userId = Snowflake(0),
+                type = AliasType.Soundboard,
+                search = "<:godlike_1:1><:godlike_2:2>",
+                replace = "1152787936983666768"
+            )
+        )
+
+        val text = "pre <:godlike_1:1><:godlike_2:2> post"
+        val expected = "pre <sound:0:1152787936983666768> post"
 
         val (processedText, processedVoice) = ReplacerProcessor().process(message, text, voice)
 

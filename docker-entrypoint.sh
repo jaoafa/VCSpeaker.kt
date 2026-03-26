@@ -60,10 +60,8 @@ if [[ $exit_code -eq 0 ]]; then
     chain_update=0
     while true; do
         # Wait up to 5 seconds for an update process to appear (accounts for JVM startup time)
-        max_attempts=5
-
         update_pid=""
-        for _ in $(seq 1 "$max_attempts"); do
+        for _ in $(seq 1 5); do
             update_pid=$(find_update_pid || true)
             if [[ -n "$update_pid" ]]; then
                 break
