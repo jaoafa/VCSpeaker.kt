@@ -203,7 +203,9 @@ object Reload {
 
     /**
      * 指定された jar archive を使用して VCSpeaker を更新します。
-     * jar は現在のワーキングディレクトリに固定ファイル名 `./update.jar` としてコピーされます（既存ファイルは上書き）。
+     * jar は現在のワーキングディレクトリに `update-<version>.jar` 形式でコピーされます。
+     * バージョンが読み取れない場合はタイムスタンプをフォールバックとして使用します。
+     * コピー前に古い `update-*.jar` を削除し、ファイルの蓄積を防ぎます。
      * 更新後は新しいプロセスが起動し、現在のプロセスは終了します。
      *
      * @param jar 更新先の jar archive
@@ -211,10 +213,21 @@ object Reload {
     fun updateTo(jar: File) {
         logger.info { "Updating to ${jar.name}..." }
 
-        // 固定ファイル名にコピーする。タイムスタンプ付きファイル名は蓄積の原因となるため使用しない。
-        // このプロジェクトは Docker（Linux）専用であり、Linux では実行中ファイルへの上書きは
-        // アンリンク後に新しい inode を作成する挙動となるため、実行中の JVM に影響しない。
-        val updateJar = jar.copyTo(File("./update.jar"), overwrite = true)
+        // バージョン名を含むファイル名にコピーする。
+        // バージョンが異なれば異なるファイル名になるため、連鎖アップデート時に実行中ファイルを上書きしない。
+        // バージョンが読み取れない場合はタイムスタンプをフォールバックとして使用する。
+        val version = jar.jarVersion() ?: System.currentTimeMillis().toString()
+        val updateJarName = "update-$version.jar"
+
+        // 古い update-*.jar を削除する（削除失敗は警告のみで継続）
+        File(".").listFiles { f -> f.name.matches(Regex("update-.*\\.jar")) && f.name != updateJarName }
+            ?.forEach { old ->
+                if (!old.delete()) {
+                    logger.warn { "古い update jar の削除に失敗しました: ${old.absolutePath}" }
+                }
+            }
+
+        val updateJar = jar.copyTo(File("./$updateJarName"), overwrite = true)
 
         val server = Server(ServerType.Current)
         VCSpeaker.apiServer?.stop()

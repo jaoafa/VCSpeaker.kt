@@ -4,7 +4,7 @@
 #
 # Update flow:
 # 1. Current (vcspeaker.jar) starts and runs normally
-# 2. When update is detected, Current spawns Latest (update.jar) via ProcessBuilder
+# 2. When update is detected, Current spawns Latest (update-<version>.jar) via ProcessBuilder
 # 3. Current and Latest communicate via API to transfer state
 # 4. Current exits with code 0
 # 5. This script waits for Latest to finish (or keeps running)
@@ -30,7 +30,7 @@ is_zombie_pid() {
     [[ "$state" == "Z" ]]
 }
 
-# アップデートプロセス (update.jar) の PID を取得する
+# アップデートプロセス (update-<version>.jar) の PID を取得する
 # ゾンビプロセスおよび無効なプロセスは除外する
 find_update_pid() {
     local pid
@@ -46,7 +46,7 @@ find_update_pid() {
 
         echo "$pid"
         return 0
-    done < <(pgrep -f "update\.jar" 2>/dev/null || true)
+    done < <(pgrep -f "update-.*\.jar" 2>/dev/null || true)
     return 1
 }
 
