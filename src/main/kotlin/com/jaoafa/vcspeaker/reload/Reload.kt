@@ -210,8 +210,8 @@ object Reload {
     fun updateTo(jar: File) {
         logger.info { "Updating to ${jar.name}..." }
 
-        // copy to the current working directory
-        val updateJar = jar.copyTo(File("./update-${System.currentTimeMillis()}.jar"), overwrite = true)
+        // 固定ファイル名にコピーする。タイムスタンプ付きファイル名は蓄積の原因となるため使用しない
+        val updateJar = jar.copyTo(File("./update.jar"), overwrite = true)
 
         val server = Server(ServerType.Current)
         VCSpeaker.apiServer?.stop()
