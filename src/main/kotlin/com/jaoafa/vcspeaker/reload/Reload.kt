@@ -202,16 +202,44 @@ object Reload {
     }
 
     /**
-     * 指定された jar archive を使用して VCSpeaker を更新します。
-     * 更新後は新しいプロセスが起動し、現在のプロセスは終了します。
+     * Updates VCSpeaker using the given jar archive.
+     * The jar is copied to the current working directory as `update-<version>.jar`.
+     * Falls back to a timestamp-based name if the version cannot be read from the manifest.
+     * Cleans up old `update-*.jar` files before copying to prevent accumulation.
+     * After the update, a new process is launched and the current process exits.
      *
-     * @param jar 更新先の jar archive
+     * @param jar jar archive to update to
      */
     fun updateTo(jar: File) {
         logger.info { "Updating to ${jar.name}..." }
 
-        // copy to the current working directory
-        val updateJar = jar.copyTo(File("./update-${System.currentTimeMillis()}.jar"), overwrite = true)
+        // Copy to a version-based filename so that different versions get different filenames,
+        // avoiding overwriting a running update jar during chain updates.
+        // Falls back to a timestamp if the version cannot be read from the manifest.
+        val rawVersion = jar.jarVersion() ?: System.currentTimeMillis().toString()
+
+        // Use Path normalization to prevent path traversal via a malicious jar manifest.
+        // Resolve the candidate path and verify it stays within the current directory.
+        val baseDir = File(".").toPath().toAbsolutePath().normalize()
+        val candidatePath = baseDir.resolve("update-$rawVersion.jar").normalize()
+        val updateJarName = if (candidatePath.startsWith(baseDir) && candidatePath.parent == baseDir) {
+            "update-$rawVersion.jar"
+        } else {
+            logger.warn { "Unsafe version string in manifest: '$rawVersion'. Falling back to timestamp-based name." }
+            "update-${System.currentTimeMillis()}.jar"
+        }
+
+        // Copy first, then clean up old update-*.jar files.
+        // Copying before deletion ensures no downtime window if the copy fails.
+        val updateJar = jar.copyTo(File("./$updateJarName"), overwrite = true)
+
+        // Delete old update-*.jar files (log a warning on failure, but continue)
+        File(".").listFiles { f -> f.name.matches(Regex("update-.*\\.jar")) && f.name != updateJarName }
+            ?.forEach { old ->
+                if (!old.delete()) {
+                    logger.warn { "Failed to delete old update jar: ${old.absolutePath}" }
+                }
+            }
 
         val server = Server(ServerType.Current)
         VCSpeaker.apiServer?.stop()
