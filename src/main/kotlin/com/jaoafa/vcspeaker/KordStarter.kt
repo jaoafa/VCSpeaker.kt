@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker
 
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
-import com.jaoafa.vcspeaker.stores.CacheStore
+import com.jaoafa.vcspeaker.database.actions.CacheAction
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import dev.kord.rest.builder.message.embed
@@ -63,7 +63,7 @@ object KordStarter {
 
         with(options.cachePolicy ?: config[EnvSpec.cachePolicy]) {
             if (this != 0)
-                CacheStore.initiateAuditJob(this)
+                CacheAction.initiateAuditJob(this)
         }
 
         with(options.sentryEnv ?: config[EnvSpec.sentryEnv]) {

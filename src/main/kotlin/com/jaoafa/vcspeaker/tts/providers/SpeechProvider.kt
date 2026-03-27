@@ -1,9 +1,11 @@
 package com.jaoafa.vcspeaker.tts.providers
 
+import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiProvider
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider
+import java.io.File
 import java.security.MessageDigest
 
 fun hashMd5(content: String) = MessageDigest
@@ -57,6 +59,8 @@ interface ProviderContext {
      * @return ハッシュ値
      */
     fun hash() = hashMd5(identity())
+
+    fun getCacheFile() = VCSpeaker.cacheFolder.resolve(File("${hash()}.${providerOf(this).format}"))
 }
 
 /**
@@ -72,10 +76,12 @@ fun <T : ProviderContext> providerOf(context: T): SpeechProvider<T> {
             @Suppress("UNCHECKED_CAST")
             SoundmojiProvider as SpeechProvider<T>
         }
+
         is VoiceTextContext -> {
             @Suppress("UNCHECKED_CAST")
             VoiceTextProvider as SpeechProvider<T>
         }
+
         else -> throw IllegalArgumentException("Provider not found for given context: ${context.describe()}")
     }
 }

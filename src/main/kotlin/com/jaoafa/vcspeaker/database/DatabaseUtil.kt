@@ -22,11 +22,8 @@ object DatabaseUtil {
         VoiceTable
     )
 
-    fun init(): Database {
-        val db = Database.connect(
-            "jdbc:h2:file:./database/h2;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE",
-            driver = "org.h2.Driver"
-        ) // fixme: env var, place under ./database/ or something
+    fun init(url: String = "jdbc:h2:file:./database/h2;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE"): Database {
+        val db = Database.connect(url, driver = "org.h2.Driver") // fixme: env var, place under ./database/ or something
         TransactionManager.defaultDatabase = db
 
         return db

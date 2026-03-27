@@ -3,9 +3,9 @@ package com.jaoafa.vcspeaker.tts.narrators
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoice
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoiceTextChannelOrNull
+import com.jaoafa.vcspeaker.database.actions.UserAction
 import com.jaoafa.vcspeaker.features.Ignore.shouldBeIgnored
 import com.jaoafa.vcspeaker.reload.state.UseState
-import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.deleteOwnReactionSafe
 import com.jaoafa.vcspeaker.tools.getClassesIn
@@ -81,7 +81,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
         schedule(
             message = message,
             text = message.content,
-            voice = VoiceStore.byIdOrDefault(message.author!!.id),
+            voice = UserAction.getVoiceOrDefaultOf(message.author!!.id),
             guild = message.getGuild(),
             actor = SpeechActor.User
         )
