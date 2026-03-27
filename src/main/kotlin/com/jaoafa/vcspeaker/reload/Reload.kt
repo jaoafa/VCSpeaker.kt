@@ -217,9 +217,17 @@ object Reload {
         // avoiding overwriting a running update jar during chain updates.
         // Falls back to a timestamp if the version cannot be read from the manifest.
         val rawVersion = jar.jarVersion() ?: System.currentTimeMillis().toString()
-        // Sanitize the version string to prevent path traversal via a malicious jar manifest
-        val version = rawVersion.replace(Regex("[^a-zA-Z0-9._-]"), "_")
-        val updateJarName = "update-$version.jar"
+
+        // Use Path normalization to prevent path traversal via a malicious jar manifest.
+        // Resolve the candidate path and verify it stays within the current directory.
+        val baseDir = File(".").toPath().toAbsolutePath().normalize()
+        val candidatePath = baseDir.resolve("update-$rawVersion.jar").normalize()
+        val updateJarName = if (candidatePath.startsWith(baseDir) && candidatePath.parent == baseDir) {
+            "update-$rawVersion.jar"
+        } else {
+            logger.warn { "Unsafe version string in manifest: '$rawVersion'. Falling back to timestamp-based name." }
+            "update-${System.currentTimeMillis()}.jar"
+        }
 
         // Copy first, then clean up old update-*.jar files.
         // Copying before deletion ensures no downtime window if the copy fails.
