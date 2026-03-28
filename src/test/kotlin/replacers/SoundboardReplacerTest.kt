@@ -1,12 +1,7 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.AliasData
-import com.jaoafa.vcspeaker.stores.AliasStore
-import com.jaoafa.vcspeaker.stores.AliasType
-import com.jaoafa.vcspeaker.stores.IgnoreData
-import com.jaoafa.vcspeaker.stores.IgnoreStore
-import com.jaoafa.vcspeaker.stores.StoreStruct
+import com.jaoafa.vcspeaker.stores.*
 import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.SoundboardReplacer
 import dev.kord.common.entity.Snowflake

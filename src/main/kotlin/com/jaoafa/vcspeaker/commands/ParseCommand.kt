@@ -1,9 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
-import com.jaoafa.vcspeaker.database.tables.IgnoreTable
-import com.jaoafa.vcspeaker.stores.IgnoreType
+import com.jaoafa.vcspeaker.database.actions.IgnoreAction
 import com.jaoafa.vcspeaker.tools.Emoji.containsEmojis
 import com.jaoafa.vcspeaker.tools.Emoji.getEmojis
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
@@ -16,8 +13,6 @@ import com.jaoafa.vcspeaker.tts.processors.ReplacerProcessor
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class ParseCommand : Extension() {
     override val name = this::class.simpleName!!
@@ -36,18 +31,7 @@ class ParseCommand : Extension() {
                 val guildId = guild?.id ?: return@action
                 val text = arguments.text
 
-                val ignoreRows = transaction {
-                    IgnoreEntity.find { IgnoreTable.guildDid eq guildId }.getRows()
-                }
-
-                fun effectiveIgnores(text: String) = ignoreRows.filter {
-                    when (it.type) {
-                        IgnoreType.Equals -> text == it.search
-                        IgnoreType.Contains -> text.contains(it.search)
-                    }
-                }
-
-                val effectiveIgnores = effectiveIgnores(text)
+                val effectiveIgnores = IgnoreAction.getEffectiveIgnoresOf(text, guildId)
 
                 suspend fun respondStepEmbed(
                     checkIgnore: String? = null,
@@ -133,7 +117,7 @@ class ParseCommand : Extension() {
                 }
 
                 // step 3: recheck ignore
-                val annotatedEffectiveIgnores = effectiveIgnores(annotatedText)
+                val annotatedEffectiveIgnores = IgnoreAction.getEffectiveIgnoresOf(annotatedText, guildId)
 
                 val replacedTokens = tokens.filter { it.replaced() }
 

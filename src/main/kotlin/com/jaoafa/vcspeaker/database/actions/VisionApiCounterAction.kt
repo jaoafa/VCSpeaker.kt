@@ -4,11 +4,11 @@ import com.jaoafa.vcspeaker.database.onSuccess
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import io.github.oshai.kotlinlogging.KotlinLogging
-import com.jaoafa.vcspeaker.database.tables.VisionAPICounterEntity as Entity
 import org.jetbrains.exposed.v1.core.dao.id.CompositeID
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDate
 import kotlin.time.Clock
+import com.jaoafa.vcspeaker.database.tables.VisionAPICounterEntity as Entity
 import com.jaoafa.vcspeaker.database.tables.VisionAPICounterTable as Table
 
 object VisionApiCounterAction {

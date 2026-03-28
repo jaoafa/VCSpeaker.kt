@@ -1,55 +1,54 @@
 package processors
 
-import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.IgnoreData
-import com.jaoafa.vcspeaker.stores.IgnoreStore
+import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.stores.IgnoreType
-import com.jaoafa.vcspeaker.stores.StoreStruct
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import com.jaoafa.vcspeaker.tts.processors.IgnoreAfterReplaceProcessor
 import com.jaoafa.vcspeaker.tts.processors.IgnoreBeforeReplaceProcessor
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.*
-import java.io.File
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 /**
  * IgnoreProcessorのテスト
  */
 class IgnoreProcessorTest : FunSpec({
-    // テスト前処理
-    beforeTest {
-        mockkObject(VCSpeaker)
+    beforeSpec {
+        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.createTables()
 
-        // storeFolderを一時ディレクトリに設定
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
-
-        val storeStruct = mockk<StoreStruct<IgnoreData>>()
-        every { storeStruct.write() } returns Unit
-
-        mockkObject(IgnoreStore)
-        every { IgnoreStore.write() } returns Unit
-
-        IgnoreStore.data.clear()
-
-        // テスト用データを作成
-        // equals という文字列で一致する場合無視
-        IgnoreStore.create(IgnoreData(Snowflake(0), Snowflake(123), IgnoreType.Equals, "equals"))
-        // contains という文字列を含む場合無視
-        IgnoreStore.create(IgnoreData(Snowflake(0), Snowflake(123), IgnoreType.Contains, "contains"))
+        transaction {
+            val guildEntity = GuildEntity.new(id = Snowflake(0)) {
+                this.speakerVoiceEntity = VoiceEntity.new { }
+            }
+            IgnoreEntity.new {
+                this.guildEntity = guildEntity
+                creatorDid = Snowflake(1)
+                type = IgnoreType.Equals
+                search = "equals"
+            }
+            IgnoreEntity.new {
+                this.guildEntity = guildEntity
+                creatorDid = Snowflake(1)
+                type = IgnoreType.Contains
+                search = "contains"
+            }
+        }
     }
 
     // テスト後にモックを削除
     afterTest {
         clearAllMocks()
-    }
-
-    // 全てのテスト後にフォルダを削除
-    afterSpec {
-        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     context("IgnoreBeforeReplaceProcessor") {

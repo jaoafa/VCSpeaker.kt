@@ -3,8 +3,8 @@ package providers
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import dev.schlaubi.lavakord.audio.Link
-import io.kotest.core.spec.style.FunSpec
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 

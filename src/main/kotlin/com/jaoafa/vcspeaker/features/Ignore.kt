@@ -2,7 +2,6 @@ package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
 import com.jaoafa.vcspeaker.database.tables.IgnoreTable
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.interaction.AutoCompleteInteraction
 import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
 import dev.kordex.core.utils.FilterStrategy
@@ -23,15 +22,4 @@ object Ignore {
 
             suggestIntMap(stringMap, FilterStrategy.Contains)
         }
-
-    fun getIgnoresOf(guildId: Snowflake) = transaction {
-        IgnoreEntity
-            .find { IgnoreTable.guildDid eq guildId }
-            .sortedBy { it.search.length }
-            .map { it.getRow() }
-    }
-
-    fun getEffectiveIgnoresOf(text: String, guildId: Snowflake) = getIgnoresOf(guildId).filter { it.match(text) }
-
-    fun shouldBeIgnored(text: String, guildId: Snowflake) = getIgnoresOf(guildId).any { it.match(text) }
 }

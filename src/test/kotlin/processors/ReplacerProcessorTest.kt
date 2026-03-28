@@ -19,7 +19,6 @@ import io.mockk.*
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import utils.createMessageMockk
-import java.io.File
 
 /**
  * ReplacerProcessor のテスト (Replacer の複合テスト)
@@ -39,7 +38,6 @@ class ReplacerProcessorTest : FunSpec({
     // テスト前にモックを初期化
     beforeTest {
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
     }
 
     // テスト後にモックを削除
@@ -48,11 +46,6 @@ class ReplacerProcessorTest : FunSpec({
             AliasTable.deleteAll()
         }
         clearAllMocks()
-    }
-
-    // 全てのテスト後にフォルダを削除
-    afterSpec {
-        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // テキストが変更されないことを確認
