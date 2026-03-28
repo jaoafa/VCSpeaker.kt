@@ -18,7 +18,6 @@ import io.mockk.mockkObject
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import utils.createGuildMockk
-import utils.createMessageMockk
 
 class AliasReplacerTest : FunSpec({
     beforeSpec {
@@ -47,7 +46,6 @@ class AliasReplacerTest : FunSpec({
     // テキストエイリアスを設定した場合、正しく置き換えられる
     test("If a text alias matches the message, the replaced text should be returned.") {
         val guild = createGuildMockk(Snowflake(0))
-        val message = createMessageMockk(Snowflake(0))
 
         transaction {
             AliasEntity.new {
@@ -70,7 +68,6 @@ class AliasReplacerTest : FunSpec({
     // テキストエイリアスを設定していても合致しない場合、変更されない
     test("If a text alias does not match the content, the text should remain unchanged.") {
         val guild = createGuildMockk(Snowflake(0))
-        val message = createMessageMockk(Snowflake(0))
 
         transaction {
             AliasEntity.new {
