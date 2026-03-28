@@ -8,11 +8,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 @Serializable
+@Deprecated("Use database instead")
 data class VoiceData(
     val userId: Snowflake,
     val voice: Voice
 )
 
+@Deprecated("Use database instead")
 object VoiceStore : StoreStruct<VoiceData>(
     VCSpeaker.Files.voices.path,
     VoiceData.serializer(),

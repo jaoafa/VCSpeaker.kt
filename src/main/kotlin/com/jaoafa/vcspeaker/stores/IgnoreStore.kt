@@ -5,6 +5,7 @@ import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+// todo: move to features/
 @Serializable
 enum class IgnoreType(
     val displayName: String,
@@ -15,6 +16,7 @@ enum class IgnoreType(
 }
 
 @Serializable
+@Deprecated("Use database instead")
 data class IgnoreData(
     val guildId: Snowflake,
     val userId: Snowflake,
@@ -26,6 +28,7 @@ data class IgnoreData(
     fun toDisplayWithEmoji() = "${type.emoji} ${toDisplay()}"
 }
 
+@Deprecated("Use database instead")
 object IgnoreStore : StoreStruct<IgnoreData>(
     VCSpeaker.Files.ignores.path,
     IgnoreData.serializer(),

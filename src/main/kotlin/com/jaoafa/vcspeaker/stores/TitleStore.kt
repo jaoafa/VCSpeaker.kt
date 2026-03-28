@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 @Serializable
+@Deprecated("Use database instead")
 data class TitleData(
     val guildId: Snowflake,
     val channelId: Snowflake,
@@ -14,6 +15,7 @@ data class TitleData(
     val original: String
 )
 
+@Deprecated("Use database instead")
 object TitleStore : StoreStruct<TitleData>(
     VCSpeaker.Files.titles.path,
     TitleData.serializer(),

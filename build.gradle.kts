@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.bundles.ktor.client)
     implementation(libs.bundles.ktor.server)
     implementation(libs.bundles.kotlinx)
+    implementation(libs.bundles.database)
     implementation(libs.bundles.other)
 }
 
@@ -71,4 +72,18 @@ tasks.named("shadowJar", ShadowJar::class) {
     archiveVersion.set(buildVersion)
 
     mergeServiceFiles()
+}
+
+tasks.register<JavaExec>("generateMigration") {
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "com.jaoafa.vcspeaker.database.GenerateMigrationKt"
+
+    doFirst {
+        environment["MIGRATION_NAME"] = project.properties["migrationName"] ?: "migration"
+    }
+}
+
+tasks.register<JavaExec>("runMigration") {
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "com.jaoafa.vcspeaker.database.RunMigrationKt"
 }

@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 @Serializable
+@Deprecated("Use database instead")
 data class GuildData(
     val guildId: Snowflake,
     var channelId: Snowflake?,
@@ -16,6 +17,7 @@ data class GuildData(
     var autoJoin: Boolean
 )
 
+@Deprecated("Use database instead")
 object GuildStore : StoreStruct<GuildData>(
     VCSpeaker.Files.guilds.path,
     GuildData.serializer(),

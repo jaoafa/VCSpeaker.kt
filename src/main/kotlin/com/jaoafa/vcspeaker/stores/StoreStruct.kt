@@ -12,12 +12,14 @@ import java.io.File
 import kotlin.system.exitProcess
 
 @Serializable
+@Deprecated("Use database instead")
 data class TypedStore<T>(
     val version: Int,
     val list: List<T>
 )
 
 @Serializable
+@Deprecated("Use database instead")
 data class AnyStore(
     val version: Int,
     val list: JsonElement
@@ -33,6 +35,7 @@ data class AnyStore(
  * @param migrators Migrator 関数; Key をバージョンとし, v (Key - 1) のデータを v Key に移行します
  * @param auditor Auditor 関数; null の場合は何も変更されません。null でない場合、初期化時と [StoreStruct.write] 実行時にデータを監査します
  */
+@Deprecated("Use database instead")
 open class StoreStruct<T>(
     path: String,
     private val serializer: KSerializer<T>,

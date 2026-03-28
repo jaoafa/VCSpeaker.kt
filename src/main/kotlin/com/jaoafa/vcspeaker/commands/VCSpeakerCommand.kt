@@ -1,29 +1,33 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.stores.*
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntityOrNull
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionLevelOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.PitchOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeakerOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeedOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.VolumeOption
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.guildParameterFieldsOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.infoColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.voiceParameterFieldsOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.warningColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.jaoafa.vcspeaker.tts.DEFAULT_EMOTION_LEVEL
-import com.jaoafa.vcspeaker.tts.DEFAULT_PITCH
-import com.jaoafa.vcspeaker.tts.DEFAULT_SPEED
-import com.jaoafa.vcspeaker.tts.DEFAULT_VOLUME
-import com.jaoafa.vcspeaker.tts.EmotionData
-import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
+import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.ChannelType
-import dev.kord.core.entity.channel.TextChannel
 import dev.kord.rest.builder.message.embed
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
@@ -35,13 +39,14 @@ import dev.kordex.core.components.components
 import dev.kordex.core.components.publicButton
 import dev.kordex.core.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.system.exitProcess
 
 class VCSpeakerCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger {}
 
-    inner class SettingsOptions : Options() {
+    class SettingsOptions : Options(), VoiceOptions {
         val channel by optionalChannel {
             name = "channel"
             description = "読み上げるテキストチャンネル"
@@ -53,55 +58,12 @@ class VCSpeakerCommand : Extension() {
             description = "チャットコマンドのプレフィックス"
         }
 
-        val speaker by optionalStringChoice {
-            name = "speaker"
-            description = "話者"
-
-            for (value in Speaker.entries)
-                choice(value.speakerName, value.name)
-        }
-
-        val emotion by optionalStringChoice {
-            name = "emotion"
-            description = "感情"
-
-            for (value in Emotion.entries)
-                choice(value.emotionName, value.name)
-
-            choice("なし", "none")
-        }
-
-        val emotionLevel by optionalInt {
-            name = "emotion-level"
-            description = "感情レベル"
-
-            maxValue = 4
-            minValue = 1
-        }
-
-        val pitch by optionalInt {
-            name = "pitch"
-            description = "ピッチ"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val speed by optionalInt {
-            name = "speed"
-            description = "速度"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val volume by optionalInt {
-            name = "volume"
-            description = "音量"
-
-            maxValue = 200
-            minValue = 50
-        }
+        override val speaker by optionalStringChoice(SpeakerOption)
+        override val emotion by optionalStringChoice(EmotionOption)
+        override val emotionLevel by optionalInt(EmotionLevelOption)
+        override val pitch by optionalInt(PitchOption)
+        override val speed by optionalInt(SpeedOption)
+        override val volume by optionalInt(VolumeOption)
 
         val autoJoin by optionalBoolean {
             name = "auto-join"
@@ -111,9 +73,8 @@ class VCSpeakerCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("vcspeaker", "VCSpeaker を操作します。") {
-            check { anyGuild() }
-
             publicSubCommand("restart", "VCSpeaker を再起動します。") {
+                check { anyGuild() }
                 action {
                     respond("**:firecracker: 再起動します。**")
                     event.kord.shutdown()
@@ -121,97 +82,92 @@ class VCSpeakerCommand : Extension() {
                 }
             }
 
-            publicSubCommand("settings", "VCSpeaker を設定します。", ::SettingsOptions) {
+            publicSubCommand("register", "このサーバに VCSpeaker を登録します。") {
+                check { anyGuild() }
                 action {
-                    val guildId = guild!!.id
-                    val oldGuildData = GuildStore[guildId]
-                    val currentVoice = oldGuildData?.voice
+                    val guild = guild ?: return@action
 
-                    // option > current > default
-                    val newGuildData = GuildStore.createOrUpdate(
-                        guildId = guildId,
-                        channelId = arguments.channel?.id ?: oldGuildData?.channelId,
-                        prefix = arguments.prefix ?: oldGuildData?.prefix,
-                        voice = arguments.let { args ->
-                            val givenEmotion = args.emotion
-                            val emotion = if (givenEmotion != null) {
-                                if (givenEmotion == "none") null else Emotion.valueOf(givenEmotion)
-                            } else currentVoice?.emotion
+                    val registered = transaction {
+                        val entity = guild.getEntityOrNull() ?: return@transaction null
+                        val guildRow = entity.getRow()
+                        val voiceRow = entity.speakerVoiceEntity.getRow()
 
-                            Voice(
-                                speaker = Speaker.valueOf(args.speaker ?: currentVoice?.speaker?.name ?: "Haruka"),
-                                emotionData = emotion?.let {
-                                    EmotionData(
-                                        emotion = it,
-                                        level = args.emotionLevel ?: currentVoice?.emotionLevel ?: DEFAULT_EMOTION_LEVEL
-                                    )
-                                },
-                                pitch = args.pitch ?: currentVoice?.pitch ?: DEFAULT_PITCH,
-                                speed = args.speed ?: currentVoice?.speed ?: DEFAULT_SPEED,
-                                volume = args.volume ?: currentVoice?.volume ?: DEFAULT_VOLUME
-                            )
-                        },
-                        autoJoin = arguments.autoJoin ?: oldGuildData?.autoJoin ?: true
-                    )
+                        return@transaction guildRow to voiceRow
+                    }
 
-                    val emotionEmoji = newGuildData.voice.emotion?.emoji ?: ":neutral_face:"
+                    if (registered != null) {
+                        respondEmbed(
+                            ":x: Already Registered",
+                            "このサーバーはすでに登録されています。"
+                        ) {
+                            authorOf(user)
+                            guildParameterFieldsOf(registered.first)
+                            voiceParameterFieldsOf(registered.second)
+                            errorColor()
+                        }
 
-                    val viewOnly = oldGuildData == newGuildData
+                        return@action
+                    }
+
+                    val (voiceEntity, guildEntity) = transactionResulting {
+                        val voiceEntity = VoiceEntity.new {}
+                        val guildEntity = GuildEntity.new(id = guild.id) {
+                            speakerVoiceEntity = voiceEntity
+                        }
+                        voiceEntity to guildEntity
+                    }.unwrap()
+
+                    val (guildRow, voiceRow) = transaction {
+                        val guildRow = guildEntity.getRow()
+                        val voiceRow = voiceEntity.getRow()
+
+                        return@transaction guildRow to voiceRow
+                    }
 
                     respondEmbed(
-                        if (viewOnly) ":gear: Current Settings"
+                        ":white_check_mark: Registration Successful",
+                        "登録が完了しました！"
+                    ) {
+                        authorOf(user)
+                        guildParameterFieldsOf(guildRow)
+                        voiceParameterFieldsOf(voiceRow)
+                        successColor()
+                    }
+                }
+            }
+
+            publicSubCommand("settings", "VCSpeaker を設定します。", ::SettingsOptions) {
+                check { anyGuildRegistered() }
+                action {
+                    val guild = guild ?: return@action
+
+                    val guildEntity = guild.getEntityOrNull() ?: return@action
+
+                    var modified = false
+
+                    transactionResulting(commit = true) {
+                        // modifies GuildEntity
+                        guildEntity.run {
+                            // if the argument exists (non-null), update it
+                            arguments.channel?.id?.also { channelDid = it; modified = true }
+                            arguments.prefix?.also { prefix = it; modified = true }
+                            arguments.autoJoin?.also { autoJoin = it; modified = true }
+                        }
+
+                        modified = modified || guildEntity.speakerVoiceEntity.modifyByOptions(arguments)
+                    }.unwrap()
+
+                    val (guildRow, voiceRow) = transaction {
+                        guildEntity.getRow() to guildEntity.speakerVoiceEntity.getRow()
+                    }
+
+                    respondEmbed(
+                        if (!modified) ":gear: Current Settings"
                         else ":arrows_counterclockwise: Settings Updated"
                     ) {
                         authorOf(user)
-
-                        // fixme redundant
-                        // todo settings diff
-                        field {
-                            name = ":hash: 読み上げチャンネル"
-                            value = newGuildData.channelId?.asChannelOf<TextChannel>()?.mention ?: "未設定"
-                            inline = true
-                        }
-                        field {
-                            name = ":symbols: プレフィックス"
-                            value = newGuildData.prefix?.let { "`$it`" } ?: "未設定"
-                            inline = true
-                        }
-                        field {
-                            name = ":grinning: 話者"
-                            value = newGuildData.voice.speaker.speakerName
-                            inline = true
-                        }
-                        field {
-                            name = "$emotionEmoji 感情"
-                            value = newGuildData.voice.emotion?.emotionName ?: "未設定"
-                            inline = true
-                        }
-                        field {
-                            name = ":signal_strength: 感情レベル"
-                            value = newGuildData.voice.emotionLevel?.let { "`Level $it`" } ?: "未設定"
-                            inline = true
-                        }
-                        field {
-                            name = ":arrow_up_down: ピッチ"
-                            value = newGuildData.voice.pitch.let { "`$it%`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":fast_forward: 速度"
-                            value = newGuildData.voice.speed.let { "`$it%`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":loud_sound: 音量"
-                            value = newGuildData.voice.volume.let { "`$it%`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":inbox_tray: 自動入退室"
-                            value = if (newGuildData.autoJoin) "有効" else "無効"
-                            inline = true
-                        }
-
+                        guildParameterFieldsOf(guildRow)
+                        voiceParameterFieldsOf(voiceRow)
                         successColor()
                     }
 
@@ -222,14 +178,10 @@ class VCSpeakerCommand : Extension() {
             }
 
             publicSubCommand("remove", "VCSpeaker の登録を削除します。") {
+                check { anyGuildRegistered() }
                 action {
-                    val guildId = guild!!.id
-                    val guildData = GuildStore[guildId]
-
-                    if (guildData == null) {
-                        respond("**:x: このサーバーは登録されていません。**")
-                        return@action
-                    }
+                    val guild = guild ?: return@action
+                    val guildEntity = guild.getEntityOrNull() ?: return@action
 
                     val confirmUser = user
 
@@ -262,13 +214,12 @@ class VCSpeakerCommand : Extension() {
                                         return@buttonAction
                                     }
 
-                                    // 各種データを削除
-                                    AliasStore.removeForGuild(guildId)
-                                    IgnoreStore.removeForGuild(guildId)
-                                    ReadableBotStore.removeForGuild(guildId)
-                                    ReadableChannelStore.removeForGuild(guildId)
-                                    TitleStore.removeForGuild(guildId)
-                                    GuildStore.remove(guildData)
+                                    transaction {
+                                        val voiceEntity = guildEntity.speakerVoiceEntity
+                                        guildEntity.delete()
+                                        voiceEntity.delete()
+                                    }
+
                                     edit {
                                         embed {
                                             title = ":wastebasket: Registration removed"

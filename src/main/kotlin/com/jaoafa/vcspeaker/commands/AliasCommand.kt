@@ -1,11 +1,13 @@
 package com.jaoafa.vcspeaker.commands
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
-import com.jaoafa.vcspeaker.stores.AliasData
-import com.jaoafa.vcspeaker.stores.AliasStore
 import com.jaoafa.vcspeaker.stores.AliasType
-import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiUtils
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -14,22 +16,27 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiUtils
 import dev.kordex.core.annotations.AlwaysPublicResponse
-import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.PublicSlashCommandContext
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
 import dev.kordex.core.commands.application.slash.converters.impl.stringChoice
+import dev.kordex.core.commands.converters.impl.int
 import dev.kordex.core.commands.converters.impl.optionalString
 import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
-import dev.kordex.core.utils.capitalizeWords
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import com.jaoafa.vcspeaker.database.tables.AliasEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.AliasTable as Table
 
 class AliasCommand : Extension() {
     override val name = this::class.simpleName!!
-    private val logger = KotlinLogging.logger { }
+    private val logger = KotlinLogging.logger {}
 
-    inner class CreateOptions : Options() {
+    class CreateOptions : Options() {
         val type by stringChoice {
             name = "type"
             description = "エイリアスの種類"
@@ -48,8 +55,8 @@ class AliasCommand : Extension() {
         }
     }
 
-    inner class UpdateOptions : Options() {
-        val alias by string {
+    class UpdateOptions : Options() {
+        val aliasId by int {
             name = "alias"
             description = "更新するエイリアス"
 
@@ -74,8 +81,8 @@ class AliasCommand : Extension() {
         }
     }
 
-    inner class DeleteOptions : Options() {
-        val search by string {
+    class DeleteOptions : Options() {
+        val aliasId by int {
             name = "alias"
             description = "削除するエイリアス"
 
@@ -86,165 +93,209 @@ class AliasCommand : Extension() {
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("alias", "エイリアスを設定します。") {
-            check { anyGuild() }
+            check { anyGuildRegistered() }
             publicSubCommand("create", "エイリアスを作成します。", ::CreateOptions) {
                 action {
+                    val guild = guild ?: return@action
+
                     val type = AliasType.valueOf(arguments.type)
                     val search = arguments.search
                     val replace = arguments.replace
 
                     if (!validateSoundboardAlias(type, replace)) return@action
 
-                    val duplicate = AliasStore.find(guild!!.id, search)
-                    val isUpdate = duplicate != null
-                    val oldReplace = duplicate?.replace
+                    val entity = transactionResulting {
+                        Entity.new {
+                            this.guildEntity = guild.getEntity()
+                            this.creatorDid = user.id
+                            this.type = AliasType.valueOf(arguments.type)
+                            this.search = search
+                            this.replace = replace
+                        }
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":x: Duplicated Alias",
+                            "「$search」を置き換えるエイリアスはすでに存在します。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Duplicated Alias: @${user.username} attempted to create alias with $arguments but failed due to duplication."
+                        }
+                        return@action
+                    }.unwrap()
 
-                    if (isUpdate) AliasStore.remove(duplicate)
-
-                    AliasStore.create(AliasData(guild!!.id, user.id, type, search, replace))
+                    val row = transaction {
+                        entity.getRow()
+                    }
 
                     respondEmbed(
-                        ":loudspeaker: Alias ${if (isUpdate) "Updated" else "Created"}",
-                        "${type.displayName}のエイリアスを${if (isUpdate) "更新" else "作成"}しました"
+                        ":loudspeaker: Alias Created",
+                        "${row.type.displayName}のエイリアスを作成しました"
                     ) {
                         authorOf(user)
-
-                        fieldAliasFrom(type, search)
+                        fieldAliasFrom(row.type, row.search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            if (isUpdate) "$oldReplace → **$replace**" else replace
+                            row.replace
                         }
 
                         successColor()
                     }
 
-                    val verb = if (isUpdate) "updated" else "created"
-                    val typeName = type.name.lowercase()
-
                     log(logger) { guild, user ->
-                        "[${guild.name}] Alias ${verb.capitalizeWords()}: @${user.username} $verb $typeName alias that replaces \"$search\" to \"$replace\"" +
-                                if (isUpdate) " (updated from \"$oldReplace\")" else ""
+                        "[${guild.name}] Alias Created: @${user.username} created alias $row"
                     }
                 }
             }
 
             publicSubCommand("update", "エイリアスを更新します。", ::UpdateOptions) {
                 action {
-                    val aliasData = AliasStore.find(guild!!.id, arguments.alias)
-                    if (aliasData != null) {
-                        val (_, _, type, search, replace) = aliasData
-
-                        val updatedType = arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: type
-                        val updatedSearch = arguments.search ?: search
-                        val updatedReplace = arguments.replace ?: replace
-
-                        if (!validateSoundboardAlias(updatedType, updatedReplace)) return@action
-
-                        AliasStore.remove(aliasData)
-                        AliasStore.create(
-                            aliasData.copy(
-                                userId = user.id,
-                                type = updatedType,
-                                search = updatedSearch,
-                                replace = updatedReplace
-                            )
-                        )
-
-                        respondEmbed(
-                            ":repeat: Alias Updated",
-                            "エイリアスを更新しました。"
-                        ) {
-                            authorOf(user)
-
-                            fun searchDisplay(type: AliasType, search: String) = when (type) {
-                                AliasType.Text -> search
-                                AliasType.Regex -> "`$search`"
-                                AliasType.Emoji -> "$search `$search`"
-                                AliasType.Soundboard -> search
-                            }
-
-                            field("${updatedType.emoji} ${updatedType.displayName}", true) {
-                                searchDisplay(type, search) + if (replace != updatedReplace)
-                                    " → **${searchDisplay(updatedType, updatedSearch)}**"
-                                else ""
-                            }
-
-                            field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                if (replace != updatedReplace) "「$replace」→「**$updatedReplace**」" else "「$replace」"
-                            }
-
-                            successColor()
-                        }
-
-                        log(logger) { guild, user ->
-                            "[${guild.name}] Alias Updated: @${user.username} updated $type alias that replaces \"$search\" to \"$updatedReplace\" (updated from \"$replace\")"
-                        }
-                    } else {
+                    val aliasEntity = transaction {
+                        Entity.findById(arguments.aliasId)
+                    } ?: run {
                         respondEmbed(
                             ":question: Alias Not Found",
-                            "置き換え条件が「${arguments.alias}」のエイリアスは見つかりませんでした。"
+                            "エイリアスが見つかりませんでした。"
                         ) {
                             authorOf(user)
                             errorColor()
                         }
 
                         log(logger) { guild, user ->
-                            "[${guild.name}] Alias Not Found: @${user.username} searched for alias contains \"${arguments.alias}\" but not found"
+                            "[${guild.name}] Alias Not Found: @${user.username} attempted to update alias \"${arguments.aliasId}\" but not found"
                         }
+
+                        return@action
+                    }
+
+                    val oldRow = transaction {
+                        aliasEntity.getRow()
+                    }
+
+                    val updatedType =
+                        arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: oldRow.type
+                    val updatedSearch = arguments.search ?: oldRow.search
+                    val updatedReplace = arguments.replace ?: oldRow.replace
+
+                    if (!validateSoundboardAlias(updatedType, updatedReplace)) return@action
+
+                    transactionResulting(commit = true) {
+                        aliasEntity.type = updatedType
+                        aliasEntity.search = updatedSearch
+                        aliasEntity.replace = updatedReplace
+                        aliasEntity.version += 1
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":x: Duplicated Alias",
+                            "「$updatedSearch」を置き換えるエイリアスはすでに存在します。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Duplicated Alias: @${user.username} attempted to update $oldRow with $arguments but failed due to duplication."
+                        }
+                        return@action
+                    }.unwrap()
+
+                    val newRow = transaction {
+                        aliasEntity.getRow()
+                    }
+
+                    respondEmbed(
+                        ":repeat: Alias Updated",
+                        "エイリアスを更新しました。"
+                    ) {
+                        authorOf(user)
+
+                        fun searchDisplay(type: AliasType, search: String) = when (type) {
+                            AliasType.Text -> search
+                            AliasType.Regex -> "`$search`"
+                            AliasType.Emoji -> "$search `$search`"
+                            AliasType.Soundboard -> search
+                        }
+
+                        field("${updatedType.emoji} ${updatedType.displayName}", true) {
+                            searchDisplay(oldRow.type, oldRow.search) + if (oldRow.search != newRow.search)
+                                " → **${searchDisplay(newRow.type, newRow.search)}**"
+                            else ""
+                        }
+
+                        field(":arrows_counterclockwise: 置き換える文字列", true) {
+                            if (oldRow.replace != newRow.replace)
+                                "「${oldRow.replace}」→「**${newRow.replace}**」"
+                            else
+                                "「${newRow.replace}」"
+                        }
+
+                        successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Alias Updated: @${user.username} updated alias $oldRow -> $newRow"
                     }
                 }
             }
 
             publicSubCommand("delete", "エイリアスを削除します。", ::DeleteOptions) {
                 action {
-                    val aliasData = AliasStore.find(guild!!.id, arguments.search)
+                    val aliasEntity = transaction {
+                        Entity.findById(arguments.aliasId)
+                    }
 
-                    if (aliasData != null) {
-                        AliasStore.remove(aliasData)
-
-                        val (_, _, type, search, replace) = aliasData
-
-                        respondEmbed(
-                            ":wastebasket: Alias Deleted",
-                            "${type.displayName}のエイリアスを削除しました。"
-                        ) {
-                            authorOf(user)
-
-                            fieldAliasFrom(type, search)
-
-                            field(":arrows_counterclockwise: 置き換える文字列", true) {
-                                replace
-                            }
-
-                            successColor()
-                        }
-
-                        val username = user.asUser().username
-
-                        log(logger) { guild, user ->
-                            "[${guild.name}] Alias Deleted: @${user.username} deleted $type alias that replaces \"$search\" to \"$replace\""
-                        }
-                    } else {
+                    if (aliasEntity == null) {
                         respondEmbed(
                             ":question: Alias Not Found",
-                            "置き換え条件が「${arguments.search}」のエイリアスは見つかりませんでした。"
+                            "エイリアスが見つかりませんでした。"
                         ) {
                             authorOf(user)
                             errorColor()
                         }
 
                         log(logger) { guild, user ->
-                            "[${guild.name}] Alias Not Found: @${user.username} searched for alias contains \"${arguments.search}\" but not found"
+                            "[${guild.name}] Alias Not Found: @${user.username} attempted to delete alias \"${arguments.aliasId}\" but not found"
                         }
+
+                        return@action
+                    }
+
+                    val row = transaction {
+                        val row = aliasEntity.getRow()
+                        aliasEntity.delete()
+                        row
+                    }
+
+                    respondEmbed(
+                        ":wastebasket: Alias Deleted",
+                        "${row.type.displayName}エイリアスを削除しました。"
+                    ) {
+                        authorOf(user)
+
+                        fieldAliasFrom(row.type, row.search)
+
+                        field(":arrows_counterclockwise: 置き換える文字列", true) {
+                            row.replace
+                        }
+
+                        successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Alias Deleted: @${user.username} deleted $row"
                     }
                 }
             }
 
             publicSubCommand("list", "エイリアスの一覧を表示します。") {
                 action {
-                    val aliases = AliasStore.filter(guild!!.id)
+                    val guildId = guild?.id ?: return@action
+                    val aliasEntities = transaction {
+                        Entity.find { Table.guildDid eq guildId }.getRows()
+                    }
 
-                    if (aliases.isEmpty()) {
+                    if (aliasEntities.isEmpty()) {
                         respondEmbed(
                             ":grey_question: Aliases Not Found",
                             "エイリアスが設定されていないようです。`/alias create` で作成してみましょう！"
@@ -256,7 +307,7 @@ class AliasCommand : Extension() {
                     }
 
                     respondingPaginator {
-                        for (chunkedAliases in aliases.chunked(10)) {
+                        for (chunkedAliases in aliasEntities.chunked(10)) {
                             page {
                                 authorOf(user)
 

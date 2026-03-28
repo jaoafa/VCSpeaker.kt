@@ -1,63 +1,61 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.*
+import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.tables.AliasEntity
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.GuildTable
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.RegexReplacer
 import dev.kord.common.entity.Snowflake
-import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.*
-import java.io.File
+import io.mockk.clearAllMocks
+import io.mockk.mockkObject
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.createGuildMockk
 
 class RegexReplacerTest : FunSpec({
+    beforeSpec {
+        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.createTables()
+    }
+
     // テスト前にモックを初期化
-    beforeTest {
+    beforeEach {
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
-
-        val storeStruct = mockk<StoreStruct<IgnoreData>>()
-        every { storeStruct.write() } returns Unit
-
-        mockkObject(IgnoreStore)
-        every { IgnoreStore.write() } returns Unit
-
-        IgnoreStore.data.clear()
-
-        mockkObject(AliasStore)
-        every { AliasStore.write() } returns Unit
-
-        AliasStore.data.clear()
+        transaction {
+            GuildEntity.new(id = Snowflake(0)) {
+                this.speakerVoiceEntity = VoiceEntity.new { }
+            }
+        }
     }
 
     // テスト後にモックを削除
-    afterTest {
+    afterEach {
+        transaction {
+            GuildTable.deleteAll()
+        }
         clearAllMocks()
     }
 
-    // 全てのテスト後にフォルダを削除
-    afterSpec {
-        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
-    }
-
-
     // 正規表現エイリアスを設定した場合、正しく置き換えられる
     test("If a regex alias matches the content, the replaced text should be returned.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
+        val guild = createGuildMockk(Snowflake(0))
 
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Regex,
-                search = "w.+d",
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Regex
+                search = "w.+d"
                 replace = "Kotlin"
-            )
-        )
+            }
+        }
 
         val tokens = mutableListOf(TextToken("Hello, world!"))
         val expectedTokens =
@@ -70,20 +68,17 @@ class RegexReplacerTest : FunSpec({
 
     // 正規表現エイリアスを設定していても合致しない場合、変更されない
     test("If a regex alias does not match the content, the text should remain unchanged.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
+        val guild = createGuildMockk(Snowflake(0))
 
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Regex,
-                search = "w.d",
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Regex
+                search = "w.d"
                 replace = "Kotlin"
-            )
-        )
+            }
+        }
 
         val tokens = mutableListOf(TextToken("Hello, world!"))
 

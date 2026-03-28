@@ -1,62 +1,61 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.AliasData
-import com.jaoafa.vcspeaker.stores.AliasStore
+import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.tables.AliasEntity
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.GuildTable
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.stores.AliasType
-import com.jaoafa.vcspeaker.stores.IgnoreData
-import com.jaoafa.vcspeaker.stores.IgnoreStore
-import com.jaoafa.vcspeaker.stores.StoreStruct
 import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.SoundboardReplacer
 import dev.kord.common.entity.Snowflake
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkObject
-import java.io.File
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.createGuildMockk
 
 class SoundboardReplacerTest : FunSpec({
-    beforeTest {
+    beforeSpec {
+        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.createTables()
+    }
+
+    // テスト前にモックを初期化
+    beforeEach {
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
-
-        val storeStruct = mockk<StoreStruct<IgnoreData>>()
-        every { storeStruct.write() } returns Unit
-
-        mockkObject(IgnoreStore)
-        every { IgnoreStore.write() } returns Unit
-
-        IgnoreStore.data.clear()
-
-        mockkObject(AliasStore)
-        every { AliasStore.write() } returns Unit
-
-        AliasStore.data.clear()
+        transaction {
+            GuildEntity.new(id = Snowflake(0)) {
+                this.speakerVoiceEntity = VoiceEntity.new { }
+            }
+        }
     }
 
-    afterTest {
+    // テスト後にモックを削除
+    afterEach {
+        transaction {
+            GuildTable.deleteAll()
+        }
         clearAllMocks()
-    }
-
-    afterSpec {
-        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     test("If a soundboard alias matches the content, the replaced text should be returned.") {
         val replace = "https://cdn.discordapp.com/soundboard-sounds/123456789012345678.mp3"
+        val guild = createGuildMockk(Snowflake(0))
 
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Soundboard,
-                search = "boom",
-                replace = replace
-            )
-        )
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Soundboard
+                search = "boom"
+                this.replace = replace
+            }
+        }
 
         val tokens = mutableListOf(TextToken("Hello, boom!"))
         val expectedTokens = mutableListOf(
@@ -71,15 +70,17 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     test("If a soundboard alias uses a raw id, the text should be normalized") {
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Soundboard,
-                search = "boom",
+        val guild = createGuildMockk(Snowflake(0))
+
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Soundboard
+                search = "boom"
                 replace = "123456789012345678"
-            )
-        )
+            }
+        }
 
         val tokens = mutableListOf(TextToken("boom"))
         val expectedTokens = mutableListOf(
@@ -94,15 +95,17 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     test("If a soundboard alias appears multiple times, all occurrences should be replaced") {
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Soundboard,
-                search = "boom",
+        val guild = createGuildMockk(Snowflake(0))
+
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Soundboard
+                search = "boom"
                 replace = "https://cdn.discordapp.com/soundboard-sounds/123456789012345678.mp3"
-            )
-        )
+            }
+        }
 
         val tokens = mutableListOf(TextToken("boom boom"))
         val expectedTokens = mutableListOf(
@@ -119,15 +122,17 @@ class SoundboardReplacerTest : FunSpec({
     }
 
     test("If a soundboard alias does not match the content, the text should remain unchanged.") {
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Soundboard,
-                search = "boom",
+        val guild = createGuildMockk(Snowflake(0))
+
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Soundboard
+                search = "boom"
                 replace = "123456789012345678"
-            )
-        )
+            }
+        }
 
         val tokens = mutableListOf(TextToken("Hello, world!"))
 

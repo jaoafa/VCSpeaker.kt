@@ -1,7 +1,8 @@
 package com.jaoafa.vcspeaker.tts.processors
 
 import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
-import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
+import com.jaoafa.vcspeaker.database.actions.VisionApiCounterAction
+import com.jaoafa.vcspeaker.database.actions.VisionApiCounterAction.VISION_API_LIMIT
 import com.jaoafa.vcspeaker.tools.VisionApi
 import com.jaoafa.vcspeaker.tts.Voice
 import com.sksamuel.scrimage.ImmutableImage
@@ -63,11 +64,10 @@ class AttachmentProcessor : BaseProcessor() {
             // 画像解析結果を返信する
             val editedImage = VisionApi.drawTextAnnotations(binaryArray)
             val filePath = editedImage.outputTempFile(isSpoiler)
-            val visionApiCounterStore = VisionApiCounterStore.get()
+            val currentRow = VisionApiCounterAction.getCurrent()
 
-            val requestedCount = visionApiCounterStore?.count ?: 0
-            val requestLimit = VisionApiCounterStore.VISION_API_LIMIT
-            val remainingRequests = requestLimit - requestedCount
+            val requestedCount = currentRow?.count ?: 0
+            val remainingRequests = VISION_API_LIMIT - requestedCount
 
             val spoilerPrefixSuffix = if (isSpoiler) "||" else ""
             message.reply {
@@ -78,7 +78,7 @@ class AttachmentProcessor : BaseProcessor() {
                             url = "attachment://${filePath.fileName}"
                         }
                         footer {
-                            text = "リクエスト残り回数: $remainingRequests / $requestLimit"
+                            text = "リクエスト残り回数: $remainingRequests / $VISION_API_LIMIT"
                         }
                     }
                 )

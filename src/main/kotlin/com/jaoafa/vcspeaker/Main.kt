@@ -7,11 +7,15 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.*
+import com.github.ajalt.clikt.parameters.types.boolean
+import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.long
+import com.github.ajalt.clikt.parameters.types.path
 import com.jaoafa.vcspeaker.api.Server
 import com.jaoafa.vcspeaker.api.ServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
+import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.tools.discord.DiscordCommandCleaner
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
@@ -135,6 +139,9 @@ class Entrypoint : CliktCommand() {
         logger.info { "Starting VCSpeaker.kt $version" }
 
         VCSpeaker.init(version, config, options)
+
+        DatabaseUtil.init()
+        DatabaseUtil.createTables()
 
         runBlocking {
             val shouldWait = options.waitFor != null

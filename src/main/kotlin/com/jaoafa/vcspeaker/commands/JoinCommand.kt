@@ -9,20 +9,20 @@ import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
+import dev.kord.common.entity.ChannelType
+import dev.kord.core.behavior.GuildBehavior
+import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.checks.isNotBot
 import dev.kordex.core.commands.converters.impl.optionalChannel
 import dev.kordex.core.extensions.Extension
-import dev.kord.common.entity.ChannelType
-import dev.kord.core.behavior.GuildBehavior
-import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class JoinCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
 
-    inner class JoinOptions : Options() {
+    class JoinOptions : Options() {
         val channel by optionalChannel {
             name = "channel"
             description = "参加する VC"
