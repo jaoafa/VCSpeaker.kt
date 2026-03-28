@@ -10,14 +10,11 @@ import com.jaoafa.vcspeaker.tts.processors.IgnoreAfterReplaceProcessor
 import com.jaoafa.vcspeaker.tts.processors.IgnoreBeforeReplaceProcessor
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
-import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
-import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.mockk
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.createMessageMockk
 
 /**
  * IgnoreProcessorのテスト
@@ -47,17 +44,14 @@ class IgnoreProcessorTest : FunSpec({
     }
 
     // テスト後にモックを削除
-    afterTest {
+    afterEach {
         clearAllMocks()
     }
 
     context("IgnoreBeforeReplaceProcessor") {
         // 完全に一致する場合はキャンセルされる
         test("If the text exactly matches to Ignore entry, the process should be cancelled.") {
-            val message = mockk<Message>()
-            coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(0)
-            }
+            val message = createMessageMockk(Snowflake(0))
 
             val voice = Voice(speaker = Speaker.Hikari)
 
@@ -69,10 +63,7 @@ class IgnoreProcessorTest : FunSpec({
 
         // 部分一致がある場合はキャンセルされる
         test("If the text partially matches to Ignore entry, the process should be cancelled.") {
-            val message = mockk<Message>()
-            coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(0)
-            }
+            val message = createMessageMockk(Snowflake(0))
 
             val voice = Voice(speaker = Speaker.Hikari)
 
@@ -84,10 +75,7 @@ class IgnoreProcessorTest : FunSpec({
 
         // 一致するものがない場合はキャンセルされない
         test("If did not find any Ignore entries matches to the text, the process should not be cancelled.") {
-            val message = mockk<Message>()
-            coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(0)
-            }
+            val message = createMessageMockk(Snowflake(0))
 
             val voice = Voice(speaker = Speaker.Hikari)
 
@@ -101,10 +89,7 @@ class IgnoreProcessorTest : FunSpec({
     context("IgnoreAfterReplaceProcessor") {
         // 完全に一致する場合はキャンセルされる
         test("If the text exactly matches to Ignore entry, the process should be cancelled.") {
-            val message = mockk<Message>()
-            coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(0)
-            }
+            val message = createMessageMockk(Snowflake(0))
 
             val voice = Voice(speaker = Speaker.Hikari)
 
@@ -116,10 +101,7 @@ class IgnoreProcessorTest : FunSpec({
 
         // 部分一致がある場合はキャンセルされる
         test("If the text partially matches to Ignore entry, the process should be cancelled.") {
-            val message = mockk<Message>()
-            coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(0)
-            }
+            val message = createMessageMockk(Snowflake(0))
 
             val voice = Voice(speaker = Speaker.Hikari)
 
@@ -131,10 +113,7 @@ class IgnoreProcessorTest : FunSpec({
 
         // 一致するものがない場合はキャンセルされない
         test("If did not find any Ignore entries matches to the text, the process should not be cancelled.") {
-            val message = mockk<Message>()
-            coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(0)
-            }
+            val message = createMessageMockk(Snowflake(0))
 
             val voice = Voice(speaker = Speaker.Hikari)
 

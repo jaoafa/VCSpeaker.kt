@@ -2,9 +2,10 @@ package processors
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
-import com.jaoafa.vcspeaker.database.tables.AliasTable
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.GuildTable
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tts.Voice
@@ -18,6 +19,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.*
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.createGuildMockk
 import utils.createMessageMockk
 
 /**
@@ -27,7 +29,11 @@ class ReplacerProcessorTest : FunSpec({
     beforeSpec {
         DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
         DatabaseUtil.createTables()
+    }
 
+    // テスト前にモックを初期化
+    beforeEach {
+        mockkObject(VCSpeaker)
         transaction {
             GuildEntity.new(id = Snowflake(0)) {
                 this.speakerVoiceEntity = VoiceEntity.new { }
@@ -35,15 +41,10 @@ class ReplacerProcessorTest : FunSpec({
         }
     }
 
-    // テスト前にモックを初期化
-    beforeTest {
-        mockkObject(VCSpeaker)
-    }
-
     // テスト後にモックを削除
-    afterTest {
+    afterEach {
         transaction {
-            AliasTable.deleteAll()
+            GuildTable.deleteAll()
         }
         clearAllMocks()
     }
@@ -61,12 +62,13 @@ class ReplacerProcessorTest : FunSpec({
 
     // 複数のエイリアスを設定した場合、正しく置き換えられる
     test("If multiple aliases match the content, the replaced text should be returned.") {
+        val guild = createGuildMockk(Snowflake(0))
         val message = createMessageMockk(Snowflake(0))
         val voice = Voice(speaker = Speaker.Hikari)
 
         transaction {
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Text
                 search = "Hello"
@@ -74,7 +76,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "w.+d"
@@ -90,12 +92,13 @@ class ReplacerProcessorTest : FunSpec({
 
     // エイリアスは再帰的には行われない
     test("Alias should not match the content recursively.") {
+        val guild = createGuildMockk(Snowflake(0))
         val message = createMessageMockk(Snowflake(0))
         val voice = Voice(speaker = Speaker.Hikari)
 
         transaction {
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "Hello"
@@ -103,14 +106,14 @@ class ReplacerProcessorTest : FunSpec({
             }
             // should be skipped
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "Bonjour, world!"
                 replace = "你好，Kotlin!"
             }
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "w.+d"
@@ -126,12 +129,13 @@ class ReplacerProcessorTest : FunSpec({
 
     // サーバ絵文字のエイリアスがある場合、EmojiReplacer が適用されること
     test("If there is an alias for a server emoji, the EmojiReplacer should be applied.") {
+        val guild = createGuildMockk(Snowflake(0))
         val message = createMessageMockk(Snowflake(0))
         val voice = Voice(speaker = Speaker.Hikari)
 
         transaction {
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Emoji
                 search = "<:world:123456789012345678>"
@@ -164,12 +168,13 @@ class ReplacerProcessorTest : FunSpec({
 
     // サウンドボードのエイリアスがある場合、SoundboardReplacer が適用されること
     test("If there is a soundboard alias, the SoundboardReplacer should be applied.") {
+        val guild = createGuildMockk(Snowflake(0))
         val message = createMessageMockk(Snowflake(0))
         val voice = Voice(speaker = Speaker.Hikari)
 
         transaction {
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Soundboard
                 search = "boom"
@@ -188,12 +193,13 @@ class ReplacerProcessorTest : FunSpec({
 
     // サウンドボードのエイリアスがある場合、絵文字置換より先に適用されること
     test("Soundboard alias should be applied before guild emoji replacement.") {
+        val guild = createGuildMockk(Snowflake(0))
         val message = createMessageMockk(Snowflake(0))
         val voice = Voice(speaker = Speaker.Hikari)
 
         transaction {
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Soundboard
                 search = "<:godlike_1:1><:godlike_2:2>"
@@ -221,12 +227,13 @@ class ReplacerProcessorTest : FunSpec({
             }
         }
 
+        val guild = createGuildMockk(Snowflake(0))
         val message = createMessageMockk(Snowflake(0))
         val voice = Voice(speaker = Speaker.Hikari)
 
         transaction {
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Text
                 search = "test-user"
@@ -248,12 +255,13 @@ class ReplacerProcessorTest : FunSpec({
         mockkObject(UrlReplacer)
         coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
 
+        val guild = createGuildMockk(Snowflake(0))
         val message = createMessageMockk(Snowflake(0))
         val voice = Voice(speaker = Speaker.Hikari)
 
         transaction {
             AliasEntity.new {
-                guildEntity = GuildEntity.findById(Snowflake(0))!!
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Text
                 search = "Example Domain"
