@@ -19,6 +19,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.Constants.TEST_DB_MEM_URL
 import utils.createGuildMockk
 import utils.createTextChannelMockk
 import com.jaoafa.vcspeaker.database.tables.ReadableChannelEntity as Entity
@@ -32,7 +33,7 @@ class ReadableChannelStoreTest : FunSpec({
     val creatorId = Snowflake(0UL)
 
     beforeSpec {
-        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.init(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
     }
 

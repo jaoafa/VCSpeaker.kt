@@ -1,10 +1,13 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.ReadableBotEntity
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.User
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Serializable
 @Deprecated("Use database instead")
@@ -12,7 +15,17 @@ data class ReadableBotData(
     val guildId: Snowflake,
     val userId: Snowflake,
     val addedByUserId: Snowflake,
-)
+    override var migrated: Boolean = false
+) : DBMigratableData {
+    override fun migrate() = transaction {
+        ReadableBotEntity.new {
+            guildEntity = GuildEntity[guildId]
+            botDid = userId
+            creatorDid = addedByUserId
+        }
+        return@transaction
+    }
+}
 
 @Deprecated("Use database instead")
 object ReadableBotStore : StoreStruct<ReadableBotData>(

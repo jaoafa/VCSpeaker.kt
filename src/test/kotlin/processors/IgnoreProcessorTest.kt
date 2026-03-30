@@ -14,6 +14,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.Constants.TEST_DB_MEM_URL
 import utils.createMessageMockk
 
 /**
@@ -21,7 +22,7 @@ import utils.createMessageMockk
  */
 class IgnoreProcessorTest : FunSpec({
     beforeSpec {
-        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.init(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
 
         transaction {

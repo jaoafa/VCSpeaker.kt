@@ -22,6 +22,7 @@ import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
+import kotlin.system.exitProcess
 
 class Options : OptionGroup("Main Options:") {
     val configPath by option(
@@ -94,6 +95,11 @@ class Options : OptionGroup("Main Options:") {
         "--clear-commands-and-exit",
         help = "Delete all registered application commands and exit."
     ).flag()
+
+    val migrateStoreToDB by option(
+        "--migrate-store-to-db",
+        help = "Migrate store data to database and exit."
+    ).flag()
 }
 
 class Entrypoint : CliktCommand() {
@@ -123,7 +129,12 @@ class Entrypoint : CliktCommand() {
             }
 
             logger.info { "Command cleanup completed. Exiting." }
-            return
+            exitProcess(0)
+        }
+
+        if (options.migrateStoreToDB) {
+            // todo
+            exitProcess(0)
         }
 
         val manifest = javaClass

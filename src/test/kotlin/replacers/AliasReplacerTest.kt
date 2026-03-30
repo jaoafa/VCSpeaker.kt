@@ -17,11 +17,12 @@ import io.mockk.clearAllMocks
 import io.mockk.mockkObject
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.Constants.TEST_DB_MEM_URL
 import utils.createGuildMockk
 
 class AliasReplacerTest : FunSpec({
     beforeSpec {
-        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.init(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
     }
 

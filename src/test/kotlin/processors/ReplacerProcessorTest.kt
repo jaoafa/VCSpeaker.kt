@@ -19,6 +19,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.*
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.Constants.TEST_DB_MEM_URL
 import utils.createGuildMockk
 import utils.createMessageMockk
 
@@ -27,7 +28,7 @@ import utils.createMessageMockk
  */
 class ReplacerProcessorTest : FunSpec({
     beforeSpec {
-        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.init(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
     }
 

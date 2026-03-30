@@ -35,6 +35,7 @@ import io.mockk.*
 import kotlinx.coroutines.flow.flow
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.Constants.TEST_DB_MEM_URL
 import utils.createGuildMockk
 
 class UrlReplacerTest : FunSpec({
@@ -45,7 +46,7 @@ class UrlReplacerTest : FunSpec({
     val mockedMessageId = Snowflake(123456789012345678)
     // テスト前に早期にモックを初期化
     beforeSpec {
-        DatabaseUtil.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+        DatabaseUtil.init(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
         mockkObject(VCSpeaker)
     }
@@ -447,7 +448,7 @@ class UrlReplacerTest : FunSpec({
             unmockkObject(ReadableChannelAction)
             val guild = createGuildMockk(mockedGuildId)
 
-            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+            val channelMock = mockk<TextChannel>(relaxed = true) {
                 every { name } returns "test-channel"
                 every { type } returns ChannelType.GuildText
                 every { id } returns mockedChannelId
