@@ -64,9 +64,9 @@ class AttachmentProcessor : BaseProcessor() {
             // 画像解析結果を返信する
             val editedImage = VisionApi.drawTextAnnotations(binaryArray)
             val filePath = editedImage.outputTempFile(isSpoiler)
-            val currentRow = VisionApiCounterAction.getCurrent()
+            val current = VisionApiCounterAction.fetchCurrent()
 
-            val requestedCount = currentRow?.count ?: 0
+            val requestedCount = current?.count ?: 0
             val remainingRequests = VISION_API_LIMIT - requestedCount
 
             val spoilerPrefixSuffix = if (isSpoiler) "||" else ""

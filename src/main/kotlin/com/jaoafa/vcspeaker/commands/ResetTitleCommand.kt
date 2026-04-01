@@ -37,7 +37,7 @@ class ResetTitleCommand : Extension() {
                     respond(it)
                 } ?: return@action
 
-                val (oldRow, newRow) = Title.resetTitleOf(channel, user) ?: run {
+                val (old, new) = Title.resetTitleOf(channel, user) ?: run {
                     respondEmbed(
                         ":question: Title Not Reset",
                         "${channel.mention} にはタイトルが設定されていません。"
@@ -58,11 +58,11 @@ class ResetTitleCommand : Extension() {
                     authorOf(user)
 
                     field(":regional_indicator_o: チャンネル名", true) {
-                        "`${newRow.originalTitle}`"
+                        "`${new.originalTitle}`"
                     }
 
                     field(":white_medium_small_square: 旧タイトル", true) {
-                        oldRow?.title.let { "`$it`" }
+                        old?.title.let { "`$it`" }
                     }
 
                     successColor()

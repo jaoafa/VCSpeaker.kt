@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tools.discord
 
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntityOrNull
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntityOrNull
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.event.Event
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
@@ -29,7 +29,7 @@ suspend fun <T : Event> CheckContext<T>.anyGuildRegistered() {
         return
     }
 
-    if (guild.getEntityOrNull() == null) {
+    if (guild.fetchEntityOrNull() == null) {
         logger.failed("Guild not registered.")
 
         if (event is ChatInputCommandInteractionCreateEvent) {

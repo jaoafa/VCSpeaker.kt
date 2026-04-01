@@ -1,14 +1,18 @@
 package com.jaoafa.vcspeaker.database.tables
 
-import com.jaoafa.vcspeaker.database.TypedEntity
-import com.jaoafa.vcspeaker.database.TypedRow
-import com.jaoafa.vcspeaker.database.toTyped
+import com.jaoafa.vcspeaker.database.EntitySnapshot
+import com.jaoafa.vcspeaker.database.SnappableEntity
+import com.jaoafa.vcspeaker.database.SnapshotFactory
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import kotlin.time.Instant
 
 object SpeechCacheTable : IntIdTable("speech_cache") {
     val providerId = varchar("provider_id", 255)
@@ -17,21 +21,33 @@ object SpeechCacheTable : IntIdTable("speech_cache") {
     val lastUsedAt = timestamp("last_used_at")
 }
 
-class SpeechCacheEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<SpeechCacheRow> {
+class SpeechCacheEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<SpeechCacheSnapshot, SpeechCacheEntity> {
     companion object : IntEntityClass<SpeechCacheEntity>(SpeechCacheTable)
 
     var providerId by SpeechCacheTable.providerId
     var hash by SpeechCacheTable.hash
     var lastUsedAt by SpeechCacheTable.lastUsedAt
 
-    override fun getRow() = readValues.toTyped<SpeechCacheRow>()
+    override fun fetchSnapshot() = transaction { SpeechCacheSnapshot.from(readValues) }
 }
 
-class SpeechCacheRow(val resultRow: ResultRow) : TypedRow(resultRow, SpeechCacheTable) {
-    val id = column(SpeechCacheTable.id)
-    val providerId = column(SpeechCacheTable.providerId)
-    val hash = column(SpeechCacheTable.hash)
-    val lastUsedAt = column(SpeechCacheTable.lastUsedAt)
+@Serializable
+data class SpeechCacheSnapshot(
+    val id: Int,
+    val providerId: String,
+    val hash: String,
+    @Contextual val lastUsedAt: Instant,
+) : EntitySnapshot<SpeechCacheEntity>() {
+    companion object : SnapshotFactory<SpeechCacheSnapshot> {
+        override fun from(row: ResultRow) = SpeechCacheSnapshot(
+            id = row[SpeechCacheTable.id].value,
+            providerId = row[SpeechCacheTable.providerId],
+            hash = row[SpeechCacheTable.hash],
+            lastUsedAt = row[SpeechCacheTable.lastUsedAt],
+        )
+    }
 
-    override fun describe() = resultRow.toString()
+    override fun fetchEntity() = transaction {
+        SpeechCacheEntity[this@SpeechCacheSnapshot.id]
+    }
 }

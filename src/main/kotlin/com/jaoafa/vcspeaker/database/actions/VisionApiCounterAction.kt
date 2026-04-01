@@ -21,22 +21,21 @@ object VisionApiCounterAction {
         it[Table.month] = month
     }
 
-    private fun getEntity(year: Int, month: Int) = transaction {
+    private fun fetchEntity(year: Int, month: Int) = transaction {
         val id = getIdOf(year, month)
         return@transaction Entity.findById(id)
     }
 
-    fun get(year: Int, month: Int) = transaction {
-        getEntity(year, month)?.getRow()
-    }
+    fun fetch(year: Int, month: Int) = fetchEntity(year, month)?.fetchSnapshot()
 
-    fun getCurrent() = with(LocalDate.now()) {
-        get(year, monthValue)
+
+    fun fetchCurrent() = with(LocalDate.now()) {
+        fetch(year, monthValue)
     }
 
     fun increment() = transactionResulting {
         val today = LocalDate.now()
-        val entity = getEntity(today.year, today.monthValue) ?: run {
+        val entity = fetchEntity(today.year, today.monthValue) ?: run {
             Entity.new(getIdOf(today.year, today.monthValue)) {
                 count = 0
             }
@@ -52,7 +51,7 @@ object VisionApiCounterAction {
 
         commit()
 
-        entity.getRow()
+        entity.fetchSnapshot()
     }.onSuccess {
         logger.info { "Vision API Counter Incremented: ${it.describe()}" }
     }.unwrap()

@@ -1,5 +1,6 @@
 package com.jaoafa.vcspeaker.configs
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.DEFAULT_DB_URL
 import com.uchuhimo.konf.ConfigSpec
 
 object EnvSpec : ConfigSpec() {
@@ -39,4 +40,6 @@ object EnvSpec : ConfigSpec() {
     val lavalinkPassword by optional<String>("CHANGEME")
 
     val lavalinkCachePath by optional<String>("/opt/Lavalink/cache/")
+
+    val databaseUrl by optional<String>(DEFAULT_DB_URL)
 }

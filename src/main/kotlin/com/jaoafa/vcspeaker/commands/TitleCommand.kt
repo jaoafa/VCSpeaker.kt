@@ -45,12 +45,12 @@ class TitleCommand : Extension() {
                     respond(it)
                 } ?: return@action
 
-                val (oldRow, newRow) = Title.setTitleOf(channel, title, user)
+                val (old, new) = Title.setTitleOf(channel, title, user)
 
                 respondEmbed(
                     ":regional_indicator_t: Title Set",
                     """
-                        タイトル「${newRow.title}」を ${channel.mention} に設定しました。
+                        タイトル「${new.title}」を ${channel.mention} に設定しました。
                         全員が退出したらリセットされます。
                         レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
                     """.trimIndent()
@@ -62,7 +62,7 @@ class TitleCommand : Extension() {
                     }
 
                     field(":white_medium_small_square: 旧タイトル", true) {
-                        oldRow?.title?.let { "`$it`" } ?: "`${newRow.originalTitle}` (デフォルト)"
+                        old?.title?.let { "`$it`" } ?: "`${new.originalTitle}` (デフォルト)"
                     }
 
                     successColor()

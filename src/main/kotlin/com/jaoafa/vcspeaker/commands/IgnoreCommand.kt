@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
@@ -67,7 +67,7 @@ class IgnoreCommand : Extension() {
 
                     val entity = transactionResulting {
                         Entity.new {
-                            this.guildEntity = guild.getEntity()
+                            this.guildEntity = guild.fetchEntity()
                             creatorDid = user.id
                             this.type = type
                             this.search = search
@@ -86,22 +86,20 @@ class IgnoreCommand : Extension() {
                         return@action
                     }.unwrap()
 
-                    val row = transaction {
-                        entity.getRow()
-                    }
+                    val snapshot = entity.fetchSnapshot()
 
-                    val typeText = if (row.type == IgnoreType.Contains) "を含む" else "と一致する"
+                    val typeText = if (snapshot.type == IgnoreType.Contains) "を含む" else "と一致する"
 
                     respondEmbed(
                         ":face_with_symbols_over_mouth: Ignore Created",
-                        "今後「${row.search}」${typeText}メッセージは読み上げられません。"
+                        "今後「${snapshot.search}」${typeText}メッセージは読み上げられません。"
                     ) {
                         authorOf(user)
                         successColor()
                     }
 
                     log(logger) { guild, user ->
-                        "[${guild.name}] Ignore Created: @${user.username} created ignore $row"
+                        "[${guild.name}] Ignore Created: @${user.username} created ignore $snapshot"
                     }
                 }
             }
@@ -128,24 +126,24 @@ class IgnoreCommand : Extension() {
                         return@action
                     }
 
-                    val row = transaction {
-                        val row = ignoreEntity.getRow()
+                    val snapshot = transaction {
+                        val snapshot = ignoreEntity.fetchSnapshot()
                         ignoreEntity.delete()
-                        row
+                        snapshot
                     }
 
-                    val typeText = if (row.type == IgnoreType.Contains) "が含まれて" else "と一致して"
+                    val typeText = if (snapshot.type == IgnoreType.Contains) "が含まれて" else "と一致して"
 
                     respondEmbed(
                         ":wastebasket: Ignore Deleted",
-                        "「${row.search}」${typeText}いても読み上げます。"
+                        "「${snapshot.search}」${typeText}いても読み上げます。"
                     ) {
                         authorOf(user)
                         successColor()
                     }
 
                     log(logger) { guild, user ->
-                        "[${guild.name}] Ignore Deleted: @${user.username} deleted $row"
+                        "[${guild.name}] Ignore Deleted: @${user.username} deleted $snapshot"
                     }
                 }
             }
@@ -153,11 +151,9 @@ class IgnoreCommand : Extension() {
             publicSubCommand("list", "無視条件の一覧を表示します。") {
                 action {
                     val guildId = guild?.id ?: return@action
-                    val ignoreEntities = transaction {
-                        Entity.find { Table.guildDid eq guildId }.getRows()
-                    }
+                    val ignoreSnapshots = Entity.find { Table.guildDid eq guildId }.fetchSnapshots()
 
-                    if (ignoreEntities.isEmpty()) {
+                    if (ignoreSnapshots.isEmpty()) {
                         respondEmbed(
                             ":grey_question: Ignores Not Found",
                             "設定されていないようです。`/ignore create` で作成してみましょう！"
@@ -169,7 +165,7 @@ class IgnoreCommand : Extension() {
                     }
 
                     respondingPaginator {
-                        for (chunkedIgnores in ignoreEntities.chunked(10)) {
+                        for (chunkedIgnores in ignoreSnapshots.chunked(10)) {
                             page {
                                 authorOf(user)
 

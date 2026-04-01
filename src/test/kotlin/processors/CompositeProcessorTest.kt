@@ -2,7 +2,7 @@ package processors
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.DatabaseUtil
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.tables.*
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.stores.IgnoreType
@@ -85,7 +85,7 @@ class CompositeProcessorTest : FunSpec({
             transaction {
                 // "hello" という文字列を無視する設定
                 IgnoreEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = IgnoreType.Equals
                     search = "hello"
@@ -93,7 +93,7 @@ class CompositeProcessorTest : FunSpec({
 
                 // "hello" を "こんにちは" に置き換えるエイリアス設定
                 AliasEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = AliasType.Text
                     search = "hello"
@@ -117,7 +117,7 @@ class CompositeProcessorTest : FunSpec({
             transaction {
                 // "ignore" を含む文字列を無視する設定
                 IgnoreEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = IgnoreType.Contains
                     search = "ignore"
@@ -125,7 +125,7 @@ class CompositeProcessorTest : FunSpec({
 
                 // "test" を "テスト" に置き換えるエイリアス設定
                 AliasEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = AliasType.Text
                     search = "test"
@@ -153,7 +153,7 @@ class CompositeProcessorTest : FunSpec({
             transaction {
                 // "Webページ" を含む文字列を無視する設定
                 IgnoreEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = IgnoreType.Contains
                     search = "Webページ"
@@ -179,7 +179,7 @@ class CompositeProcessorTest : FunSpec({
             transaction {
                 // "Example Domain" を "例のドメイン" に置き換えるエイリアス
                 AliasEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = AliasType.Text
                     search = "Example Domain"
@@ -188,7 +188,7 @@ class CompositeProcessorTest : FunSpec({
 
                 // "例のドメイン" を含む文字列を無視する設定
                 IgnoreEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = IgnoreType.Contains
                     search = "例のドメイン"
@@ -212,7 +212,7 @@ class CompositeProcessorTest : FunSpec({
             transaction {
                 // "bad" を "NG word" に置き換えるエイリアス
                 AliasEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = AliasType.Text
                     search = "bad"
@@ -221,7 +221,7 @@ class CompositeProcessorTest : FunSpec({
 
                 // "NG word" を含む文字列を無視する設定
                 IgnoreEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = IgnoreType.Contains
                     search = "NG word"
@@ -245,7 +245,7 @@ class CompositeProcessorTest : FunSpec({
             transaction {
                 // "hello" を "こんにちは" に置き換えるエイリアス
                 AliasEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = AliasType.Text
                     search = "hello"
@@ -254,7 +254,7 @@ class CompositeProcessorTest : FunSpec({
 
                 // 別の文字列を無視する設定（"hello" や "こんにちは" には該当しない）
                 IgnoreEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = IgnoreType.Equals
                     search = "ignore this"
@@ -279,7 +279,7 @@ class CompositeProcessorTest : FunSpec({
             transaction {
                 // "Example Domain" を "例のドメイン" に置き換えるエイリアス
                 AliasEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = AliasType.Text
                     search = "Example Domain"
@@ -288,7 +288,7 @@ class CompositeProcessorTest : FunSpec({
 
                 // 無関係の文字列を無視する設定
                 IgnoreEntity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     creatorDid = Snowflake(123)
                     type = IgnoreType.Equals
                     search = "completely different text"

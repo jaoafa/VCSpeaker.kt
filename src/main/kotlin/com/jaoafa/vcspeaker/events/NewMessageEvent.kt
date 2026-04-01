@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getRow
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchSnapshot
 import com.jaoafa.vcspeaker.database.actions.ReadableBotAction.isReadableBotOn
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
@@ -38,19 +38,19 @@ class NewMessageEvent : Extension() {
             action {
                 val guild = event.getGuildOrNull() ?: return@action
                 val message = event.message
-                val guildRow = guild.getRow()
+                val guildSnapshot = guild.fetchSnapshot()
 
                 // Not the voice-text channel
-                if (guildRow.channelDid != message.channelId) return@action
+                if (guildSnapshot.channelDid != message.channelId) return@action
                 // The message starts with the configured prefix
-                if (message.content.startsWith(guildRow.prefix ?: VCSpeaker.prefix)) return@action
+                if (message.content.startsWith(guildSnapshot.prefix ?: VCSpeaker.prefix)) return@action
                 // The message is a slash command
                 if (message.type == MessageType.ChatInputCommand) return@action
 
                 val isNarratorActive = guild.getNarrator() != null
 
                 // No narrator is active and autojoin is enabled
-                if (!isNarratorActive && guildRow.autoJoin) {
+                if (!isNarratorActive && guildSnapshot.autoJoin) {
                     val targetChannel = event.member?.getVoiceStateOrNull()?.getChannelOrNull() ?: return@action
 
                     if (!targetChannel.isAfk())

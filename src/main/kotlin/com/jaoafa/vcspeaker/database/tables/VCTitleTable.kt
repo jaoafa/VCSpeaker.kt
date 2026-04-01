@@ -2,12 +2,15 @@ package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
+import dev.kord.common.entity.Snowflake
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object VCTitleTable : IntIdTable("vc_title"), VersionedTable {
     val guildDid = reference(
@@ -25,7 +28,7 @@ object VCTitleTable : IntIdTable("vc_title"), VersionedTable {
     override val version = version()
 }
 
-class VCTitleEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<VCTitleRow> {
+class VCTitleEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<VCTitleSnapshot, VCTitleEntity> {
     companion object : IntEntityClass<VCTitleEntity>(VCTitleTable)
 
     var guildEntity by GuildEntity referencedOn VCTitleTable.guildDid
@@ -35,16 +38,34 @@ class VCTitleEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<VCTitleRow> 
     var creatorDid by VCTitleTable.creatorDid
     var version by VCTitleTable.version
 
-    override fun getRow() = readValues.toTyped<VCTitleRow>()
+    override fun fetchSnapshot() = transaction { VCTitleSnapshot.from(readValues) }
 }
 
-class VCTitleRow(resultRow: ResultRow) : TypedRow(resultRow, VCTitleTable) {
-    val guildDid = column(VCTitleTable.guildDid)
-    val title = column(VCTitleTable.title)
-    val originalTitle = column(VCTitleTable.originalTitle)
-    val channelDid = column(VCTitleTable.channelDid)
-    val creatorDid = column(VCTitleTable.creatorDid)
-    val version = column(VCTitleTable.version)
+@Serializable
+data class VCTitleSnapshot(
+    val id: Int,
+    val guildDid: Snowflake,
+    val title: String?,
+    val originalTitle: String,
+    val channelDid: Snowflake,
+    val creatorDid: Snowflake,
+    val version: Int,
+) : EntitySnapshot<VCTitleEntity>() {
+    companion object : SnapshotFactory<VCTitleSnapshot> {
+        override fun from(row: ResultRow) = VCTitleSnapshot(
+            id = row[VCTitleTable.id].value,
+            guildDid = row[VCTitleTable.guildDid].value,
+            title = row[VCTitleTable.title],
+            originalTitle = row[VCTitleTable.originalTitle],
+            channelDid = row[VCTitleTable.channelDid],
+            creatorDid = row[VCTitleTable.creatorDid],
+            version = row[VCTitleTable.version],
+        )
+    }
 
     override fun describe() = "$title <#$channelDid> by <@$creatorDid> ($originalTitle)"
+
+    override fun fetchEntity() = transaction {
+        VCTitleEntity[this@VCTitleSnapshot.id]
+    }
 }

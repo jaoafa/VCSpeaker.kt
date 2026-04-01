@@ -9,6 +9,8 @@ import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object DatabaseUtil {
+    const val DEFAULT_DB_URL = "jdbc:h2:file:./database/h2;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE"
+
     val tables = listOf(
         AliasTable,
         GuildTable,
@@ -22,7 +24,7 @@ object DatabaseUtil {
         VoiceTable
     )
 
-    fun init(url: String = "jdbc:h2:file:./database/h2;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE"): Database {
+    fun init(url: String = DEFAULT_DB_URL): Database {
         val db = Database.connect(url, driver = "org.h2.Driver") // fixme: env var, place under ./database/ or something
         TransactionManager.defaultDatabase = db
 
@@ -39,5 +41,6 @@ object DatabaseUtil {
 
     fun Table.version() = integer("version").default(0)
 
-    inline fun <reified T : TypedRow, reified E : TypedEntity<T>> SizedIterable<E>.getRows() = map { it.getRow() }
+    inline fun <reified E : SnappableEntity<T, S>, T : EntitySnapshot<S>, S> SizedIterable<E>.fetchSnapshots() =
+        map { it.fetchSnapshot() }
 }

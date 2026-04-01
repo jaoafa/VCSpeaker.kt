@@ -1,8 +1,8 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.database.tables.GuildRow
-import com.jaoafa.vcspeaker.database.tables.VoiceRow
+import com.jaoafa.vcspeaker.database.tables.GuildSnapshot
+import com.jaoafa.vcspeaker.database.tables.VoiceSnapshot
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
@@ -61,55 +61,55 @@ object DiscordExtensions {
      */
     suspend fun EmbedBuilder.authorOf(user: UserBehavior) = authorOf(user.asUser())
 
-    fun EmbedBuilder.voiceParameterFieldsOf(row: VoiceRow) {
-        val emotionEmoji = row.emotion?.emoji ?: ":neutral_face:"
+    fun EmbedBuilder.voiceParameterFieldsOf(snapshot: VoiceSnapshot) {
+        val emotionEmoji = snapshot.emotion?.emoji ?: ":neutral_face:"
 
         field {
             name = ":grinning: 話者"
-            value = row.speaker.speakerName
+            value = snapshot.speaker.speakerName
             inline = true
         }
         field {
             name = "$emotionEmoji 感情"
-            value = row.emotion?.emotionName ?: "未設定"
+            value = snapshot.emotion?.emotionName ?: "未設定"
             inline = true
         }
         field {
             name = ":signal_strength: 感情レベル"
-            value = row.emotionLevel?.let { "`Level $it`" } ?: "未設定"
+            value = snapshot.emotionLevel?.let { "`Level $it`" } ?: "未設定"
             inline = true
         }
         field {
             name = ":arrow_up_down: ピッチ"
-            value = row.pitch.let { "`$it%`" }
+            value = snapshot.pitch.let { "`$it%`" }
             inline = true
         }
         field {
             name = ":fast_forward: 速度"
-            value = row.speed.let { "`$it%`" }
+            value = snapshot.speed.let { "`$it%`" }
             inline = true
         }
         field {
             name = ":loud_sound: 音量"
-            value = row.volume.let { "`$it%`" }
+            value = snapshot.volume.let { "`$it%`" }
             inline = true
         }
     }
 
-    suspend fun EmbedBuilder.guildParameterFieldsOf(row: GuildRow) {
+    suspend fun EmbedBuilder.guildParameterFieldsOf(snapshot: GuildSnapshot) {
         field {
             name = ":hash: 読み上げチャンネル"
-            value = row.channelDid?.asChannelOf<TextChannel>()?.mention ?: "未設定"
+            value = snapshot.channelDid?.asChannelOf<TextChannel>()?.mention ?: "未設定"
             inline = true
         }
         field {
             name = ":symbols: プレフィックス"
-            value = row.prefix?.let { "`$it`" } ?: "未設定"
+            value = snapshot.prefix?.let { "`$it`" } ?: "未設定"
             inline = true
         }
         field {
             name = ":inbox_tray: 自動入退室"
-            value = if (row.autoJoin) "有効" else "無効"
+            value = if (snapshot.autoJoin) "有効" else "無効"
             inline = true
         }
     }

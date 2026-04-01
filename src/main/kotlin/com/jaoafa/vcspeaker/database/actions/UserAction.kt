@@ -9,7 +9,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 object UserAction {
     fun getVoiceOrDefaultOf(userId: Snowflake) = transaction {
         val userEntity = UserEntity.findById(userId) ?: return@transaction Voice(speaker = Speaker.Hikari)
-        val voiceRow = userEntity.voiceEntity.getRow()
-        return@transaction Voice.from(voiceRow)
+        val voiceSnapshot = userEntity.voiceEntity.fetchSnapshot()
+        return@transaction Voice.from(voiceSnapshot)
     }
 }

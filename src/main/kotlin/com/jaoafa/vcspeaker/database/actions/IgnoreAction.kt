@@ -11,7 +11,7 @@ object IgnoreAction {
         IgnoreEntity
             .find { IgnoreTable.guildDid eq guildId }
             .sortedBy { it.search.length }
-            .map { it.getRow() }
+            .map { it.fetchSnapshot() }
     }
 
     fun getEffectiveIgnoresOf(text: String, guildId: Snowflake) = getIgnoresOf(guildId).filter { it.match(text) }

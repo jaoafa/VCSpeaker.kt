@@ -1,8 +1,8 @@
 package com.jaoafa.vcspeaker.features
 
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.suspendTransactionResulting
-import com.jaoafa.vcspeaker.database.tables.VCTitleRow
+import com.jaoafa.vcspeaker.database.tables.VCTitleSnapshot
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
@@ -28,9 +28,9 @@ object Title {
         channel: BaseVoiceChannelBehavior,
         title: String,
         creator: UserBehavior
-    ): Pair<VCTitleRow?, VCTitleRow> = suspendTransaction transaction@{
+    ): Pair<VCTitleSnapshot?, VCTitleSnapshot> = suspendTransaction transaction@{
         val entity = getTitleEntityOf(channel)
-        val oldRow = entity?.getRow()
+        val oldSnapshot = entity?.fetchSnapshot()
 
         val originalName = channel.getName()
 
@@ -46,18 +46,18 @@ object Title {
                 Entity.new {
                     this.title = title
                     this.channelDid = channel.id
-                    this.guildEntity = channel.guild.getEntity()
+                    this.guildEntity = channel.guild.fetchEntity()
                     this.creatorDid = creator.id
                     this.originalTitle = originalName
                 }
             }
         }.unwrap()
 
-        val newRow = newEntity.getRow()
+        val newSnapshot = newEntity.fetchSnapshot()
 
-        logger.info { "Title Set: $oldRow -> $newRow" }
+        logger.info { "Title Set: $oldSnapshot -> $newSnapshot" }
 
-        return@transaction oldRow to newRow
+        return@transaction oldSnapshot to newSnapshot
     }
 
     /**
@@ -67,16 +67,19 @@ object Title {
      * @param creator 操作の実行者
      * @return リセットが行われなかった場合は null, リセットが行われた場合は操作前後のレコードを返します。
      */
-    suspend fun resetTitleOf(channel: BaseVoiceChannelBehavior, creator: UserBehavior): Pair<VCTitleRow?, VCTitleRow>? =
+    suspend fun resetTitleOf(
+        channel: BaseVoiceChannelBehavior,
+        creator: UserBehavior
+    ): Pair<VCTitleSnapshot?, VCTitleSnapshot>? =
         suspendTransaction transaction@{
             val entity = getTitleEntityOf(channel)
-            val oldRow = entity?.getRow()
+            val oldSnapshot = entity?.fetchSnapshot()
 
-            if (entity == null || oldRow?.title == null) {
+            if (entity == null || oldSnapshot?.title == null) {
                 return@transaction null
             }
 
-            channel.rename(oldRow.originalTitle)
+            channel.rename(oldSnapshot.originalTitle)
 
             transactionResulting(commit = true) {
                 entity.title = null
@@ -84,11 +87,11 @@ object Title {
                 entity.version += 1
             }.unwrap()
 
-            val newRow = entity.getRow()
+            val newSnapshot = entity.fetchSnapshot()
 
-            logger.info { "Title Reset: $oldRow -> $newRow" }
+            logger.info { "Title Reset: $oldSnapshot -> $newSnapshot" }
 
-            return@transaction oldRow to newRow
+            return@transaction oldSnapshot to newSnapshot
 
         }
 
@@ -99,10 +102,13 @@ object Title {
      * @param creator 操作の実行者
      * @return レコードが存在しない場合は null, 保存が行われた場合は操作前後のレコードを返します。
      */
-    suspend fun saveTitleOf(channel: BaseVoiceChannelBehavior, creator: UserBehavior): Pair<VCTitleRow, VCTitleRow>? =
+    suspend fun saveTitleOf(
+        channel: BaseVoiceChannelBehavior,
+        creator: UserBehavior
+    ): Pair<VCTitleSnapshot, VCTitleSnapshot>? =
         suspendTransaction transaction@{
             val entity = getTitleEntityOf(channel) ?: return@transaction null
-            val oldRow = entity.getRow()
+            val oldSnapshot = entity.fetchSnapshot()
 
             suspendTransactionResulting(commit = true) {
                 entity.originalTitle = channel.getName()
@@ -111,17 +117,17 @@ object Title {
                 entity.version += 1
             }.unwrap()
 
-            val newRow = entity.getRow()
+            val newSnapshot = entity.fetchSnapshot()
 
-            logger.info { "Title Saved: $oldRow -> $newRow" }
+            logger.info { "Title Saved: $oldSnapshot -> $newSnapshot" }
 
-            return@transaction oldRow to newRow
+            return@transaction oldSnapshot to newSnapshot
         }
 
-    suspend fun saveAllTitlesOf(guild: GuildBehavior, creator: UserBehavior): Map<VCTitleRow, VCTitleRow> =
+    suspend fun saveAllTitlesOf(guild: GuildBehavior, creator: UserBehavior): Map<VCTitleSnapshot, VCTitleSnapshot> =
         suspendTransaction transaction@{
             val entities = Entity.find { Table.guildDid eq guild.id }.toList()
-            val oldRows = entities.map { it.getRow() }
+            val oldSnapshots = entities.map { it.fetchSnapshot() }
 
             suspendTransactionResulting(commit = true) {
                 for (entity in entities) {
@@ -134,8 +140,8 @@ object Title {
                 }
             }.unwrap()
 
-            val newRows = entities.map { it.getRow() }
+            val newSnapshots = entities.map { it.fetchSnapshot() }
 
-            return@transaction oldRows.zip(newRows).toMap()
+            return@transaction oldSnapshots.zip(newSnapshots).toMap()
         }
 }

@@ -2,7 +2,7 @@ package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.DatabaseUtil
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.GuildTable
@@ -50,7 +50,7 @@ class AliasReplacerTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.getEntity()
+                guildEntity = guild.fetchEntity()
                 creatorDid = Snowflake(0)
                 type = AliasType.Text
                 search = "world"
@@ -72,7 +72,7 @@ class AliasReplacerTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.getEntity()
+                guildEntity = guild.fetchEntity()
                 creatorDid = Snowflake(0)
                 type = AliasType.Text
                 search = "Java"

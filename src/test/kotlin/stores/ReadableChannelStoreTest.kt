@@ -1,7 +1,7 @@
 package stores
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction.isReadableChannel
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
@@ -64,7 +64,7 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
@@ -84,7 +84,7 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     channelDid = channelId1
                     creatorDid = creatorId
                 }
@@ -103,7 +103,7 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
@@ -119,7 +119,7 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
@@ -130,7 +130,7 @@ class ReadableChannelStoreTest : FunSpec({
             shouldThrow<ExposedSQLException> {
                 transactionResulting {
                     Entity.new {
-                        guildEntity = guild.getEntity()
+                        guildEntity = guild.fetchEntity()
                         channelDid = channel.id
                         creatorDid = creatorId
                     }
@@ -153,12 +153,12 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild1.getEntity()
+                    guildEntity = guild1.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
                 Entity.new {
-                    guildEntity = guild2.getEntity()
+                    guildEntity = guild2.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
@@ -179,7 +179,7 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild.getEntity()
+                    guildEntity = guild.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
@@ -199,12 +199,12 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild1.getEntity()
+                    guildEntity = guild1.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
                 Entity.new {
-                    guildEntity = guild2.getEntity()
+                    guildEntity = guild2.fetchEntity()
                     channelDid = channel.id
                     creatorDid = creatorId
                 }
@@ -225,12 +225,12 @@ class ReadableChannelStoreTest : FunSpec({
 
             transaction {
                 Entity.new {
-                    guildEntity = guild1.getEntity()
+                    guildEntity = guild1.fetchEntity()
                     channelDid = channel1.id
                     creatorDid = creatorId
                 }
                 Entity.new {
-                    guildEntity = guild1.getEntity()
+                    guildEntity = guild1.fetchEntity()
                     channelDid = channel2.id
                     creatorDid = creatorId
                 }

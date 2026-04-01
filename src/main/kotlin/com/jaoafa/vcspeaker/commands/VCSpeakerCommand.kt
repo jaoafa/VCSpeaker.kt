@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntityOrNull
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntityOrNull
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.database.transactionResulting
@@ -88,11 +88,11 @@ class VCSpeakerCommand : Extension() {
                     val guild = guild ?: return@action
 
                     val registered = transaction {
-                        val entity = guild.getEntityOrNull() ?: return@transaction null
-                        val guildRow = entity.getRow()
-                        val voiceRow = entity.speakerVoiceEntity.getRow()
+                        val entity = guild.fetchEntityOrNull() ?: return@transaction null
+                        val guildSnapshot = entity.fetchSnapshot()
+                        val voiceSnapshot = entity.speakerVoiceEntity.fetchSnapshot()
 
-                        return@transaction guildRow to voiceRow
+                        return@transaction guildSnapshot to voiceSnapshot
                     }
 
                     if (registered != null) {
@@ -117,11 +117,11 @@ class VCSpeakerCommand : Extension() {
                         voiceEntity to guildEntity
                     }.unwrap()
 
-                    val (guildRow, voiceRow) = transaction {
-                        val guildRow = guildEntity.getRow()
-                        val voiceRow = voiceEntity.getRow()
+                    val (guildSnapshot, voiceSnapshot) = transaction {
+                        val guildSnapshot = guildEntity.fetchSnapshot()
+                        val voiceSnapshot = voiceEntity.fetchSnapshot()
 
-                        return@transaction guildRow to voiceRow
+                        return@transaction guildSnapshot to voiceSnapshot
                     }
 
                     respondEmbed(
@@ -129,8 +129,8 @@ class VCSpeakerCommand : Extension() {
                         "登録が完了しました！"
                     ) {
                         authorOf(user)
-                        guildParameterFieldsOf(guildRow)
-                        voiceParameterFieldsOf(voiceRow)
+                        guildParameterFieldsOf(guildSnapshot)
+                        voiceParameterFieldsOf(voiceSnapshot)
                         successColor()
                     }
                 }
@@ -141,7 +141,7 @@ class VCSpeakerCommand : Extension() {
                 action {
                     val guild = guild ?: return@action
 
-                    val guildEntity = guild.getEntityOrNull() ?: return@action
+                    val guildEntity = guild.fetchEntityOrNull() ?: return@action
 
                     var modified = false
 
@@ -157,8 +157,8 @@ class VCSpeakerCommand : Extension() {
                         modified = modified || guildEntity.speakerVoiceEntity.modifyByOptions(arguments)
                     }.unwrap()
 
-                    val (guildRow, voiceRow) = transaction {
-                        guildEntity.getRow() to guildEntity.speakerVoiceEntity.getRow()
+                    val (guildSnapshot, voiceSnapshot) = transaction {
+                        guildEntity.fetchSnapshot() to guildEntity.speakerVoiceEntity.fetchSnapshot()
                     }
 
                     respondEmbed(
@@ -166,8 +166,8 @@ class VCSpeakerCommand : Extension() {
                         else ":arrows_counterclockwise: Settings Updated"
                     ) {
                         authorOf(user)
-                        guildParameterFieldsOf(guildRow)
-                        voiceParameterFieldsOf(voiceRow)
+                        guildParameterFieldsOf(guildSnapshot)
+                        voiceParameterFieldsOf(voiceSnapshot)
                         successColor()
                     }
 
@@ -181,7 +181,7 @@ class VCSpeakerCommand : Extension() {
                 check { anyGuildRegistered() }
                 action {
                     val guild = guild ?: return@action
-                    val guildEntity = guild.getEntityOrNull() ?: return@action
+                    val guildEntity = guild.fetchEntityOrNull() ?: return@action
 
                     val confirmUser = user
 

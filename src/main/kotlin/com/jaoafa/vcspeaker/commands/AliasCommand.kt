@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
@@ -106,7 +106,7 @@ class AliasCommand : Extension() {
 
                     val entity = transactionResulting {
                         Entity.new {
-                            this.guildEntity = guild.getEntity()
+                            this.guildEntity = guild.fetchEntity()
                             this.creatorDid = user.id
                             this.type = AliasType.valueOf(arguments.type)
                             this.search = search
@@ -126,26 +126,24 @@ class AliasCommand : Extension() {
                         return@action
                     }.unwrap()
 
-                    val row = transaction {
-                        entity.getRow()
-                    }
+                    val snapshot = entity.fetchSnapshot()
 
                     respondEmbed(
                         ":loudspeaker: Alias Created",
-                        "${row.type.displayName}のエイリアスを作成しました"
+                        "${snapshot.type.displayName}のエイリアスを作成しました"
                     ) {
                         authorOf(user)
-                        fieldAliasFrom(row.type, row.search)
+                        fieldAliasFrom(snapshot.type, snapshot.search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            row.replace
+                            snapshot.replace
                         }
 
                         successColor()
                     }
 
                     log(logger) { guild, user ->
-                        "[${guild.name}] Alias Created: @${user.username} created alias $row"
+                        "[${guild.name}] Alias Created: @${user.username} created alias $snapshot"
                     }
                 }
             }
@@ -170,14 +168,12 @@ class AliasCommand : Extension() {
                         return@action
                     }
 
-                    val oldRow = transaction {
-                        aliasEntity.getRow()
-                    }
+                    val oldSnapshot = aliasEntity.fetchSnapshot()
 
                     val updatedType =
-                        arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: oldRow.type
-                    val updatedSearch = arguments.search ?: oldRow.search
-                    val updatedReplace = arguments.replace ?: oldRow.replace
+                        arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: oldSnapshot.type
+                    val updatedSearch = arguments.search ?: oldSnapshot.search
+                    val updatedReplace = arguments.replace ?: oldSnapshot.replace
 
                     if (!validateSoundboardAlias(updatedType, updatedReplace)) return@action
 
@@ -195,14 +191,12 @@ class AliasCommand : Extension() {
                             errorColor()
                         }
                         log(logger) { guild, user ->
-                            "[${guild.name}] Duplicated Alias: @${user.username} attempted to update $oldRow with $arguments but failed due to duplication."
+                            "[${guild.name}] Duplicated Alias: @${user.username} attempted to update $oldSnapshot with $arguments but failed due to duplication."
                         }
                         return@action
                     }.unwrap()
 
-                    val newRow = transaction {
-                        aliasEntity.getRow()
-                    }
+                    val newSnapshot = aliasEntity.fetchSnapshot()
 
                     respondEmbed(
                         ":repeat: Alias Updated",
@@ -218,23 +212,23 @@ class AliasCommand : Extension() {
                         }
 
                         field("${updatedType.emoji} ${updatedType.displayName}", true) {
-                            searchDisplay(oldRow.type, oldRow.search) + if (oldRow.search != newRow.search)
-                                " → **${searchDisplay(newRow.type, newRow.search)}**"
+                            searchDisplay(oldSnapshot.type, oldSnapshot.search) + if (oldSnapshot.search != newSnapshot.search)
+                                " → **${searchDisplay(newSnapshot.type, newSnapshot.search)}**"
                             else ""
                         }
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            if (oldRow.replace != newRow.replace)
-                                "「${oldRow.replace}」→「**${newRow.replace}**」"
+                            if (oldSnapshot.replace != newSnapshot.replace)
+                                "「${oldSnapshot.replace}」→「**${newSnapshot.replace}**」"
                             else
-                                "「${newRow.replace}」"
+                                "「${newSnapshot.replace}」"
                         }
 
                         successColor()
                     }
 
                     log(logger) { guild, user ->
-                        "[${guild.name}] Alias Updated: @${user.username} updated alias $oldRow -> $newRow"
+                        "[${guild.name}] Alias Updated: @${user.username} updated alias $oldSnapshot -> $newSnapshot"
                     }
                 }
             }
@@ -261,29 +255,29 @@ class AliasCommand : Extension() {
                         return@action
                     }
 
-                    val row = transaction {
-                        val row = aliasEntity.getRow()
+                    val snapshot = transaction {
+                        val snapshot = aliasEntity.fetchSnapshot()
                         aliasEntity.delete()
-                        row
+                        snapshot
                     }
 
                     respondEmbed(
                         ":wastebasket: Alias Deleted",
-                        "${row.type.displayName}エイリアスを削除しました。"
+                        "${snapshot.type.displayName}エイリアスを削除しました。"
                     ) {
                         authorOf(user)
 
-                        fieldAliasFrom(row.type, row.search)
+                        fieldAliasFrom(snapshot.type, snapshot.search)
 
                         field(":arrows_counterclockwise: 置き換える文字列", true) {
-                            row.replace
+                            snapshot.replace
                         }
 
                         successColor()
                     }
 
                     log(logger) { guild, user ->
-                        "[${guild.name}] Alias Deleted: @${user.username} deleted $row"
+                        "[${guild.name}] Alias Deleted: @${user.username} deleted $snapshot"
                     }
                 }
             }
@@ -291,11 +285,9 @@ class AliasCommand : Extension() {
             publicSubCommand("list", "エイリアスの一覧を表示します。") {
                 action {
                     val guildId = guild?.id ?: return@action
-                    val aliasEntities = transaction {
-                        Entity.find { Table.guildDid eq guildId }.getRows()
-                    }
+                    val snapshots = Entity.find { Table.guildDid eq guildId }.fetchSnapshots()
 
-                    if (aliasEntities.isEmpty()) {
+                    if (snapshots.isEmpty()) {
                         respondEmbed(
                             ":grey_question: Aliases Not Found",
                             "エイリアスが設定されていないようです。`/alias create` で作成してみましょう！"
@@ -307,7 +299,7 @@ class AliasCommand : Extension() {
                     }
 
                     respondingPaginator {
-                        for (chunkedAliases in aliasEntities.chunked(10)) {
+                        for (chunkedAliases in snapshots.chunked(10)) {
                             page {
                                 authorOf(user)
 

@@ -1,9 +1,9 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
+import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
-import com.jaoafa.vcspeaker.database.tables.AliasRow
+import com.jaoafa.vcspeaker.database.tables.AliasSnapshot
 import com.jaoafa.vcspeaker.database.tables.AliasTable
 import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
@@ -26,10 +26,10 @@ interface BaseReplacer {
         tokens: MutableList<TextToken>,
         guildId: Snowflake,
         type: AliasType,
-        transform: (AliasRow, MutableList<TextToken>) -> MutableList<TextToken>
+        transform: (AliasSnapshot, MutableList<TextToken>) -> MutableList<TextToken>
     ): MutableList<TextToken> {
         val aliases = transaction {
-            AliasEntity.find { AliasTable.guildDid eq guildId and (AliasTable.type eq type) }.getRows()
+            AliasEntity.find { AliasTable.guildDid eq guildId and (AliasTable.type eq type) }.fetchSnapshots()
         }
 
         val replacedText = aliases.fold(tokens) { replacedTokens, alias ->

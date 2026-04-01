@@ -3,12 +3,15 @@ package com.jaoafa.vcspeaker.database.tables
 import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import com.jaoafa.vcspeaker.stores.IgnoreType
+import dev.kord.common.entity.Snowflake
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object IgnoreTable : IntIdTable("ignore"), VersionedTable {
     val guildDid = reference(
@@ -26,7 +29,7 @@ object IgnoreTable : IntIdTable("ignore"), VersionedTable {
     }
 }
 
-class IgnoreEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<IgnoreRow> {
+class IgnoreEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<IgnoreSnapshot, IgnoreEntity> {
     companion object : IntEntityClass<IgnoreEntity>(IgnoreTable)
 
     var guildEntity by GuildEntity referencedOn IgnoreTable.guildDid
@@ -35,19 +38,36 @@ class IgnoreEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<IgnoreRow> {
     var search by IgnoreTable.search
     var version by IgnoreTable.version
 
-    override fun getRow() = readValues.toTyped<IgnoreRow>()
+    override fun fetchSnapshot() = transaction { IgnoreSnapshot.from(readValues) }
 }
 
-class IgnoreRow(resultRow: ResultRow) : TypedRow(resultRow, IgnoreTable) {
-    val guildDid = column(IgnoreTable.guildDid)
-    val creatorDid = column(IgnoreTable.creatorDid)
-    val type = column(IgnoreTable.type)
-    val search = column(IgnoreTable.search)
-    val version = column(IgnoreTable.version)
+@Serializable
+data class IgnoreSnapshot(
+    val id: Int,
+    val guildDid: Snowflake,
+    val creatorDid: Snowflake,
+    val type: IgnoreType,
+    val search: String,
+    val version: Int,
+) : EntitySnapshot<IgnoreEntity>() {
+    companion object : SnapshotFactory<IgnoreSnapshot> {
+        override fun from(row: ResultRow) = IgnoreSnapshot(
+            id = row[IgnoreTable.id].value,
+            guildDid = row[IgnoreTable.guildDid].value,
+            creatorDid = row[IgnoreTable.creatorDid],
+            type = row[IgnoreTable.type],
+            search = row[IgnoreTable.search],
+            version = row[IgnoreTable.version],
+        )
+    }
 
     override fun describe() = "${type.displayName}「$search」<@$creatorDid>"
 
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
+
+    override fun fetchEntity() = transaction {
+        IgnoreEntity[this@IgnoreSnapshot.id]
+    }
 
     fun match(text: String) = when (type) {
         IgnoreType.Equals -> text == search

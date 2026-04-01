@@ -3,8 +3,10 @@ package com.jaoafa.vcspeaker.database.tables
 import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import dev.kord.common.entity.Snowflake
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object GuildTable : SnowflakeIdTable("guild", columnName = "did"), VersionedTable {
     val channelDid = long("channel_did").nullable()
@@ -19,7 +21,7 @@ object GuildTable : SnowflakeIdTable("guild", columnName = "did"), VersionedTabl
     override val version = version()
 }
 
-class GuildEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id), TypedEntity<GuildRow> {
+class GuildEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id), SnappableEntity<GuildSnapshot, GuildEntity> {
     companion object : SnowflakeEntityClass<GuildEntity>(GuildTable)
 
     var channelDid by GuildTable.channelDid
@@ -27,16 +29,30 @@ class GuildEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id), TypedEntity<Gu
     var autoJoin by GuildTable.autoJoin
     var speakerVoiceEntity by VoiceEntity referencedOn GuildTable.speakerVoiceId
 
-    override fun getRow() = readValues.toTyped<GuildRow>()
+    override fun fetchSnapshot() = transaction { GuildSnapshot.from(readValues) }
 }
 
-class GuildRow(val resultRow: ResultRow) : TypedRow(resultRow, GuildTable) {
-    val did = column(GuildTable.id)
-    val channelDid = column(GuildTable.channelDid)
-    val prefix = column(GuildTable.prefix)
-    val autoJoin = column(GuildTable.autoJoin)
-    val speakerVoiceId = column(GuildTable.speakerVoiceId)
-    val version = column(GuildTable.version)
+@Serializable
+data class GuildSnapshot(
+    val did: Snowflake,
+    val channelDid: Snowflake?,
+    val prefix: String?,
+    val autoJoin: Boolean,
+    val speakerVoiceId: Int,
+    val version: Int,
+) : EntitySnapshot<GuildEntity>() {
+    companion object : SnapshotFactory<GuildSnapshot> {
+        override fun from(row: ResultRow) = GuildSnapshot(
+            did = row[GuildTable.id].value,
+            channelDid = row[GuildTable.channelDid],
+            prefix = row[GuildTable.prefix],
+            autoJoin = row[GuildTable.autoJoin],
+            speakerVoiceId = row[GuildTable.speakerVoiceId].value,
+            version = row[GuildTable.version],
+        )
+    }
 
-    override fun describe() = resultRow.toString()
+    override fun fetchEntity() = transaction {
+        GuildEntity[this@GuildSnapshot.did]
+    }
 }

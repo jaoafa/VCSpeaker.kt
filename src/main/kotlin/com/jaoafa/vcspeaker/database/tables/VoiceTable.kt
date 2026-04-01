@@ -1,19 +1,22 @@
 package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.database.TypedEntity
-import com.jaoafa.vcspeaker.database.TypedRow
+import com.jaoafa.vcspeaker.database.EntitySnapshot
+import com.jaoafa.vcspeaker.database.SnappableEntity
+import com.jaoafa.vcspeaker.database.SnapshotFactory
 import com.jaoafa.vcspeaker.database.VersionedTable
-import com.jaoafa.vcspeaker.database.toTyped
 import com.jaoafa.vcspeaker.features.*
 import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object VoiceTable : IntIdTable("voice"), VersionedTable {
     val speaker = enumerationByName<Speaker>("speaker", 16)
@@ -41,7 +44,7 @@ object VoiceTable : IntIdTable("voice"), VersionedTable {
     }
 }
 
-class VoiceEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<VoiceRow> {
+class VoiceEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<VoiceSnapshot, VoiceEntity> {
     companion object : IntEntityClass<VoiceEntity>(VoiceTable)
 
     var speaker by VoiceTable.speaker
@@ -51,7 +54,7 @@ class VoiceEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<VoiceRow> {
     var speed by VoiceTable.speed
     var volume by VoiceTable.volume
 
-    override fun getRow() = readValues.toTyped<VoiceRow>()
+    override fun fetchSnapshot() = transaction { VoiceSnapshot.from(readValues) }
 
     fun modifyByOptions(options: VoiceOptions): Boolean {
         var modified = false
@@ -78,13 +81,31 @@ class VoiceEntity(id: EntityID<Int>) : IntEntity(id), TypedEntity<VoiceRow> {
     }
 }
 
-class VoiceRow(val resultRow: ResultRow) : TypedRow(resultRow, VoiceTable) {
-    val speaker = column(VoiceTable.speaker)
-    val emotion = column(VoiceTable.emotion)
-    val emotionLevel = column(VoiceTable.emotionLevel)
-    val pitch = column(VoiceTable.pitch)
-    val speed = column(VoiceTable.speed)
-    val volume = column(VoiceTable.volume)
+@Serializable
+data class VoiceSnapshot(
+    val id: Int,
+    @Contextual val speaker: Speaker,
+    @Contextual val emotion: Emotion?,
+    val emotionLevel: Int?,
+    val pitch: Int,
+    val speed: Int,
+    val volume: Int,
+    val version: Int,
+) : EntitySnapshot<VoiceEntity>() {
+    companion object : SnapshotFactory<VoiceSnapshot> {
+        override fun from(row: ResultRow) = VoiceSnapshot(
+            id = row[VoiceTable.id].value,
+            speaker = row[VoiceTable.speaker],
+            emotion = row[VoiceTable.emotion],
+            emotionLevel = row[VoiceTable.emotionLevel],
+            pitch = row[VoiceTable.pitch],
+            speed = row[VoiceTable.speed],
+            volume = row[VoiceTable.volume],
+            version = row[VoiceTable.version],
+        )
+    }
 
-    override fun describe() = resultRow.toString()
+    override fun fetchEntity() = transaction {
+        VoiceEntity[this@VoiceSnapshot.id]
+    }
 }

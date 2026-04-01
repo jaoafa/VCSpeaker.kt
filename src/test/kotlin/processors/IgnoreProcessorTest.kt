@@ -2,6 +2,7 @@ package processors
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.GuildTable
 import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.stores.IgnoreType
@@ -13,6 +14,7 @@ import dev.kord.common.entity.Snowflake
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import utils.Constants.TEST_DB_MEM_URL
 import utils.createMessageMockk
@@ -47,6 +49,12 @@ class IgnoreProcessorTest : FunSpec({
     // テスト後にモックを削除
     afterEach {
         clearAllMocks()
+    }
+
+    afterSpec {
+        transaction {
+            GuildTable.deleteAll()
+        }
     }
 
     context("IgnoreBeforeReplaceProcessor") {

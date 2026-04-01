@@ -2,7 +2,7 @@ package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.DatabaseUtil
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction
 import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction.isReadableChannel
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
@@ -257,7 +257,7 @@ class UrlReplacerTest : FunSpec({
             // ReadableChannelActionに直接追加
             transaction {
                 ReadableChannelEntity.new {
-                    this.guildEntity = guild.getEntity()
+                    this.guildEntity = guild.fetchEntity()
                     channelDid = mockedChannelId
                     creatorDid = Snowflake(0)
                 }
@@ -311,7 +311,7 @@ class UrlReplacerTest : FunSpec({
 
             transaction {
                 ReadableChannelEntity.new {
-                    this.guildEntity = guild.getEntity()
+                    this.guildEntity = guild.fetchEntity()
                     channelDid = mockedChannelId
                     creatorDid = Snowflake(0)
                 }
@@ -365,7 +365,7 @@ class UrlReplacerTest : FunSpec({
 
             transaction {
                 ReadableChannelEntity.new {
-                    this.guildEntity = guild.getEntity()
+                    this.guildEntity = guild.fetchEntity()
                     channelDid = mockedChannelId
                     creatorDid = Snowflake(0)
                 }
@@ -414,7 +414,7 @@ class UrlReplacerTest : FunSpec({
 
             transaction {
                 ReadableChannelEntity.new {
-                    this.guildEntity = guild.getEntity()
+                    this.guildEntity = guild.fetchEntity()
                     channelDid = mockedChannelId
                     creatorDid = Snowflake(0)
                 }
@@ -458,7 +458,7 @@ class UrlReplacerTest : FunSpec({
 
             transaction {
                 ReadableChannelEntity.new {
-                    this.guildEntity = guild.getEntity()
+                    this.guildEntity = guild.fetchEntity()
                     channelDid = mockedChannelId
                     creatorDid = Snowflake(0)
                 }

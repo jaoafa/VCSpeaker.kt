@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
@@ -53,7 +53,7 @@ class ReadableBotCommand : Extension() {
 
                     transactionResulting(commit = true) {
                         Entity.new {
-                            this.guildEntity = guild.getEntity()
+                            this.guildEntity = guild.fetchEntity()
                             this.botDid = targetUser.id
                             this.creatorDid = user.id
                         }
@@ -126,11 +126,9 @@ class ReadableBotCommand : Extension() {
             publicSubCommand("list", "読み上げを許可するBotの一覧を表示します.") {
                 action {
                     val guild = guild ?: return@action
-                    val rows = transaction {
-                        Entity.find { Table.guildDid eq guild.id }.getRows()
-                    }
+                    val snapshots = Entity.find { Table.guildDid eq guild.id }.fetchSnapshots()
 
-                    if (rows.isEmpty()) {
+                    if (snapshots.isEmpty()) {
                         respondEmbed(
                             ":speaking_head: No Readable Bots",
                             "このサーバーには読み上げを許可するBotが設定されていません。"
@@ -143,7 +141,7 @@ class ReadableBotCommand : Extension() {
 
                     respondEmbed(
                         ":speaking_head: Readable Bots",
-                        rows.joinToString("\n") { it.describe() }
+                        snapshots.joinToString("\n") { it.describe() }
                     ) {
                         authorOf(user)
                         successColor()

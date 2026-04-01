@@ -65,7 +65,7 @@ object VisionApi {
             return response.textAnnotationsList.map { it.convertVisionTextAnnotation() }
         }
 
-        if (VisionApiCounterAction.getCurrent()?.isLimitReached() == true) {
+        if (VisionApiCounterAction.fetchCurrent()?.isLimitReached() == true) {
             throw VisionApiLimitExceededException()
         }
 

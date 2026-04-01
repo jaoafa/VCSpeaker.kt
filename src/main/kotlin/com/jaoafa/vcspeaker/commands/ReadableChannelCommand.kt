@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.getRows
-import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
+import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
@@ -100,7 +100,7 @@ class ReadableChannelCommand : Extension() {
 
                     transactionResulting(commit = true) {
                         Entity.new {
-                            this.guildEntity = guild.getEntity()
+                            this.guildEntity = guild.fetchEntity()
                             this.channelDid = targetChannel.id
                             this.creatorDid = user.id
                         }
@@ -187,11 +187,9 @@ class ReadableChannelCommand : Extension() {
                 action {
                     val guild = guild ?: return@action
 
-                    val entities = transaction {
-                        Entity.find { Table.guildDid eq guild.id }.getRows()
-                    }
+                    val snapshots = Entity.find { Table.guildDid eq guild.id }.fetchSnapshots()
 
-                    if (entities.isEmpty()) {
+                    if (snapshots.isEmpty()) {
                         respondEmbed(
                             ":speaking_head: No Readable Channels",
                             "このサーバーにはメッセージ内容の読み上げを許可するテキストチャンネルが設定されていません。"
@@ -204,7 +202,7 @@ class ReadableChannelCommand : Extension() {
 
                     respondEmbed(
                         ":speaking_head: Readable Channels",
-                        entities.joinToString("\n") { it.describe() }
+                        snapshots.joinToString("\n") { it.describe() }
                     ) {
                         authorOf(user)
                         successColor()
