@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.features.AliasType
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -40,7 +40,7 @@ class AliasEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<AliasSnaps
     var replace by AliasTable.replace
     var version by AliasTable.version
 
-    override fun fetchSnapshot() = transaction { AliasSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { AliasSnapshot.from(readValues) }
 }
 
 @Serializable

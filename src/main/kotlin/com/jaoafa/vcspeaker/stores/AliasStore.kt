@@ -3,24 +3,13 @@ package com.jaoafa.vcspeaker.stores
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.features.AliasType
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-// todo: move to features/
-@Serializable
-enum class AliasType(
-    val displayName: String,
-    val emoji: String
-) {
-    Text("文字列", ":pencil:"),
-    Regex("正規表現", ":asterisk:"),
-    Emoji("絵文字", ":neutral_face:"),
-    Soundboard("サウンドボード", ":sound:")
-}
-
-private val aliasJson = Json {
+private val AliasJson = Json {
     ignoreUnknownKeys = true
 }
 
@@ -56,12 +45,12 @@ data class AliasData(
 object AliasStore : StoreStruct<AliasData>(
     VCSpeaker.Files.aliases.path,
     AliasData.serializer(),
-    { aliasJson.decodeFromString(this) },
+    { AliasJson.decodeFromString(this) },
 
     version = 1,
     migrators = mapOf(
         1 to { file ->
-            val list = aliasJson.decodeFromString<List<AliasData>>(file.readText())
+            val list = AliasJson.decodeFromString<List<AliasData>>(file.readText())
             file.writeText(
                 Json.encodeToString(
                     TypedStore.serializer(AliasData.serializer()),

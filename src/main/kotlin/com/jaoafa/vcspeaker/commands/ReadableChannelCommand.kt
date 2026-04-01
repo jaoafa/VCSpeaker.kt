@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
-import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
@@ -100,7 +100,7 @@ class ReadableChannelCommand : Extension() {
 
                     transactionResulting(commit = true) {
                         Entity.new {
-                            this.guildEntity = guild.fetchEntity()
+                            this.guildEntity = guild.getEntity()
                             this.channelDid = targetChannel.id
                             this.creatorDid = user.id
                         }

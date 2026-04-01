@@ -42,5 +42,5 @@ object DatabaseUtil {
     fun Table.version() = integer("version").default(0)
 
     inline fun <reified E : SnappableEntity<T, S>, T : EntitySnapshot<S>, S> SizedIterable<E>.fetchSnapshots() =
-        map { it.fetchSnapshot() }
+        map { it.getSnapshot() }
 }

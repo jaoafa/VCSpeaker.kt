@@ -54,7 +54,7 @@ class VoiceEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<VoiceSnaps
     var speed by VoiceTable.speed
     var volume by VoiceTable.volume
 
-    override fun fetchSnapshot() = transaction { VoiceSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { VoiceSnapshot.from(readValues) }
 
     fun modifyByOptions(options: VoiceOptions): Boolean {
         var modified = false

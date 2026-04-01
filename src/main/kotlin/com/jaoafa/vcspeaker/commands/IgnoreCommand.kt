@@ -1,12 +1,12 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
-import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Ignore
-import com.jaoafa.vcspeaker.stores.IgnoreType
+import com.jaoafa.vcspeaker.features.IgnoreType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -67,7 +67,7 @@ class IgnoreCommand : Extension() {
 
                     val entity = transactionResulting {
                         Entity.new {
-                            this.guildEntity = guild.fetchEntity()
+                            this.guildEntity = guild.getEntity()
                             creatorDid = user.id
                             this.type = type
                             this.search = search
@@ -86,7 +86,7 @@ class IgnoreCommand : Extension() {
                         return@action
                     }.unwrap()
 
-                    val snapshot = entity.fetchSnapshot()
+                    val snapshot = entity.getSnapshot()
 
                     val typeText = if (snapshot.type == IgnoreType.Contains) "を含む" else "と一致する"
 
@@ -127,7 +127,7 @@ class IgnoreCommand : Extension() {
                     }
 
                     val snapshot = transaction {
-                        val snapshot = ignoreEntity.fetchSnapshot()
+                        val snapshot = ignoreEntity.getSnapshot()
                         ignoreEntity.delete()
                         snapshot
                     }

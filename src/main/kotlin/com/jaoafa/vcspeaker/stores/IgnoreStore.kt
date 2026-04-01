@@ -3,20 +3,11 @@ package com.jaoafa.vcspeaker.stores
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
+import com.jaoafa.vcspeaker.features.IgnoreType
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-
-// todo: move to features/
-@Serializable
-enum class IgnoreType(
-    val displayName: String,
-    val emoji: String
-) {
-    Equals("完全一致", ":asterisk:"),
-    Contains("部分一致", ":record_button:")
-}
 
 @Serializable
 @Deprecated("Use database instead")

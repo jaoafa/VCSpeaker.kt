@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.features.Title
+import com.jaoafa.vcspeaker.database.actions.TitleAction
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackTo
@@ -37,7 +37,7 @@ class ResetTitleCommand : Extension() {
                     respond(it)
                 } ?: return@action
 
-                val (old, new) = Title.resetTitleOf(channel, user) ?: run {
+                val (old, new) = TitleAction.resetTitleOf(channel, user) ?: run {
                     respondEmbed(
                         ":question: Title Not Reset",
                         "${channel.mention} にはタイトルが設定されていません。"

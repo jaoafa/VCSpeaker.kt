@@ -37,7 +37,7 @@ class ReadableBotEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<Read
     var creatorDid by ReadableBotTable.creatorDid
     var version by ReadableBotTable.version
 
-    override fun fetchSnapshot() = transaction { ReadableBotSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { ReadableBotSnapshot.from(readValues) }
 }
 
 @Serializable

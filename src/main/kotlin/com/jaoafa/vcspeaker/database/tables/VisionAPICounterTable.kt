@@ -32,7 +32,7 @@ class VisionAPICounterEntity(id: EntityID<CompositeID>) : CompositeEntity(id),
     var count by VisionAPICounterTable.count
     var limitReachedAt by VisionAPICounterTable.limitReachedAt
 
-    override fun fetchSnapshot() = transaction { VisionAPICounterSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { VisionAPICounterSnapshot.from(readValues) }
 }
 
 @Serializable

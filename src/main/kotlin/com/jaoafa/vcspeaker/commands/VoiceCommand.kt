@@ -58,7 +58,7 @@ class VoiceCommand : Extension() {
                     }.unwrap()
 
                     val new = transaction {
-                        userEntity.voiceEntity.fetchSnapshot()
+                        userEntity.voiceEntity.getSnapshot()
                     }
 
                     respondEmbed(

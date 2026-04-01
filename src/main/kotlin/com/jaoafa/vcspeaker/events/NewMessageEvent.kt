@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchSnapshot
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getSnapshot
 import com.jaoafa.vcspeaker.database.actions.ReadableBotAction.isReadableBotOn
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.isAfk
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
@@ -38,7 +38,7 @@ class NewMessageEvent : Extension() {
             action {
                 val guild = event.getGuildOrNull() ?: return@action
                 val message = event.message
-                val guildSnapshot = guild.fetchSnapshot()
+                val guildSnapshot = guild.getSnapshot()
 
                 // Not the voice-text channel
                 if (guildSnapshot.channelDid != message.channelId) return@action

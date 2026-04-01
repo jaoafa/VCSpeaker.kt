@@ -1,7 +1,7 @@
 package stores
 
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.stores.AliasData
-import com.jaoafa.vcspeaker.stores.AliasType
 import com.jaoafa.vcspeaker.stores.TypedStore
 import dev.kord.common.entity.Snowflake
 import io.kotest.core.spec.style.FunSpec

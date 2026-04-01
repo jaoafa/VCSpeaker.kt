@@ -29,7 +29,7 @@ class GuildEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id), SnappableEntit
     var autoJoin by GuildTable.autoJoin
     var speakerVoiceEntity by VoiceEntity referencedOn GuildTable.speakerVoiceId
 
-    override fun fetchSnapshot() = transaction { GuildSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { GuildSnapshot.from(readValues) }
 }
 
 @Serializable

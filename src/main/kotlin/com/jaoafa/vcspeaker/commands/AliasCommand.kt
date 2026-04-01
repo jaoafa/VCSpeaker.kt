@@ -1,13 +1,13 @@
 package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
-import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Alias
 import com.jaoafa.vcspeaker.features.Alias.fieldAliasFrom
-import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -106,7 +106,7 @@ class AliasCommand : Extension() {
 
                     val entity = transactionResulting {
                         Entity.new {
-                            this.guildEntity = guild.fetchEntity()
+                            this.guildEntity = guild.getEntity()
                             this.creatorDid = user.id
                             this.type = AliasType.valueOf(arguments.type)
                             this.search = search
@@ -126,7 +126,7 @@ class AliasCommand : Extension() {
                         return@action
                     }.unwrap()
 
-                    val snapshot = entity.fetchSnapshot()
+                    val snapshot = entity.getSnapshot()
 
                     respondEmbed(
                         ":loudspeaker: Alias Created",
@@ -168,7 +168,7 @@ class AliasCommand : Extension() {
                         return@action
                     }
 
-                    val oldSnapshot = aliasEntity.fetchSnapshot()
+                    val oldSnapshot = aliasEntity.getSnapshot()
 
                     val updatedType =
                         arguments.type?.let { typeString -> AliasType.valueOf(typeString) } ?: oldSnapshot.type
@@ -196,7 +196,7 @@ class AliasCommand : Extension() {
                         return@action
                     }.unwrap()
 
-                    val newSnapshot = aliasEntity.fetchSnapshot()
+                    val newSnapshot = aliasEntity.getSnapshot()
 
                     respondEmbed(
                         ":repeat: Alias Updated",
@@ -256,7 +256,7 @@ class AliasCommand : Extension() {
                     }
 
                     val snapshot = transaction {
-                        val snapshot = aliasEntity.fetchSnapshot()
+                        val snapshot = aliasEntity.getSnapshot()
                         aliasEntity.delete()
                         snapshot
                     }

@@ -2,12 +2,12 @@ package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.DatabaseUtil
-import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.GuildTable
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
-import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.RegexReplacer
 import dev.kord.common.entity.Snowflake
@@ -50,7 +50,7 @@ class RegexReplacerTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(0)
                 type = AliasType.Regex
                 search = "w.+d"
@@ -73,7 +73,7 @@ class RegexReplacerTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(0)
                 type = AliasType.Regex
                 search = "w.d"

@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntityOrNull
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntityOrNull
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.database.transactionResulting
@@ -88,9 +88,9 @@ class VCSpeakerCommand : Extension() {
                     val guild = guild ?: return@action
 
                     val registered = transaction {
-                        val entity = guild.fetchEntityOrNull() ?: return@transaction null
-                        val guildSnapshot = entity.fetchSnapshot()
-                        val voiceSnapshot = entity.speakerVoiceEntity.fetchSnapshot()
+                        val entity = guild.getEntityOrNull() ?: return@transaction null
+                        val guildSnapshot = entity.getSnapshot()
+                        val voiceSnapshot = entity.speakerVoiceEntity.getSnapshot()
 
                         return@transaction guildSnapshot to voiceSnapshot
                     }
@@ -118,8 +118,8 @@ class VCSpeakerCommand : Extension() {
                     }.unwrap()
 
                     val (guildSnapshot, voiceSnapshot) = transaction {
-                        val guildSnapshot = guildEntity.fetchSnapshot()
-                        val voiceSnapshot = voiceEntity.fetchSnapshot()
+                        val guildSnapshot = guildEntity.getSnapshot()
+                        val voiceSnapshot = voiceEntity.getSnapshot()
 
                         return@transaction guildSnapshot to voiceSnapshot
                     }
@@ -141,7 +141,7 @@ class VCSpeakerCommand : Extension() {
                 action {
                     val guild = guild ?: return@action
 
-                    val guildEntity = guild.fetchEntityOrNull() ?: return@action
+                    val guildEntity = guild.getEntityOrNull() ?: return@action
 
                     var modified = false
 
@@ -158,7 +158,7 @@ class VCSpeakerCommand : Extension() {
                     }.unwrap()
 
                     val (guildSnapshot, voiceSnapshot) = transaction {
-                        guildEntity.fetchSnapshot() to guildEntity.speakerVoiceEntity.fetchSnapshot()
+                        guildEntity.getSnapshot() to guildEntity.speakerVoiceEntity.getSnapshot()
                     }
 
                     respondEmbed(
@@ -181,7 +181,7 @@ class VCSpeakerCommand : Extension() {
                 check { anyGuildRegistered() }
                 action {
                     val guild = guild ?: return@action
-                    val guildEntity = guild.fetchEntityOrNull() ?: return@action
+                    val guildEntity = guild.getEntityOrNull() ?: return@action
 
                     val confirmUser = user
 

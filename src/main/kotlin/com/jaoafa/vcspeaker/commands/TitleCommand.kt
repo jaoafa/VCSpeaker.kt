@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.features.Title
+import com.jaoafa.vcspeaker.database.actions.TitleAction
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackTo
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
@@ -45,7 +45,7 @@ class TitleCommand : Extension() {
                     respond(it)
                 } ?: return@action
 
-                val (old, new) = Title.setTitleOf(channel, title, user)
+                val (old, new) = TitleAction.setTitleOf(channel, title, user)
 
                 respondEmbed(
                     ":regional_indicator_t: Title Set",

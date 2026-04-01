@@ -28,7 +28,7 @@ class SpeechCacheEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<Spee
     var hash by SpeechCacheTable.hash
     var lastUsedAt by SpeechCacheTable.lastUsedAt
 
-    override fun fetchSnapshot() = transaction { SpeechCacheSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { SpeechCacheSnapshot.from(readValues) }
 }
 
 @Serializable

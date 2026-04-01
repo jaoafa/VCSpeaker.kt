@@ -11,29 +11,29 @@ object GuildAction {
     /**
      * GUILD テーブルに登録されている Guild のレコードを取得します。登録されていない場合は null を返します。
      */
-    fun GuildBehavior.fetchEntityOrNull() = transaction {
-        GuildEntity.findById(this@fetchEntityOrNull.id)
+    fun GuildBehavior.getEntityOrNull() = transaction {
+        GuildEntity.findById(this@getEntityOrNull.id)
     }
 
     /**
      * GUILD テーブルに登録されている Guild のレコードを取得します。登録されていない場合は [IllegalStateException] をスローします。
      * check { anyGuildRegistered() } でチェックされた後に使用されることを想定しています。
      */
-    fun GuildBehavior.fetchEntity() =
-        fetchEntityOrNull() ?: throw IllegalStateException("Guild ${id.value} is not registered.")
+    fun GuildBehavior.getEntity() =
+        getEntityOrNull() ?: throw IllegalStateException("Guild ${id.value} is not registered.")
 
-    fun GuildBehavior.fetchSnapshot() = fetchEntity().fetchSnapshot()
+    fun GuildBehavior.getSnapshot() = getEntity().getSnapshot()
 
     suspend fun GuildBehavior.getVoiceTextChannelOrNull(): TextChannel? {
-        val channelId = transaction { fetchEntity().channelDid } ?: return null
+        val channelId = transaction { getEntity().channelDid } ?: return null
 
         return getChannelOf<TextChannel>(channelId)
     }
 
-    fun GuildBehavior.isAutoJoinEnabled(): Boolean = transaction { fetchEntity().autoJoin }
+    fun GuildBehavior.isAutoJoinEnabled(): Boolean = transaction { getEntity().autoJoin }
 
     fun GuildBehavior.getVoice(): Voice {
-        val snapshot = transaction { fetchEntity().speakerVoiceEntity.fetchSnapshot() }
+        val snapshot = transaction { getEntity().speakerVoiceEntity.getSnapshot() }
 
         return Voice.from(snapshot)
     }

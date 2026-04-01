@@ -6,6 +6,7 @@ import dev.kord.core.entity.interaction.AutoCompleteInteraction
 import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
 import dev.kordex.core.utils.FilterStrategy
 import dev.kordex.core.utils.suggestIntMap
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -22,4 +23,13 @@ object Ignore {
 
             suggestIntMap(stringMap, FilterStrategy.Contains)
         }
+}
+
+@Serializable
+enum class IgnoreType(
+    val displayName: String,
+    val emoji: String
+) {
+    Equals("完全一致", ":asterisk:"),
+    Contains("部分一致", ":record_button:")
 }

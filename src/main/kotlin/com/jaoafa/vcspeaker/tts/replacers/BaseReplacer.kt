@@ -5,7 +5,7 @@ import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
 import com.jaoafa.vcspeaker.database.tables.AliasSnapshot
 import com.jaoafa.vcspeaker.database.tables.AliasTable
-import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord

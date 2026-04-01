@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.database.tables
 
 import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.stores.IgnoreType
+import com.jaoafa.vcspeaker.features.IgnoreType
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -38,7 +38,7 @@ class IgnoreEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<IgnoreSna
     var search by IgnoreTable.search
     var version by IgnoreTable.version
 
-    override fun fetchSnapshot() = transaction { IgnoreSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { IgnoreSnapshot.from(readValues) }
 }
 
 @Serializable

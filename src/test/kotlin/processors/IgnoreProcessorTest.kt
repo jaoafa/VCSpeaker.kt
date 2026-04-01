@@ -5,7 +5,7 @@ import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.GuildTable
 import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
-import com.jaoafa.vcspeaker.stores.IgnoreType
+import com.jaoafa.vcspeaker.features.IgnoreType
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.processors.IgnoreAfterReplaceProcessor
 import com.jaoafa.vcspeaker.tts.processors.IgnoreBeforeReplaceProcessor

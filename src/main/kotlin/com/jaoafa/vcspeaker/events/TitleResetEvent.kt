@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoiceTextChannelOrNull
-import com.jaoafa.vcspeaker.features.Title
+import com.jaoafa.vcspeaker.database.actions.TitleAction
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
@@ -32,7 +32,7 @@ class TitleResetEvent : Extension() {
                 val member = event.state.getMember()
                 val voiceChannel = event.old?.getChannelOrNull() ?: return@action
 
-                val (old, new) = Title.resetTitleOf(voiceChannel, member) ?: return@action
+                val (old, new) = TitleAction.resetTitleOf(voiceChannel, member) ?: return@action
 
                 val textChannel = guild.getVoiceTextChannelOrNull() ?: return@action
 

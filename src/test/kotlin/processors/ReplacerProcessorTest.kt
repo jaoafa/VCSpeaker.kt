@@ -2,12 +2,12 @@ package processors
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.DatabaseUtil
-import com.jaoafa.vcspeaker.database.actions.GuildAction.fetchEntity
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.GuildTable
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
-import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.processors.ReplacerProcessor
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
@@ -69,7 +69,7 @@ class ReplacerProcessorTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Text
                 search = "Hello"
@@ -77,7 +77,7 @@ class ReplacerProcessorTest : FunSpec({
             }
 
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "w.+d"
@@ -99,7 +99,7 @@ class ReplacerProcessorTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "Hello"
@@ -107,14 +107,14 @@ class ReplacerProcessorTest : FunSpec({
             }
             // should be skipped
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "Bonjour, world!"
                 replace = "你好，Kotlin!"
             }
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Regex
                 search = "w.+d"
@@ -136,7 +136,7 @@ class ReplacerProcessorTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Emoji
                 search = "<:world:123456789012345678>"
@@ -175,7 +175,7 @@ class ReplacerProcessorTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Soundboard
                 search = "boom"
@@ -200,7 +200,7 @@ class ReplacerProcessorTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Soundboard
                 search = "<:godlike_1:1><:godlike_2:2>"
@@ -234,7 +234,7 @@ class ReplacerProcessorTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Text
                 search = "test-user"
@@ -262,7 +262,7 @@ class ReplacerProcessorTest : FunSpec({
 
         transaction {
             AliasEntity.new {
-                guildEntity = guild.fetchEntity()
+                guildEntity = guild.getEntity()
                 creatorDid = Snowflake(1)
                 type = AliasType.Text
                 search = "Example Domain"

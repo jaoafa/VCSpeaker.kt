@@ -2,12 +2,12 @@ package com.jaoafa.vcspeaker.features
 
 import com.jaoafa.vcspeaker.database.tables.AliasEntity
 import com.jaoafa.vcspeaker.database.tables.AliasTable
-import com.jaoafa.vcspeaker.stores.AliasType
 import dev.kord.core.entity.interaction.AutoCompleteInteraction
 import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kordex.core.utils.FilterStrategy
 import dev.kordex.core.utils.suggestIntMap
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -34,4 +34,15 @@ object Alias {
                 AliasType.Soundboard -> search
             }
         }
+}
+
+@Serializable
+enum class AliasType(
+    val displayName: String,
+    val emoji: String
+) {
+    Text("文字列", ":pencil:"),
+    Regex("正規表現", ":asterisk:"),
+    Emoji("絵文字", ":neutral_face:"),
+    Soundboard("サウンドボード", ":sound:")
 }

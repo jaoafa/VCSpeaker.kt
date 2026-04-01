@@ -38,7 +38,7 @@ class VCTitleEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<VCTitleS
     var creatorDid by VCTitleTable.creatorDid
     var version by VCTitleTable.version
 
-    override fun fetchSnapshot() = transaction { VCTitleSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { VCTitleSnapshot.from(readValues) }
 }
 
 @Serializable

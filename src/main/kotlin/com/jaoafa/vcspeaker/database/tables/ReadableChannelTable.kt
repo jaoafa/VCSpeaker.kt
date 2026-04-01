@@ -38,7 +38,7 @@ class ReadableChannelEntity(id: EntityID<Int>) : IntEntity(id),
     var creatorDid by ReadableChannelTable.creatorDid
     var version by ReadableChannelTable.version
 
-    override fun fetchSnapshot() = transaction { ReadableChannelSnapshot.from(readValues) }
+    override fun getSnapshot() = transaction { ReadableChannelSnapshot.from(readValues) }
 }
 
 @Serializable

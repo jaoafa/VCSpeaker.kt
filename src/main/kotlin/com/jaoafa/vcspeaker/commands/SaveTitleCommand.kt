@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.features.Title
+import com.jaoafa.vcspeaker.database.actions.TitleAction
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackTo
@@ -38,7 +38,7 @@ class SaveTitleCommand : Extension() {
                 action {
                     val guild = guild ?: return@action
 
-                    val titles = Title.saveAllTitlesOf(guild, user)
+                    val titles = TitleAction.saveAllTitlesOf(guild, user)
 
                     if (titles.size == 1) {
                         val (_, new) = titles.entries.first()
@@ -91,7 +91,7 @@ class SaveTitleCommand : Extension() {
                         respond(it)
                     } ?: return@action
 
-                    val (_, new) = Title.saveTitleOf(channel, user) ?: run {
+                    val (_, new) = TitleAction.saveTitleOf(channel, user) ?: run {
                         respondEmbed(
                             ":question: No Title To Save",
                             "${channel.mention} にはタイトルが設定されていません。"
