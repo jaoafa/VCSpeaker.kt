@@ -29,7 +29,7 @@ object VisionApiCounterAction {
     fun get(year: Int, month: Int) = getEntity(year, month)?.getSnapshot()
 
 
-    fun fetchCurrent() = with(LocalDate.now()) {
+    fun getCurrent() = with(LocalDate.now()) {
         get(year, monthValue)
     }
 

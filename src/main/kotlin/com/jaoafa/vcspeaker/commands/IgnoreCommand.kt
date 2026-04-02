@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
@@ -151,7 +151,7 @@ class IgnoreCommand : Extension() {
             publicSubCommand("list", "無視条件の一覧を表示します。") {
                 action {
                     val guildId = guild?.id ?: return@action
-                    val ignoreSnapshots = Entity.find { Table.guildDid eq guildId }.fetchSnapshots()
+                    val ignoreSnapshots = Entity.find { Table.guildDid eq guildId }.getSnapshots()
 
                     if (ignoreSnapshots.isEmpty()) {
                         respondEmbed(

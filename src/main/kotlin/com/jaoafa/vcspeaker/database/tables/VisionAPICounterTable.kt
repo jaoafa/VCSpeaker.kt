@@ -56,7 +56,7 @@ data class VisionAPICounterSnapshot(
 
     fun isLimitReached() = count >= VISION_API_LIMIT
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         VisionAPICounterEntity.findById(CompositeID {
             it[VisionAPICounterTable.year] = this@VisionAPICounterSnapshot.year
             it[VisionAPICounterTable.month] = this@VisionAPICounterSnapshot.month

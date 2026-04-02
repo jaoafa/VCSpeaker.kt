@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.database
 import org.jetbrains.exposed.v1.core.ResultRow
 
 abstract class EntitySnapshot<E> {
-    abstract fun fetchEntity(): E
+    abstract fun getEntity(): E
     open fun describe(): String = toString()
 }
 

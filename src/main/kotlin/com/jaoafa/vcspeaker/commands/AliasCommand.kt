@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
@@ -285,7 +285,7 @@ class AliasCommand : Extension() {
             publicSubCommand("list", "エイリアスの一覧を表示します。") {
                 action {
                     val guildId = guild?.id ?: return@action
-                    val snapshots = Entity.find { Table.guildDid eq guildId }.fetchSnapshots()
+                    val snapshots = Entity.find { Table.guildDid eq guildId }.getSnapshots()
 
                     if (snapshots.isEmpty()) {
                         respondEmbed(

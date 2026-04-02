@@ -47,7 +47,7 @@ data class SpeechCacheSnapshot(
         )
     }
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         SpeechCacheEntity[this@SpeechCacheSnapshot.id]
     }
 }

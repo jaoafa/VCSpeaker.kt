@@ -61,7 +61,7 @@ data class ReadableChannelSnapshot(
 
     override fun describe() = "<#${channelDid}> (Added by <@${creatorDid}>)"
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         ReadableChannelEntity[this@ReadableChannelSnapshot.id]
     }
 }

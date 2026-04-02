@@ -52,7 +52,7 @@ data class GuildSnapshot(
         )
     }
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         GuildEntity[this@GuildSnapshot.did]
     }
 }

@@ -65,7 +65,7 @@ data class AliasSnapshot(
         )
     }
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         AliasEntity[this@AliasSnapshot.id]
     }
 

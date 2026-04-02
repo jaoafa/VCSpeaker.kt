@@ -60,7 +60,7 @@ data class ReadableBotSnapshot(
 
     override fun describe() = "<@${botDid}> (Added by <@${creatorDid}>)"
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         ReadableBotEntity[this@ReadableBotSnapshot.id]
     }
 }

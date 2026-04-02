@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil.fetchSnapshots
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
 import com.jaoafa.vcspeaker.database.transactionResulting
@@ -126,7 +126,7 @@ class ReadableBotCommand : Extension() {
             publicSubCommand("list", "読み上げを許可するBotの一覧を表示します.") {
                 action {
                     val guild = guild ?: return@action
-                    val snapshots = Entity.find { Table.guildDid eq guild.id }.fetchSnapshots()
+                    val snapshots = Entity.find { Table.guildDid eq guild.id }.getSnapshots()
 
                     if (snapshots.isEmpty()) {
                         respondEmbed(

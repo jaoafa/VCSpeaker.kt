@@ -65,7 +65,7 @@ data class VCTitleSnapshot(
 
     override fun describe() = "$title <#$channelDid> by <@$creatorDid> ($originalTitle)"
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         VCTitleEntity[this@VCTitleSnapshot.id]
     }
 }

@@ -24,7 +24,7 @@ object DatabaseUtil {
         VoiceTable
     )
 
-    fun init(url: String = DEFAULT_DB_URL): Database {
+    fun init(url: String): Database {
         val db = Database.connect(url, driver = "org.h2.Driver") // fixme: env var, place under ./database/ or something
         TransactionManager.defaultDatabase = db
 
@@ -41,6 +41,6 @@ object DatabaseUtil {
 
     fun Table.version() = integer("version").default(0)
 
-    inline fun <reified E : SnappableEntity<T, S>, T : EntitySnapshot<S>, S> SizedIterable<E>.fetchSnapshots() =
+    inline fun <reified E : SnappableEntity<T, S>, T : EntitySnapshot<S>, S> SizedIterable<E>.getSnapshots() =
         map { it.getSnapshot() }
 }

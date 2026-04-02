@@ -65,7 +65,7 @@ data class IgnoreSnapshot(
 
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         IgnoreEntity[this@IgnoreSnapshot.id]
     }
 

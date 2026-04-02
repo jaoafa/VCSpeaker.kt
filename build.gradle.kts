@@ -79,11 +79,16 @@ tasks.register<JavaExec>("generateMigration") {
     mainClass = "com.jaoafa.vcspeaker.database.GenerateMigrationKt"
 
     doFirst {
-        environment["MIGRATION_NAME"] = project.properties["migrationName"] ?: "migration"
+        project.properties["databaseUrl"]?.let { environment["DATABASE_URL"] = it }
+        project.properties["migrationName"]?.let { environment["MIGRATION_NAME"] = it }
     }
 }
 
 tasks.register<JavaExec>("runMigration") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass = "com.jaoafa.vcspeaker.database.RunMigrationKt"
+
+    doFirst {
+        project.properties["databaseUrl"]?.let { environment["DATABASE_URL"] = it }
+    }
 }

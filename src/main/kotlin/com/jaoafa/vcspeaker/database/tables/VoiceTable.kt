@@ -105,7 +105,7 @@ data class VoiceSnapshot(
         )
     }
 
-    override fun fetchEntity() = transaction {
+    override fun getEntity() = transaction {
         VoiceEntity[this@VoiceSnapshot.id]
     }
 }
