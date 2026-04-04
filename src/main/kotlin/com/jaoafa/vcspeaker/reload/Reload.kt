@@ -1,8 +1,8 @@
 package com.jaoafa.vcspeaker.reload
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.api.Server
-import com.jaoafa.vcspeaker.api.ServerType
+import com.jaoafa.vcspeaker.api.update.UpdateServer
+import com.jaoafa.vcspeaker.api.update.UpdateServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -211,10 +211,10 @@ object Reload {
         // copy to the current working directory
         val updateJar = jar.copyTo(File("./update-${System.currentTimeMillis()}.jar"), overwrite = true)
 
-        val server = Server(ServerType.Current)
-        VCSpeaker.apiServer?.stop()
-        VCSpeaker.apiServer = server
-        server.start(2000)
+        val updateServer = UpdateServer(UpdateServerType.Current)
+        VCSpeaker.apiUpdateServer?.stop()
+        VCSpeaker.apiUpdateServer = updateServer
+        updateServer.start(2000)
 
         // Remove update-specific options that will be re-added with new values
         // These options always have a value following them
@@ -238,9 +238,9 @@ object Reload {
             add("--api-port")
             add("2001")
             add("--wait-for")
-            add(server.selfId)
+            add(updateServer.selfId)
             add("--api-token")
-            add(server.selfToken)
+            add(updateServer.selfToken)
         }
 
         ProcessBuilder(command)

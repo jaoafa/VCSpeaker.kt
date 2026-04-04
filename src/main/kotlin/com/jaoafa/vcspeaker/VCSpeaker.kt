@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker
 
-import com.jaoafa.vcspeaker.api.Server
+import com.jaoafa.vcspeaker.api.update.UpdateServer
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.Emoji
 import com.uchuhimo.konf.Config
@@ -28,7 +28,7 @@ object VCSpeaker {
 
     lateinit var prefix: String
 
-    var apiServer: Server? = null
+    var apiUpdateServer: UpdateServer? = null
 
     // 開発環境のコマンドを登録する Guild ID (null で開発環境を無効化)
     var devGuildId: Snowflake? = null

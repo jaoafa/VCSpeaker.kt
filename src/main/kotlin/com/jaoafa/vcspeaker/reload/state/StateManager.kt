@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.reload.state
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.api.ServerType
+import com.jaoafa.vcspeaker.api.update.UpdateServerType
 import com.jaoafa.vcspeaker.tts.narrators.NarratorManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +15,7 @@ object StateManager {
      * Latest -> Locked from the start
      * Current -> Locked when the transfer happens
      */
-    var locked = VCSpeaker.apiServer?.type == ServerType.Latest
+    var locked = VCSpeaker.apiUpdateServer?.type == UpdateServerType.Latest
         private set
 
     fun lock() {

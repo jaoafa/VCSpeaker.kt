@@ -1,7 +1,7 @@
 package com.jaoafa.vcspeaker.events
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.api.ServerType
+import com.jaoafa.vcspeaker.api.update.UpdateServerType
 import com.jaoafa.vcspeaker.reload.Reload
 import com.jaoafa.vcspeaker.reload.state.StateManager
 import dev.kord.core.event.gateway.ReadyEvent
@@ -18,7 +18,7 @@ class ReadyEvent : Extension() {
             action {
                 logger.info { "Ready! Logged in as ${event.self.tag}." }
 
-                if (VCSpeaker.apiServer?.type == ServerType.Latest) {
+                if (VCSpeaker.apiUpdateServer?.type == UpdateServerType.Latest) {
                     StateManager.reconnect()
                 }
 

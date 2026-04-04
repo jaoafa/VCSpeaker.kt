@@ -11,8 +11,9 @@ import com.github.ajalt.clikt.parameters.types.boolean
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.long
 import com.github.ajalt.clikt.parameters.types.path
-import com.jaoafa.vcspeaker.api.Server
-import com.jaoafa.vcspeaker.api.ServerType
+import com.jaoafa.vcspeaker.api.data.DataServer
+import com.jaoafa.vcspeaker.api.update.UpdateServer
+import com.jaoafa.vcspeaker.api.update.UpdateServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.database.DatabaseUtil
@@ -155,14 +156,16 @@ class Entrypoint : CliktCommand() {
         DatabaseUtil.init(config[EnvSpec.databaseUrl])
         DatabaseUtil.createTables()
 
+        DataServer().start(3003) // todo: configurable port
+
         runBlocking {
             val shouldWait = options.waitFor != null
 
             if (shouldWait) { // this instance is LATEST
                 KordStarter.start(launch = false)
-                val server = Server(ServerType.Latest, options.apiToken, options.waitFor)
-                VCSpeaker.apiServer = server
-                server.start(options.apiPort, wait = true, sendBackIntSignal = true)
+                val updateServer = UpdateServer(UpdateServerType.Latest, options.apiToken, options.waitFor)
+                VCSpeaker.apiUpdateServer = updateServer
+                updateServer.start(options.apiPort, wait = true, sendBackIntSignal = true)
             } else {
                 KordStarter.start()
             }
