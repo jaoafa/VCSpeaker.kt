@@ -5,7 +5,7 @@ shadow = "9.3.2"
 
 # Logging
 slf4j = "2.1.0-alpha1"
-log4j = "2.25.3"
+log4j = "2.25.4"
 kotlin-logging = "8.0.01"
 
 # Test and Kotlin
