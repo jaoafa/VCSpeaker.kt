@@ -1,7 +1,7 @@
 [versions]
 kotlin = "2.3.10"
 kotest = "6.0.0-LOCAL"
-shadow = "9.3.2"
+shadow = "9.4.1"
 
 # Logging
 slf4j = "2.1.0-alpha1"
