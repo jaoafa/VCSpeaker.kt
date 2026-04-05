@@ -21,6 +21,12 @@
   ],
   "packageRules": [
     {
+      "groupName": "kotlin",
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin/"
+      ]
+    },
+    {
       "groupName": "mkdocs",
       "matchPackageNames": [
         "mkdocs",
