@@ -42,4 +42,8 @@ object EnvSpec : ConfigSpec() {
     val lavalinkCachePath by optional<String>("/opt/Lavalink/cache/")
 
     val databaseUrl by optional<String>(DEFAULT_DB_URL)
+
+    val updateApiPort by optional<Int>(2000)
+
+    val dataApiPort by optional<Int>(3000)
 }

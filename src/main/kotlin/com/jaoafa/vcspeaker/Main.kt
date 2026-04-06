@@ -69,11 +69,17 @@ class Options : OptionGroup("Main Options:") {
         envvar = "VCSKT_SENTRY_ENV"
     )
 
-    val apiPort by option(
-        "--api-port",
-        help = "The port for the API server to listen on.",
-        envvar = "VCSKT_API_PORT"
-    ).int().default(2000)
+    val updateApiPort by option(
+        "--update-api-port",
+        help = "The port for the Update API server to listen on.",
+        envvar = "VCSKT_UPDATE_API_PORT"
+    ).int()
+
+    val dataApiPort by option(
+        "--data-api-port",
+        help = "The port for the Data API server to listen on.",
+        envvar = "VCSKT_DATA_API_PORT"
+    ).int()
 
     val waitFor by option(
         "--wait-for",
@@ -156,7 +162,7 @@ class Entrypoint : CliktCommand() {
         DatabaseUtil.init(config[EnvSpec.databaseUrl])
         DatabaseUtil.createTables()
 
-        DataServer().start(3003) // todo: configurable port
+        DataServer().start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
 
         runBlocking {
             val shouldWait = options.waitFor != null
@@ -165,7 +171,11 @@ class Entrypoint : CliktCommand() {
                 KordStarter.start(launch = false)
                 val updateServer = UpdateServer(UpdateServerType.Latest, options.apiToken, options.waitFor)
                 VCSpeaker.apiUpdateServer = updateServer
-                updateServer.start(options.apiPort, wait = true, sendBackIntSignal = true)
+                updateServer.start(
+                    options.updateApiPort ?: config[EnvSpec.updateApiPort],
+                    wait = true,
+                    sendBackIntSignal = true
+                )
             } else {
                 KordStarter.start()
             }

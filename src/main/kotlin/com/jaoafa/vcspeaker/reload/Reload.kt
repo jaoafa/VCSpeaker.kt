@@ -218,7 +218,7 @@ object Reload {
 
         // Remove update-specific options that will be re-added with new values
         // These options always have a value following them
-        val optionsToRemove = setOf("--api-port", "--wait-for", "--api-token")
+        val optionsToRemove = setOf("--update-api-port", "--wait-for", "--api-token")
         val preservedArgs = VCSpeaker.args.filterIndexed { index, arg ->
             // Keep the arg if it's not in optionsToRemove
             if (arg in optionsToRemove) {
@@ -235,7 +235,7 @@ object Reload {
             add("-jar")
             add(updateJar.absolutePath)
             addAll(preservedArgs) // keep original CLI options (e.g., config path, store path, dev id)
-            add("--api-port")
+            add("--update-api-port")
             add("2001")
             add("--wait-for")
             add(updateServer.selfId)
