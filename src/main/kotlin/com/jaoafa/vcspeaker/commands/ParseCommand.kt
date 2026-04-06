@@ -8,9 +8,9 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.processors.ReplacerProcessor
-import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
 
@@ -26,7 +26,7 @@ class ParseCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("parse", "読み上げる文章の処理をテストします", ::ParseOptions) {
-            check { anyGuild() }
+            check { anyGuildRegistered() }
             action {
                 val guildId = guild?.id ?: return@action
                 val text = arguments.text

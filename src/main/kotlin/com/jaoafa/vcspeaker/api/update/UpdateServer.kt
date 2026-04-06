@@ -7,7 +7,7 @@ import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*

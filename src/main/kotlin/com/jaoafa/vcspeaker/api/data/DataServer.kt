@@ -1,17 +1,7 @@
 package com.jaoafa.vcspeaker.api.data
 
 import com.jaoafa.vcspeaker.database.SnappableEntity
-import com.jaoafa.vcspeaker.database.tables.AliasEntity
-import com.jaoafa.vcspeaker.database.tables.GuildEntity
-import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
-import com.jaoafa.vcspeaker.database.tables.ReadableBotEntity
-import com.jaoafa.vcspeaker.database.tables.ReadableChannelEntity
-import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
-import com.jaoafa.vcspeaker.database.tables.UserEntity
-import com.jaoafa.vcspeaker.database.tables.VCTitleEntity
-import com.jaoafa.vcspeaker.database.tables.VisionAPICounterEntity
-import com.jaoafa.vcspeaker.database.tables.VisionAPICounterTable
-import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.database.tables.*
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toSnowflake
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*

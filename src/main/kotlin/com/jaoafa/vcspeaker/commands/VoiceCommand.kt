@@ -20,7 +20,7 @@ import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
 import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
-import dev.kordex.core.checks.anyGuild
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
 import dev.kordex.core.commands.converters.impl.optionalInt
 import dev.kordex.core.extensions.Extension
@@ -42,7 +42,7 @@ class VoiceCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("voice", "自分の声を設定します。") {
-            check { anyGuild() }
+            check { anyGuildRegistered() }
             publicSubCommand("set", "自分の声を設定します。", ::VoiceSetOptions) {
                 action {
                     val userEntity = transaction {

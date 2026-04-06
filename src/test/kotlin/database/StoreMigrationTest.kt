@@ -2,12 +2,7 @@ package database
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
-import com.jaoafa.vcspeaker.database.tables.GuildEntity
-import com.jaoafa.vcspeaker.database.tables.GuildSnapshot
-import com.jaoafa.vcspeaker.database.tables.GuildTable
-import com.jaoafa.vcspeaker.database.tables.VoiceEntity
-import com.jaoafa.vcspeaker.database.tables.VoiceSnapshot
-import com.jaoafa.vcspeaker.database.tables.VoiceTable
+import com.jaoafa.vcspeaker.database.tables.*
 import com.jaoafa.vcspeaker.stores.GuildData
 import com.jaoafa.vcspeaker.stores.StoreStruct
 import com.jaoafa.vcspeaker.tts.EmotionData

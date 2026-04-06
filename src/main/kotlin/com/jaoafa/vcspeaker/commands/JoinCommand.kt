@@ -9,10 +9,10 @@ import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.join
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.move
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kord.common.entity.ChannelType
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
-import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.checks.isNotBot
 import dev.kordex.core.commands.converters.impl.optionalChannel
 import dev.kordex.core.extensions.Extension
@@ -55,7 +55,7 @@ class JoinCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("join", "VC に接続します。", ::JoinOptions) {
-            check { anyGuild() }
+            check { anyGuildRegistered() }
             action {
                 // option > member's voice channel > error
                 val channel = arguments.channel.orFallbackTo(member!!) {
@@ -72,7 +72,7 @@ class JoinCommand : Extension() {
             aliases += "summon"
 
             check {
-                anyGuild()
+                anyGuildRegistered()
                 isNotBot()
             }
             action {
