@@ -28,7 +28,7 @@ import utils.createMessageMockk
  */
 class ReplacerProcessorTest : FunSpec({
     beforeSpec {
-        DatabaseUtil.init(TEST_DB_MEM_URL)
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
     }
 

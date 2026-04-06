@@ -1,5 +1,6 @@
-package com.jaoafa.vcspeaker.database
+package com.jaoafa.vcspeaker.database.script
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.DatabaseUtil.DEFAULT_DB_URL
 import org.jetbrains.exposed.v1.core.ExperimentalDatabaseMigrationApi
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -13,7 +14,7 @@ fun main() {
     val migrationName = System.getenv("MIGRATION_NAME") ?: "migration"
     val databaseUrl = System.getenv("DATABASE_URL") ?: DEFAULT_DB_URL
 
-    DatabaseUtil.init(databaseUrl)
+    DatabaseUtil.connect(databaseUrl)
     val migrationDir = File(MIGRATION_PATH)
     migrationDir.mkdirs()
     transaction {

@@ -20,12 +20,9 @@ object StoreDBMigrator {
     )
 
     val logger = KotlinLogging.logger {}
-    fun run(url: String) {
-        DatabaseUtil.init(url)
-        DatabaseUtil.createTables()
-
+    fun run() {
         for (store in stores) {
-            println("Migrating ${store::class.simpleName}...")
+            logger.info { "Migrating ${store::class.simpleName}..." }
             store.migrateToDB()
         }
     }

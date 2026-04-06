@@ -76,7 +76,7 @@ tasks.named("shadowJar", ShadowJar::class) {
 
 tasks.register<JavaExec>("generateMigration") {
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "com.jaoafa.vcspeaker.database.GenerateMigrationKt"
+    mainClass = "com.jaoafa.vcspeaker.database.script.GenerateMigrationKt"
 
     doFirst {
         project.properties["databaseUrl"]?.let { environment["DATABASE_URL"] = it }
@@ -86,7 +86,7 @@ tasks.register<JavaExec>("generateMigration") {
 
 tasks.register<JavaExec>("runMigration") {
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "com.jaoafa.vcspeaker.database.RunMigrationKt"
+    mainClass = "com.jaoafa.vcspeaker.database.script.RunMigrationKt"
 
     doFirst {
         project.properties["databaseUrl"]?.let { environment["DATABASE_URL"] = it }

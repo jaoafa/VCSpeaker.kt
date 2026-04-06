@@ -46,7 +46,7 @@ class UrlReplacerTest : FunSpec({
     val mockedMessageId = Snowflake(123456789012345678)
     // テスト前に早期にモックを初期化
     beforeSpec {
-        DatabaseUtil.init(TEST_DB_MEM_URL)
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
         mockkObject(VCSpeaker)
     }

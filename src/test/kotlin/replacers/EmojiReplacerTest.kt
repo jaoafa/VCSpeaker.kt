@@ -23,7 +23,7 @@ import utils.createGuildMockk
 
 class EmojiReplacerTest : FunSpec({
     beforeSpec {
-        DatabaseUtil.init(TEST_DB_MEM_URL)
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
     }
 

@@ -35,7 +35,7 @@ import kotlin.reflect.full.createInstance
  */
 class CompositeProcessorTest : FunSpec({
     beforeSpec {
-        DatabaseUtil.init(TEST_DB_MEM_URL)
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
     }
 

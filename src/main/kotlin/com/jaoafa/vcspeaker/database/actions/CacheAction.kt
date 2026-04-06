@@ -1,12 +1,12 @@
 package com.jaoafa.vcspeaker.database.actions
 
-import com.jaoafa.vcspeaker.database.logger
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheTable
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.providerOf
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.notInSubQuery
@@ -18,6 +18,7 @@ import kotlin.concurrent.timer
 import kotlin.time.Clock
 
 object CacheAction {
+    private val logger = KotlinLogging.logger { }
     fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
         val provider = providerOf(context)
         val file = context.getCacheFile().apply { writeBytes(byteArray) }

@@ -22,7 +22,7 @@ import utils.createGuildMockk
 
 class RegexReplacerTest : FunSpec({
     beforeSpec {
-        DatabaseUtil.init(TEST_DB_MEM_URL)
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
         DatabaseUtil.createTables()
     }
 

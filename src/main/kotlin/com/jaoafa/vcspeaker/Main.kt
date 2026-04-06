@@ -140,11 +140,6 @@ class Entrypoint : CliktCommand() {
             exitProcess(0)
         }
 
-        if (options.migrateStoreToDB) {
-            StoreDBMigrator.run(config[EnvSpec.databaseUrl])
-            exitProcess(0)
-        }
-
         val manifest = javaClass
             .classLoader
             .getResourceAsStream("META-INF/MANIFEST.MF")
@@ -159,8 +154,12 @@ class Entrypoint : CliktCommand() {
 
         VCSpeaker.init(version, config, options)
 
-        DatabaseUtil.init(config[EnvSpec.databaseUrl])
+        DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
+        DatabaseUtil.connect(config[EnvSpec.databaseUrl])
         DatabaseUtil.createTables()
+
+        StoreDBMigrator.run()
+        if (options.migrateStoreToDB) exitProcess(0)
 
         DataServer().start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
 
