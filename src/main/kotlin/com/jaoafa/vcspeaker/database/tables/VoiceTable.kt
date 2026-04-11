@@ -59,6 +59,8 @@ class VoiceEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<VoiceSnaps
     fun modifyByOptions(options: VoiceOptions): Boolean {
         var modified = false
 
+        options.speaker?.also { speaker = Speaker.valueOf(it); modified = true }
+
         options.pitch?.also { pitch = it; modified = true }
         options.speed?.also { speed = it; modified = true }
         options.volume?.also { volume = it; modified = true }
