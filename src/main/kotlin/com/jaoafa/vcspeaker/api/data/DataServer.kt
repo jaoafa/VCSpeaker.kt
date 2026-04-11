@@ -55,10 +55,18 @@ class DataServer {
                     val id = call.parameters["id"]?.castId() ?: return@get call.respond(HttpStatusCode.BadRequest)
 
                     val entity = transaction { entityClass.findById(id) }
-                    if (entity is SnappableEntity<*, *>) {
-                        call.respond(entity.getSnapshot())
-                    } else {
-                        call.respond(HttpStatusCode.NotImplemented)
+                    when (entity) {
+                        is SnappableEntity<*, *> -> {
+                            call.respond(entity.getSnapshot())
+                        }
+
+                        null -> {
+                            call.respond(HttpStatusCode.NotFound)
+                        }
+
+                        else -> {
+                            call.respond(HttpStatusCode.NotImplemented)
+                        }
                     }
                 }
             }
