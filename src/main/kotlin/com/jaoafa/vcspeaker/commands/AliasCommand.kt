@@ -212,7 +212,10 @@ class AliasCommand : Extension() {
                         }
 
                         field("${updatedType.emoji} ${updatedType.displayName}", true) {
-                            searchDisplay(oldSnapshot.type, oldSnapshot.search) + if (oldSnapshot.search != newSnapshot.search)
+                            searchDisplay(
+                                oldSnapshot.type,
+                                oldSnapshot.search
+                            ) + if (oldSnapshot.search != newSnapshot.search)
                                 " → **${searchDisplay(newSnapshot.type, newSnapshot.search)}**"
                             else ""
                         }
@@ -285,7 +288,7 @@ class AliasCommand : Extension() {
             publicSubCommand("list", "エイリアスの一覧を表示します。") {
                 action {
                     val guildId = guild?.id ?: return@action
-                    val snapshots = Entity.find { Table.guildDid eq guildId }.getSnapshots()
+                    val snapshots = transaction { Entity.find { Table.guildDid eq guildId }.getSnapshots() }
 
                     if (snapshots.isEmpty()) {
                         respondEmbed(

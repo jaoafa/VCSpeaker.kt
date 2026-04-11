@@ -28,7 +28,7 @@ inline fun <T> transactionResulting(
             TransactionResult.Success(result)
         }
     } catch (e: ExposedSQLException) {
-        when (e.sqlState.toInt()) {
+        when (e.errorCode) {
             DUPLICATE_KEY_1 -> {
                 TransactionResult.Duplicate(e)
             }
@@ -54,7 +54,7 @@ suspend inline fun <T> suspendTransactionResulting(
             TransactionResult.Success(result)
         }
     } catch (e: ExposedSQLException) {
-        when (e.sqlState.toInt()) {
+        when (e.errorCode) {
             DUPLICATE_KEY_1 -> {
                 TransactionResult.Duplicate(e)
             }

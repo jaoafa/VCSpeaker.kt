@@ -187,7 +187,7 @@ class ReadableChannelCommand : Extension() {
                 action {
                     val guild = guild ?: return@action
 
-                    val snapshots = Entity.find { Table.guildDid eq guild.id }.getSnapshots()
+                    val snapshots = transaction { Entity.find { Table.guildDid eq guild.id }.getSnapshots() }
 
                     if (snapshots.isEmpty()) {
                         respondEmbed(

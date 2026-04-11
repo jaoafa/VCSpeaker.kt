@@ -151,9 +151,9 @@ class IgnoreCommand : Extension() {
             publicSubCommand("list", "無視条件の一覧を表示します。") {
                 action {
                     val guildId = guild?.id ?: return@action
-                    val ignoreSnapshots = Entity.find { Table.guildDid eq guildId }.getSnapshots()
+                    val snapshots = transaction { Entity.find { Table.guildDid eq guildId }.getSnapshots() }
 
-                    if (ignoreSnapshots.isEmpty()) {
+                    if (snapshots.isEmpty()) {
                         respondEmbed(
                             ":grey_question: Ignores Not Found",
                             "設定されていないようです。`/ignore create` で作成してみましょう！"
@@ -165,7 +165,7 @@ class IgnoreCommand : Extension() {
                     }
 
                     respondingPaginator {
-                        for (chunkedIgnores in ignoreSnapshots.chunked(10)) {
+                        for (chunkedIgnores in snapshots.chunked(10)) {
                             page {
                                 authorOf(user)
 
