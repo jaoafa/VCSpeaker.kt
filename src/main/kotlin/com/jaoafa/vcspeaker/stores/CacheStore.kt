@@ -1,21 +1,36 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.io.File
 import kotlin.concurrent.timer
+import kotlin.time.Instant
 
 @Serializable
+@Deprecated("Use database instead")
 data class CacheData(
     val providerId: String,
     val hash: String,
-    val lastUsed: Long
-)
+    val lastUsed: Long,
+    override var migrated: Boolean = false
+) : DBMigratableData {
+    override fun migrate() = transaction {
+        SpeechCacheEntity.new {
+            providerId = this@CacheData.providerId
+            hash = this@CacheData.hash
+            lastUsedAt = Instant.fromEpochMilliseconds(lastUsed)
+        }
+        return@transaction
+    }
+}
 
+@Deprecated("Use database instead")
 object CacheStore : StoreStruct<CacheData>(
     VCSpeaker.Files.caches.path,
     CacheData.serializer(),

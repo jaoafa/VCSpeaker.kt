@@ -1,21 +1,44 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Serializable
+@Deprecated("Use database instead")
 data class GuildData(
     val guildId: Snowflake,
     var channelId: Snowflake?,
     var prefix: String?,
     var voice: Voice,
-    var autoJoin: Boolean
-)
+    var autoJoin: Boolean,
+    override var migrated: Boolean = false
+) : DBMigratableData {
+    override fun migrate() = transaction {
+        GuildEntity.new(guildId) {
+            channelDid = channelId
+            prefix = this@GuildData.prefix
+            speakerVoiceEntity = VoiceEntity.new {
+                speaker = voice.speaker
+                emotion = voice.emotion
+                emotionLevel = voice.emotionLevel
+                pitch = voice.pitch
+                speed = voice.speed
+                volume = voice.volume
+            }
+            autoJoin = this@GuildData.autoJoin
+        }
+        return@transaction
+    }
+}
 
+@Deprecated("Use database instead")
 object GuildStore : StoreStruct<GuildData>(
     VCSpeaker.Files.guilds.path,
     GuildData.serializer(),

@@ -12,7 +12,7 @@ import java.io.File
 class UpdateCommand : Extension() {
     override val name = this::class.simpleName!!
 
-    inner class UpdateOptions : Options() {
+    class UpdateOptions : Options() {
         val path by string {
             name = "file"
             description = "アップデート先のファイル名"

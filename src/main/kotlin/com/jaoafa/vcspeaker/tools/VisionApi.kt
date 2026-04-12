@@ -4,7 +4,7 @@ import com.google.cloud.vision.v1.*
 import com.google.protobuf.ByteString
 import com.google.rpc.Status
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
+import com.jaoafa.vcspeaker.database.actions.VisionApiCounterAction
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.canvas.drawables.FilledRect
 import com.sksamuel.scrimage.canvas.drawables.Text
@@ -65,7 +65,7 @@ object VisionApi {
             return response.textAnnotationsList.map { it.convertVisionTextAnnotation() }
         }
 
-        if (VisionApiCounterStore.isLimitExceeded()) {
+        if (VisionApiCounterAction.getCurrent()?.isLimitReached() == true) {
             throw VisionApiLimitExceededException()
         }
 
@@ -77,7 +77,7 @@ object VisionApi {
             val feature = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build()
             val request = AnnotateImageRequest.newBuilder().addFeatures(feature).setImage(image).build()
 
-            VisionApiCounterStore.increment()
+            VisionApiCounterAction.increment()
             val responses = vision.batchAnnotateImages(listOf(request))
             vision.close()
             if (responses.responsesCount == 0) {

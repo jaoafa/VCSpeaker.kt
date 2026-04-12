@@ -3,9 +3,9 @@ package com.jaoafa.vcspeaker.tts.replacers
 import com.jaoafa.vcspeaker.StringUtils.lengthByCodePoints
 import com.jaoafa.vcspeaker.StringUtils.substringByCodePoints
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction.isReadableChannel
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.response.discord.DiscordGetInviteResponse
-import com.jaoafa.vcspeaker.stores.ReadableChannelStore
 import com.jaoafa.vcspeaker.tools.Emoji.removeEmojis
 import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
@@ -441,8 +441,7 @@ object UrlReplacer : BaseReplacer {
 
         val textChannel = channel as? TextChannel ?: return null
 
-        val isReadableChannel = ReadableChannelStore.isReadableChannel(guild.id, textChannel)
-        if (!isReadableChannel) return null
+        if (!textChannel.isReadableChannel()) return null
 
         val channelType = getChannelTypeText(channel)
 
