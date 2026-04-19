@@ -37,8 +37,19 @@ object DatabaseUtil {
     }
 
     fun migrate(url: String): MigrateResult {
+        val flywayLoader = Flyway.configure()
+            .dataSource(url, null, null)
+            .load()
+
+        val info = flywayLoader.info().all()
+        val latest = info.maxOf { it.version }
+
+        logger.info { "Starting migration to $latest..." }
+
         val flyway = Flyway.configure()
             .baselineOnMigrate(true)
+            .baselineVersion(latest)
+            .baselineDescription("Initialization Baseline")
             .dataSource(url, null, null)
             .load()
         return flyway.migrate()

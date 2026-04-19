@@ -154,9 +154,9 @@ class Entrypoint : CliktCommand() {
 
         VCSpeaker.init(version, config, options)
 
-        DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
         DatabaseUtil.connect(config[EnvSpec.databaseUrl])
         DatabaseUtil.createTables()
+        DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
 
         StoreDBMigrator.run()
         if (options.migrateStoreToDB) exitProcess(0)
