@@ -4,8 +4,8 @@ import com.jaoafa.vcspeaker.tools.discord.ChatCommandExtensions.chatCommand
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
-import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.checks.isNotBot
 import dev.kordex.core.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -16,7 +16,7 @@ class ClearCommand : Extension() {
 
     override suspend fun setup() {
         publicSlashCommand("clear", "予定されているメッセージの読み上げを中止します。") {
-            check { anyGuild() }
+            check { anyGuildRegistered() }
             action {
                 val narrator = guild?.getNarrator() ?: run {
                     respond("**:question: VC に参加していません。**")
@@ -34,7 +34,7 @@ class ClearCommand : Extension() {
 
         chatCommand("clear", "予定されているメッセージの読み上げを中止します。") {
             check {
-                anyGuild()
+                anyGuildRegistered()
                 isNotBot()
             }
             action {

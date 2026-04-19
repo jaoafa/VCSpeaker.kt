@@ -1,8 +1,12 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.stores.IgnoreData
-import com.jaoafa.vcspeaker.stores.IgnoreStore
-import com.jaoafa.vcspeaker.stores.IgnoreType
+import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
+import com.jaoafa.vcspeaker.features.Ignore
+import com.jaoafa.vcspeaker.features.IgnoreType
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -11,122 +15,145 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kordex.core.annotations.AlwaysPublicResponse
-import dev.kordex.core.checks.anyGuild
 import dev.kordex.core.commands.application.slash.converters.impl.stringChoice
+import dev.kordex.core.commands.converters.impl.int
 import dev.kordex.core.commands.converters.impl.string
 import dev.kordex.core.extensions.Extension
-import dev.kordex.core.utils.FilterStrategy
-import dev.kordex.core.utils.suggestStringCollection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import com.jaoafa.vcspeaker.database.tables.IgnoreEntity as Entity
+import com.jaoafa.vcspeaker.database.tables.IgnoreTable as Table
 
 class IgnoreCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger { }
 
-    inner class CreateOptions : Options() {
+    class CreateOptions : Options() {
         val type by stringChoice {
             name = "type"
-            description = "無視判定の種類"
+            description = "無視をする文字列の検索条件"
             for (ignoreType in IgnoreType.entries)
                 choice(ignoreType.displayName, ignoreType.name)
         }
 
-        val text by string {
-            name = "text"
+        val search by string {
+            name = "search"
             description = "無視する文字列"
         }
     }
 
-    inner class DeleteOptions : Options() {
-        val text by string {
-            name = "text"
-            description = "無視する文字列"
+    class DeleteOptions : Options() {
+        val ignoreId by int {
+            name = "ignore"
+            description = "削除する無視条件"
 
-            autoComplete { event ->
-                val guildId = event.interaction.getChannel().data.guildId.value
-
-                suggestStringCollection(
-                    IgnoreStore.filter(guildId).map { it.search },
-                    FilterStrategy.Contains
-                )
-            }
+            autoComplete(Ignore.autocomplete)
         }
     }
 
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
         publicSlashCommand("ignore", "無視機能を設定します。") {
-            check { anyGuild() }
-            publicSubCommand("create", "無視する文字列を作成します。", ::CreateOptions) {
+            check { anyGuildRegistered() }
+            publicSubCommand("create", "無視条件を作成します。", ::CreateOptions) {
                 action {
+                    val guild = guild ?: return@action
+
                     val type = IgnoreType.valueOf(arguments.type)
-                    val text = arguments.text
-                    val duplicateExists = IgnoreStore.find(guild!!.id, text) != null
+                    val search = arguments.search
 
-                    if (!duplicateExists)
-                        IgnoreStore.create(IgnoreData(guild!!.id, user.id, type, text))
+                    val entity = transactionResulting {
+                        Entity.new {
+                            this.guildEntity = guild.getEntity()
+                            creatorDid = user.id
+                            this.type = type
+                            this.search = search
+                        }
+                    }.onDuplicate {
+                        respondEmbed(
+                            ":x: Duplicated Ignore",
+                            "「$search」を無視するルールはすでに存在します。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
+                        log(logger) { guild, user ->
+                            "[${guild.name}] Duplicated Ignore: @${user.username} attempted to create ignore with $arguments but failed due to duplication."
+                        }
+                        return@action
+                    }.unwrap()
 
-                    val typeText = if (type == IgnoreType.Contains) "を含む" else "と一致する"
+                    val snapshot = entity.getSnapshot()
+
+                    val typeText = if (snapshot.type == IgnoreType.Contains) "を含む" else "と一致する"
 
                     respondEmbed(
                         ":face_with_symbols_over_mouth: Ignore Created",
-                        "今後「$text」${typeText}メッセージは読み上げられません。"
+                        "今後「${snapshot.search}」${typeText}メッセージは読み上げられません。"
                     ) {
                         authorOf(user)
                         successColor()
                     }
 
-                    val typeName = type.name.lowercase()
-
                     log(logger) { guild, user ->
-                        "[${guild.name}] Ignore Created: @${user.username} created ignore that ignores text that $typeName \"$text\""
+                        "[${guild.name}] Ignore Created: @${user.username} created ignore $snapshot"
                     }
                 }
             }
 
-            publicSubCommand("delete", "無視する文字列を削除します。", ::DeleteOptions) {
+            publicSubCommand("delete", "無視条件を削除します。", ::DeleteOptions) {
                 action {
-                    val text = arguments.text
-                    val target = IgnoreStore.find(guild!!.id, text)
+                    val ignoreEntity = transaction {
+                        Entity.findById(arguments.ignoreId)
+                    }
 
-                    if (target != null) {
-                        IgnoreStore.remove(target)
-
-                        val typeText = if (target.type == IgnoreType.Contains) "が含まれて" else "と一致して"
-
-                        respondEmbed(
-                            ":wastebasket: Ignore Deleted",
-                            "「$text」${typeText}いても読み上げます。"
-                        ) {
-                            authorOf(user)
-                            successColor()
-                        }
-
-                        log(logger) { guild, user ->
-                            "[${guild.name}] Ignore Deleted: @${user.username} deleted ignore that ignores text that ${target.type.name.lowercase()} \"${text}\""
-                        }
-                    } else {
+                    if (ignoreEntity == null) {
                         respondEmbed(
                             ":question: Ignore Not Found",
-                            """
-                            「$text」に一致する設定が見つかりませんでした。
-                            `/ignore list` で一覧を確認できます。    
-                            """.trimIndent()
-                        )
+                            "無視条件が見つかりませんでした。"
+                        ) {
+                            authorOf(user)
+                            errorColor()
+                        }
 
                         log(logger) { guild, user ->
-                            "[${guild.name}] Ignore Not Found: @${user.username} searched for ignore that ignores text \"$text\" but not found"
+                            "[${guild.name}] Ignore Not Found: @${user.username} attempted to delete ignore ${arguments.ignoreId} but not found"
                         }
+
+                        return@action
+                    }
+
+                    val snapshot = transaction {
+                        val snapshot = ignoreEntity.getSnapshot()
+                        ignoreEntity.delete()
+                        snapshot
+                    }
+
+                    val typeText = if (snapshot.type == IgnoreType.Contains) "が含まれて" else "と一致して"
+
+                    respondEmbed(
+                        ":wastebasket: Ignore Deleted",
+                        "「${snapshot.search}」${typeText}いても読み上げます。"
+                    ) {
+                        authorOf(user)
+                        successColor()
+                    }
+
+                    log(logger) { guild, user ->
+                        "[${guild.name}] Ignore Deleted: @${user.username} deleted $snapshot"
                     }
                 }
             }
 
-            publicSubCommand("list", "無視する文字列の一覧を表示します。") {
+            publicSubCommand("list", "無視条件の一覧を表示します。") {
                 action {
-                    val ignores = IgnoreStore.filter(guild!!.id)
+                    val guildId = guild?.id ?: return@action
+                    val snapshots = transaction { Entity.find { Table.guildDid eq guildId }.getSnapshots() }
 
-                    if (ignores.isEmpty()) {
+                    if (snapshots.isEmpty()) {
                         respondEmbed(
                             ":grey_question: Ignores Not Found",
                             "設定されていないようです。`/ignore create` で作成してみましょう！"
@@ -138,14 +165,14 @@ class IgnoreCommand : Extension() {
                     }
 
                     respondingPaginator {
-                        for (chunkedIgnores in ignores.chunked(10)) {
+                        for (chunkedIgnores in snapshots.chunked(10)) {
                             page {
                                 authorOf(user)
 
                                 title = ":information_source: Ignores"
 
                                 description = chunkedIgnores.joinToString("\n") {
-                                    it.toDisplayWithEmoji()
+                                    it.describeWithEmoji()
                                 }
 
                                 successColor()

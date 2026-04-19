@@ -1,0 +1,113 @@
+package com.jaoafa.vcspeaker.database.tables
+
+import com.jaoafa.vcspeaker.database.DatabaseUtil.version
+import com.jaoafa.vcspeaker.database.EntitySnapshot
+import com.jaoafa.vcspeaker.database.SnappableEntity
+import com.jaoafa.vcspeaker.database.SnapshotFactory
+import com.jaoafa.vcspeaker.database.VersionedTable
+import com.jaoafa.vcspeaker.features.*
+import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
+import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.dao.IntEntity
+import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+
+object VoiceTable : IntIdTable("voice"), VersionedTable {
+    val speaker = enumerationByName<Speaker>("speaker", 16)
+        .default(Speaker.Haruka)
+    val emotion = enumerationByName<Emotion>("emotion", 16)
+        .nullable().default(null)
+    val emotionLevel = integer("emotion_level")
+        .nullable().default(null)
+        .check { it.between(EMOTION_LEVEL_MIN, EMOTION_LEVEL_MAX) }
+    val pitch = integer("pitch")
+        .default(PITCH_DEFAULT)
+        .check { it.between(PITCH_MIN, PITCH_MAX) }
+    val speed = integer("speed")
+        .default(SPEED_DEFAULT)
+        .check { it.between(SPEED_MIN, SPEED_MAX) }
+    val volume = integer("volume")
+        .default(VOLUME_DEFAULT)
+        .check { it.between(VOLUME_MIN, VOLUME_MAX) }
+    override val version = version()
+
+    init {
+        check("check_voice_emotion_consistency") {
+            not(emotion.isNull() and emotionLevel.isNotNull())
+        }
+    }
+}
+
+class VoiceEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<VoiceSnapshot, VoiceEntity> {
+    companion object : IntEntityClass<VoiceEntity>(VoiceTable)
+
+    var speaker by VoiceTable.speaker
+    var emotion by VoiceTable.emotion
+    var emotionLevel by VoiceTable.emotionLevel
+    var pitch by VoiceTable.pitch
+    var speed by VoiceTable.speed
+    var volume by VoiceTable.volume
+
+    override fun getSnapshot() = transaction { VoiceSnapshot.from(readValues) }
+
+    fun modifyByOptions(options: VoiceOptions): Boolean {
+        var modified = false
+
+        options.speaker?.also { speaker = Speaker.valueOf(it); modified = true }
+
+        options.pitch?.also { pitch = it; modified = true }
+        options.speed?.also { speed = it; modified = true }
+        options.volume?.also { volume = it; modified = true }
+
+        // if emotion is set to be null, also set emotion level to null and stop modification lambda
+        if (options.emotion == "none") {
+            emotion = null
+            emotionLevel = null
+            return true
+        }
+
+        options.emotion?.also { emotion = Emotion.valueOf(it); modified = true }
+
+        options.emotionLevel?.takeIf { emotion != null }?.also {
+            emotionLevel = it
+            modified = true
+        }
+
+        return modified
+    }
+}
+
+@Serializable
+data class VoiceSnapshot(
+    val id: Int,
+    @Contextual val speaker: Speaker,
+    @Contextual val emotion: Emotion?,
+    val emotionLevel: Int?,
+    val pitch: Int,
+    val speed: Int,
+    val volume: Int,
+    val version: Int,
+) : EntitySnapshot<VoiceEntity>() {
+    companion object : SnapshotFactory<VoiceSnapshot> {
+        override fun from(row: ResultRow) = VoiceSnapshot(
+            id = row[VoiceTable.id].value,
+            speaker = row[VoiceTable.speaker],
+            emotion = row[VoiceTable.emotion],
+            emotionLevel = row[VoiceTable.emotionLevel],
+            pitch = row[VoiceTable.pitch],
+            speed = row[VoiceTable.speed],
+            volume = row[VoiceTable.volume],
+            version = row[VoiceTable.version],
+        )
+    }
+
+    override fun getEntity() = transaction {
+        VoiceEntity[this@VoiceSnapshot.id]
+    }
+}

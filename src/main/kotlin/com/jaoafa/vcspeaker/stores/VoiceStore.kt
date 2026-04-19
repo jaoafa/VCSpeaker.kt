@@ -1,18 +1,38 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.UserEntity
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Serializable
+@Deprecated("Use database instead")
 data class VoiceData(
     val userId: Snowflake,
-    val voice: Voice
-)
+    val voice: Voice,
+    override var migrated: Boolean = false
+) : DBMigratableData {
+    override fun migrate() = transaction {
+        UserEntity.new(userId) {
+            voiceEntity = VoiceEntity.new {
+                speaker = voice.speaker
+                emotion = voice.emotion
+                emotionLevel = voice.emotionLevel
+                pitch = voice.pitch
+                speed = voice.speed
+                volume = voice.volume
+            }
+        }
+        return@transaction
+    }
+}
 
+@Deprecated("Use database instead")
 object VoiceStore : StoreStruct<VoiceData>(
     VCSpeaker.Files.voices.path,
     VoiceData.serializer(),
