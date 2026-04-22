@@ -19,7 +19,7 @@ kord-extensions = "2.2.1-SNAPSHOT"
 lavakord = "9.2.0"
 
 # Ktor
-ktor = "3.4.1"
+ktor = "3.4.3"
 
 # Kotlinx
 coroutines = "1.10.2"
