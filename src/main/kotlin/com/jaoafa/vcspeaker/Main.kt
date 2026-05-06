@@ -7,17 +7,24 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.*
-import com.jaoafa.vcspeaker.api.Server
-import com.jaoafa.vcspeaker.api.ServerType
+import com.github.ajalt.clikt.parameters.types.boolean
+import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.long
+import com.github.ajalt.clikt.parameters.types.path
+import com.jaoafa.vcspeaker.api.data.DataServer
+import com.jaoafa.vcspeaker.api.update.UpdateServer
+import com.jaoafa.vcspeaker.api.update.UpdateServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
+import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.StoreDBMigrator
 import com.jaoafa.vcspeaker.tools.discord.DiscordCommandCleaner
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
+import kotlin.system.exitProcess
 
 class Options : OptionGroup("Main Options:") {
     val configPath by option(
@@ -62,11 +69,17 @@ class Options : OptionGroup("Main Options:") {
         envvar = "VCSKT_SENTRY_ENV"
     )
 
-    val apiPort by option(
-        "--api-port",
-        help = "The port for the API server to listen on.",
-        envvar = "VCSKT_API_PORT"
-    ).int().default(2000)
+    val updateApiPort by option(
+        "--update-api-port",
+        help = "The port for the Update API server to listen on.",
+        envvar = "VCSKT_UPDATE_API_PORT"
+    ).int()
+
+    val dataApiPort by option(
+        "--data-api-port",
+        help = "The port for the Data API server to listen on.",
+        envvar = "VCSKT_DATA_API_PORT"
+    ).int()
 
     val waitFor by option(
         "--wait-for",
@@ -89,6 +102,11 @@ class Options : OptionGroup("Main Options:") {
     val clearCommandsAndExit by option(
         "--clear-commands-and-exit",
         help = "Delete all registered application commands and exit."
+    ).flag()
+
+    val migrateStoreToDB by option(
+        "--migrate-store-to-db",
+        help = "Migrate store data to database and exit."
     ).flag()
 }
 
@@ -119,7 +137,7 @@ class Entrypoint : CliktCommand() {
             }
 
             logger.info { "Command cleanup completed. Exiting." }
-            return
+            exitProcess(0)
         }
 
         val manifest = javaClass
@@ -136,14 +154,27 @@ class Entrypoint : CliktCommand() {
 
         VCSpeaker.init(version, config, options)
 
+        DatabaseUtil.connect(config[EnvSpec.databaseUrl])
+        DatabaseUtil.createTables()
+        DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
+
+        StoreDBMigrator.run()
+        if (options.migrateStoreToDB) exitProcess(0)
+
+        DataServer().start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
+
         runBlocking {
             val shouldWait = options.waitFor != null
 
             if (shouldWait) { // this instance is LATEST
                 KordStarter.start(launch = false)
-                val server = Server(ServerType.Latest, options.apiToken, options.waitFor)
-                VCSpeaker.apiServer = server
-                server.start(options.apiPort, wait = true, sendBackIntSignal = true)
+                val updateServer = UpdateServer(UpdateServerType.Latest, options.apiToken, options.waitFor)
+                VCSpeaker.apiUpdateServer = updateServer
+                updateServer.start(
+                    options.updateApiPort ?: config[EnvSpec.updateApiPort],
+                    wait = true,
+                    sendBackIntSignal = true
+                )
             } else {
                 KordStarter.start()
             }

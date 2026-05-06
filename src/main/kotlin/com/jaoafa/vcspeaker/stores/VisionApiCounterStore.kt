@@ -1,21 +1,41 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.VisionAPICounterEntity
+import com.jaoafa.vcspeaker.database.tables.VisionAPICounterTable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.core.dao.id.CompositeID
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.time.Instant
 
 @Serializable
+@Deprecated("Use database instead")
 data class VisionApiCounterData(
     /** 年月 (yyyy/MM) */
     val yearMonth: String,
     /** リクエスト数 */
     val count: Int,
     /** リミット到達日時 */
-    val limitReachedAt: Long? = null
-)
+    val limitReachedAt: Long? = null,
+    override var migrated: Boolean = false
+) : DBMigratableData {
+    override fun migrate() = transaction {
+        val (year, month) = yearMonth.split("/").map { it.toInt() }
+        VisionAPICounterEntity.new(CompositeID {
+            it[VisionAPICounterTable.year] = year
+            it[VisionAPICounterTable.month] = month
+        }) {
+            count = this@VisionApiCounterData.count
+            limitReachedAt = this@VisionApiCounterData.limitReachedAt?.let { Instant.fromEpochMilliseconds(it) }
+        }
+        return@transaction
+    }
+}
 
+@Deprecated("Use database instead")
 object VisionApiCounterStore : StoreStruct<VisionApiCounterData>(
     VCSpeaker.Files.visionApiCounter.path,
     VisionApiCounterData.serializer(),

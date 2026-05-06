@@ -1,6 +1,7 @@
 package tools
 
-import com.jaoafa.vcspeaker.tools.*
+import com.jaoafa.vcspeaker.tools.readOrCreateAs
+import com.jaoafa.vcspeaker.tools.writeAs
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
