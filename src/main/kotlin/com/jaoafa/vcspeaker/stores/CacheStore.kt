@@ -4,10 +4,20 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
-import kotlin.concurrent.timer
+import kotlin.coroutines.coroutineContext
 
 @Serializable
 data class CacheData(
@@ -55,29 +65,34 @@ object CacheStore : StoreStruct<CacheData>(
         }.toMutableList()
     }
 ) {
+    private val pendingMutex = Mutex()
+    private val pendingByHash = mutableMapOf<String, Deferred<File>>()
+    private val auditScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
     private fun <T : ProviderContext> cacheFile(context: T) =
         VCSpeaker.cacheFolder.resolve(File("${context.hash()}.${providerOf(context).format}"))
 
-    private fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
+    private suspend fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
         val provider = providerOf(context)
         val hash = context.hash()
         val file = cacheFile(context).apply { writeBytes(byteArray) }
 
-        syncing {
+        withData {
             data += CacheData(provider.id, hash, System.currentTimeMillis())
+            writeLocked()
         }
 
         return file
     }
 
-    private fun <T : ProviderContext> read(context: T): File? {
-        val cache = data.find { it.hash == context.hash() } ?: return null
+    private suspend fun <T : ProviderContext> read(context: T): File? = withData {
+        val index = data.indexOfFirst { it.hash == context.hash() }
+        if (index == -1) return@withData null
 
-        syncing { // update lastUsed
-            data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
-        }
+        data[index] = data[index].copy(lastUsed = System.currentTimeMillis())
+        writeLocked()
 
-        return cacheFile(context)
+        cacheFile(context)
     }
 
     suspend fun <T : ProviderContext> readOrCreate(
@@ -85,32 +100,43 @@ object CacheStore : StoreStruct<CacheData>(
         onNoCache: suspend () -> ByteArray,
         onCached: () -> Unit
     ): File {
-        val file = read(context)
+        val hash = context.hash()
 
-        return if (file != null) {
-            onCached()
-            file
-        } else {
-            cacheFile(context).writeText("")
-            create(context, onNoCache())
+        val deferred = pendingMutex.withLock {
+            pendingByHash.getOrPut(hash) {
+                CoroutineScope(coroutineContext).async {
+                    val file = read(context)
+                    if (file != null) {
+                        onCached()
+                        file
+                    } else {
+                        cacheFile(context).writeText("")
+                        create(context, onNoCache())
+                    }
+                }
+            }
+        }
+
+        return try {
+            deferred.await()
+        } finally {
+            pendingMutex.withLock { pendingByHash.remove(hash) }
         }
     }
 
-
-    private fun syncing(operation: () -> Unit) {
-        operation()
-        write()
-    }
-
     fun initiateAuditJob(interval: Int) {
-        timer("CacheAudit", false, 0, (1000 * 60 * 60 * 24 * interval).toLong()) {
-            syncing {
-                data.sortByDescending { it.lastUsed }
-                data.drop(100).forEach {
-                    val provider = getProvider(it.providerId) ?: return@forEach
-                    VCSpeaker.cacheFolder.resolve(File("${it.hash}.${provider.format}")).delete()
+        auditScope.launch {
+            while (isActive) {
+                withData {
+                    data.sortByDescending { it.lastUsed }
+                    data.drop(100).forEach {
+                        val provider = getProvider(it.providerId) ?: return@forEach
+                        VCSpeaker.cacheFolder.resolve(File("${it.hash}.${provider.format}")).delete()
+                    }
+                    data = data.take(100).toMutableList()
+                    writeLocked()
                 }
-                data = data.take(100).toMutableList()
+                delay(1000L * 60 * 60 * 24 * interval)
             }
         }
     }
