@@ -102,7 +102,7 @@ class ReadableBotCommand : Extension() {
             publicSubCommand("list", "読み上げを許可するBotの一覧を表示します.") {
                 action {
                     val guildId = guild!!.id
-                    val readableBots = ReadableBotStore.data.filter { it.guildId == guildId }
+                    val readableBots = ReadableBotStore.filter(guildId)
 
                     if (readableBots.isEmpty()) {
                         respondEmbed(

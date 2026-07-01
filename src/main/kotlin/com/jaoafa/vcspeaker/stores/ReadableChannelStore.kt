@@ -51,4 +51,6 @@ object ReadableChannelStore : StoreStruct<ReadableChannelData>(
         data.removeIf { it.guildId == guildId }
         writeLocked()
     }
+
+    suspend fun filter(guildId: Snowflake) = withData { data.filter { it.guildId == guildId } }
 }

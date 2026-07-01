@@ -108,5 +108,5 @@ object Title {
         }
     }
 
-    fun BaseVoiceChannelBehavior.getTitleData() = TitleStore.find(id)
+    suspend fun BaseVoiceChannelBehavior.getTitleData() = TitleStore.find(id)
 }

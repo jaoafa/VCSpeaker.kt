@@ -17,7 +17,7 @@ interface BaseReplacer {
 
     suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake): MutableList<TextToken>
 
-    fun replaceText(
+    suspend fun replaceText(
         tokens: MutableList<TextToken>,
         guildId: Snowflake,
         type: AliasType,

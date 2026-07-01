@@ -13,7 +13,7 @@ object Alias {
         val guildId = event.interaction.getChannel().data.guildId.value
 
         suggestStringMap(
-            AliasStore.data.filter { it.guildId == guildId }
+            AliasStore.filter(guildId)
                 .associate { "${it.type.displayName} / ${it.search} → ${it.replace}" to it.search },
             FilterStrategy.Contains
         )

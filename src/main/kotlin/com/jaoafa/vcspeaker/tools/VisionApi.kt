@@ -38,7 +38,7 @@ object VisionApi {
      * @throws VisionApiUnsupportedMimeTypeException サポートされていない MIME タイプの ByteArray が指定された場合
      * @throws VisionApiErrorException Vision API でエラーが発生した場合
      */
-    fun getTextAnnotations(binaryArray: ByteArray): List<VisionTextAnnotation> {
+    suspend fun getTextAnnotations(binaryArray: ByteArray): List<VisionTextAnnotation> {
         // MimeTypeを確認し、対応しているか確認する
         val mimeType = binaryArray.getMimeType()
         if (mimeType !in setOf(
