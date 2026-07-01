@@ -44,12 +44,13 @@ object IgnoreStore : StoreStruct<IgnoreData>(
         }
     )
 ) {
-    fun find(guildId: Snowflake, text: String) = data.find { it.guildId == guildId && it.search == text }
+    suspend fun find(guildId: Snowflake, text: String) =
+        withData { data.find { it.guildId == guildId && it.search == text } }
 
-    fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
+    suspend fun filter(guildId: Snowflake?) = withData { data.filter { it.guildId == guildId } }
 
-    fun removeForGuild(guildId: Snowflake) {
+    suspend fun removeForGuild(guildId: Snowflake) = withData {
         data.removeIf { it.guildId == guildId }
-        write()
+        writeLocked()
     }
 }
