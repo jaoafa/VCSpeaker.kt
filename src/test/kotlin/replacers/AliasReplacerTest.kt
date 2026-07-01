@@ -18,15 +18,15 @@ class AliasReplacerTest : FunSpec({
         every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
 
         val storeStruct = mockk<StoreStruct<IgnoreData>>()
-        every { storeStruct.write() } returns Unit
+        coEvery { storeStruct.write() } returns Unit
 
         mockkObject(IgnoreStore)
-        every { IgnoreStore.write() } returns Unit
+        coEvery { IgnoreStore.write() } returns Unit
 
         IgnoreStore.data.clear()
 
         mockkObject(AliasStore)
-        every { AliasStore.write() } returns Unit
+        coEvery { AliasStore.write() } returns Unit
 
         AliasStore.data.clear()
     }

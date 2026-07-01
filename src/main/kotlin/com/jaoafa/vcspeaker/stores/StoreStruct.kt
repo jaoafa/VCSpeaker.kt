@@ -101,6 +101,7 @@ open class StoreStruct<T>(
      * [withData] ブロックの内部からのみ呼び出すこと(二重ロックによるデッドロックを避けるため)。
      */
     protected fun writeLocked(modifiedData: MutableList<T>? = null) {
+        file.parentFile.mkdirs()
         file.writeAs(TypedStore.serializer(serializer), TypedStore(version, modifiedData ?: this.data))
     }
 
