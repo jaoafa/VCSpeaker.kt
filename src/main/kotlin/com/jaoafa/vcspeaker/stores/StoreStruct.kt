@@ -68,7 +68,7 @@ open class StoreStruct<T>(
      *
      * Mutex は非リエントラントなため、block の中から [withData] を再度呼び出してはならない。
      */
-    protected suspend fun <R> withData(block: suspend () -> R): R = mutex.withLock(block)
+    protected suspend fun <R> withData(block: () -> R): R = mutex.withLock(action = block)
 
     suspend fun create(element: T): T = withData {
         data.add(element)
