@@ -17,7 +17,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
-import kotlin.coroutines.coroutineContext
 
 @Serializable
 data class CacheData(
@@ -68,6 +67,7 @@ object CacheStore : StoreStruct<CacheData>(
     private val pendingMutex = Mutex()
     private val pendingByHash = mutableMapOf<String, Deferred<File>>()
     private val auditScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val fetchScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private fun <T : ProviderContext> cacheFile(context: T) =
         VCSpeaker.cacheFolder.resolve(File("${context.hash()}.${providerOf(context).format}"))
@@ -104,7 +104,7 @@ object CacheStore : StoreStruct<CacheData>(
 
         val deferred = pendingMutex.withLock {
             pendingByHash.getOrPut(hash) {
-                CoroutineScope(coroutineContext).async {
+                fetchScope.async {
                     val file = read(context)
                     if (file != null) {
                         onCached()
