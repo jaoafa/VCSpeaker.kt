@@ -4,6 +4,8 @@ import com.jaoafa.vcspeaker.tools.readOrCreateAs
 import com.jaoafa.vcspeaker.tools.writeAs
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.sentry.Sentry
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -42,6 +44,7 @@ open class StoreStruct<T>(
     private val auditor: ((MutableList<T>) -> MutableList<T>)? = null
 ) {
     private val logger = KotlinLogging.logger {}
+    private val mutex = Mutex()
 
     val file = File(path)
 
@@ -55,41 +58,49 @@ open class StoreStruct<T>(
         ).list.toMutableList()
 
         auditData(dataCandidate).also {
-            write(it)
+            writeLocked(it)
         }
     }
 
-    fun create(element: T): T {
+    /**
+     * data への読み取り・変更を Mutex で保護しつつ実行する。
+     * サブクラスの検索系メソッドも含め、data にアクセスする全ての処理はこれを経由する。
+     *
+     * Mutex は非リエントラントなため、block の中から [withData] を再度呼び出してはならない。
+     */
+    protected suspend fun <R> withData(block: suspend () -> R): R = mutex.withLock(block)
+
+    suspend fun create(element: T): T = withData {
         data.add(element)
         data = auditData(data)
-
-        write()
-
-        return element
+        writeLocked()
+        element
     }
 
-    fun remove(element: T): Boolean {
+    suspend fun remove(element: T): Boolean = withData {
         val result = data.remove(element)
         data = auditData(data)
-
-        write()
-
-        return result
+        writeLocked()
+        result
     }
 
-    fun replace(from: T, to: T): T {
-        with(data) {
-            remove(from)
-            add(to)
-        }
-
+    suspend fun replace(from: T, to: T): T = withData {
+        data.remove(from)
+        data.add(to)
         data = auditData(data)
-        write()
-
-        return to
+        writeLocked()
+        to
     }
 
-    fun write(modifiedData: MutableList<T>? = null) {
+    suspend fun write(modifiedData: MutableList<T>? = null): Unit = withData {
+        writeLocked(modifiedData)
+    }
+
+    /**
+     * ロックを取得せずに data をファイルへ永続化する。
+     * [withData] ブロックの内部からのみ呼び出すこと(二重ロックによるデッドロックを避けるため)。
+     */
+    protected fun writeLocked(modifiedData: MutableList<T>? = null) {
         file.writeAs(TypedStore.serializer(serializer), TypedStore(version, modifiedData ?: this.data))
     }
 
