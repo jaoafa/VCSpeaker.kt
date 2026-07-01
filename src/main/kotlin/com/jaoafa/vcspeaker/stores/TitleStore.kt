@@ -32,12 +32,12 @@ object TitleStore : StoreStruct<TitleData>(
         }
     )
 ) {
-    fun find(channelId: Snowflake) = data.find { it.channelId == channelId }
+    suspend fun find(channelId: Snowflake) = withData { data.find { it.channelId == channelId } }
 
-    fun filterGuild(guildId: Snowflake) = data.filter { it.guildId == guildId }
+    suspend fun filterGuild(guildId: Snowflake) = withData { data.filter { it.guildId == guildId } }
 
-    fun removeForGuild(guildId: Snowflake) {
+    suspend fun removeForGuild(guildId: Snowflake) = withData {
         data.removeIf { it.guildId == guildId }
-        write()
+        writeLocked()
     }
 }
