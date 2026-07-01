@@ -43,9 +43,9 @@ object GuildStore : StoreStruct<GuildData>(
         }
     )
 ) {
-    operator fun get(guildId: Snowflake) = data.find { it.guildId == guildId }
+    suspend operator fun get(guildId: Snowflake) = withData { data.find { it.guildId == guildId } }
 
-    fun getOrDefault(guildId: Snowflake) = data.find { it.guildId == guildId } ?: GuildData(
+    suspend fun getOrDefault(guildId: Snowflake) = get(guildId) ?: GuildData(
         guildId,
         null,
         null,
@@ -53,28 +53,30 @@ object GuildStore : StoreStruct<GuildData>(
         false
     )
 
-    fun getTextChannels() = data.filter { it.channelId != null }.map { it.channelId!! }
+    suspend fun getTextChannels() = withData { data.filter { it.channelId != null }.map { it.channelId!! } }
 
-    fun createOrUpdate(
+    suspend fun createOrUpdate(
         guildId: Snowflake,
         channelId: Snowflake?,
         prefix: String?,
         voice: Voice,
         autoJoin: Boolean
-    ): GuildData {
-        val guildData = data.find { it.guildId == guildId }
+    ): GuildData = withData {
+        val index = data.indexOfFirst { it.guildId == guildId }
 
-        if (guildData != null)
-            data[data.indexOf(guildData)] = guildData.apply {
+        val guildData = if (index != -1) {
+            data[index].apply {
                 this.channelId = channelId
                 this.prefix = prefix
                 this.voice = voice
                 this.autoJoin = autoJoin
             }
-        else data.add(GuildData(guildId, channelId, prefix, voice, autoJoin))
+        } else {
+            GuildData(guildId, channelId, prefix, voice, autoJoin).also { data.add(it) }
+        }
 
-        write()
+        writeLocked()
 
-        return data.find { it.guildId == guildId }!! // created or updated so it must be found
+        guildData
     }
 }
