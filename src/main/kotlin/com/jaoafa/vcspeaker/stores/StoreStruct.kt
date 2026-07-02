@@ -98,7 +98,8 @@ open class StoreStruct<T>(
 
     /**
      * ロックを取得せずに data をファイルへ永続化する。
-     * [withData] ブロックの内部からのみ呼び出すこと(二重ロックによるデッドロックを避けるため)。
+     * [withData] ブロックの内部から呼び出すこと(二重ロックによるデッドロックを避けるため)。
+     * 例外として、コンストラクタでの初期化時(まだ並行アクセスが発生しない段階)はロックなしで直接呼び出してよい。
      */
     protected fun writeLocked(modifiedData: MutableList<T>? = null) {
         file.parentFile.mkdirs()

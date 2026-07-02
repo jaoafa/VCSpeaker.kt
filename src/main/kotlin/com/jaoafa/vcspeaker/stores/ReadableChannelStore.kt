@@ -34,12 +34,10 @@ object ReadableChannelStore : StoreStruct<ReadableChannelData>(
     suspend fun isReadableChannel(guildId: Snowflake, channel: TextChannel) =
         withData { data.any { it.guildId == guildId && it.channelId == channel.id } }
 
-    suspend fun add(guildId: Snowflake, channel: TextChannel, addedByUserId: Snowflake) {
-        if (isReadableChannel(guildId, channel)) return
-        withData {
-            data.add(ReadableChannelData(guildId, channel.id, addedByUserId))
-            writeLocked()
-        }
+    suspend fun add(guildId: Snowflake, channel: TextChannel, addedByUserId: Snowflake) = withData {
+        if (data.any { it.guildId == guildId && it.channelId == channel.id }) return@withData
+        data.add(ReadableChannelData(guildId, channel.id, addedByUserId))
+        writeLocked()
     }
 
     suspend fun remove(guildId: Snowflake, channel: TextChannel) = withData {

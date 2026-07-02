@@ -34,12 +34,10 @@ object ReadableBotStore : StoreStruct<ReadableBotData>(
     suspend fun isReadableBot(guildId: Snowflake, user: User) =
         withData { data.any { it.guildId == guildId && it.userId == user.id } }
 
-    suspend fun add(guildId: Snowflake, user: User, addedByUserId: Snowflake) {
-        if (isReadableBot(guildId, user)) return
-        withData {
-            data.add(ReadableBotData(guildId, user.id, addedByUserId))
-            writeLocked()
-        }
+    suspend fun add(guildId: Snowflake, user: User, addedByUserId: Snowflake) = withData {
+        if (data.any { it.guildId == guildId && it.userId == user.id }) return@withData
+        data.add(ReadableBotData(guildId, user.id, addedByUserId))
+        writeLocked()
     }
 
     suspend fun remove(guildId: Snowflake, user: User) = withData {
