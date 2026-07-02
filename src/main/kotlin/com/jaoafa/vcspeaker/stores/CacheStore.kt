@@ -113,15 +113,22 @@ object CacheStore : StoreStruct<CacheData>(
                         cacheFile(context).writeText("")
                         create(context, onNoCache())
                     }
+                }.also { newDeferred ->
+                    // 呼び出し元のキャンセルとは無関係に、fetch 自体の完了時に一度だけ掃除する。
+                    // 呼び出し元の finally で remove すると、待機側だけがキャンセルされた場合に
+                    // fetch が完了していないのにエントリが消え、次の呼び出しが二重に fetch を開始してしまう。
+                    newDeferred.invokeOnCompletion {
+                        fetchScope.launch {
+                            pendingMutex.withLock {
+                                if (pendingByHash[hash] === newDeferred) pendingByHash.remove(hash)
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        return try {
-            deferred.await()
-        } finally {
-            pendingMutex.withLock { pendingByHash.remove(hash) }
-        }
+        return deferred.await()
     }
 
     fun initiateAuditJob(interval: Int) {

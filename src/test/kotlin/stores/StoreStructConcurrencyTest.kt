@@ -2,7 +2,6 @@ package stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.StoreStruct
-import com.jaoafa.vcspeaker.stores.TypedStore
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every

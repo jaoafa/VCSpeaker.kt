@@ -102,7 +102,7 @@ open class StoreStruct<T>(
      * 例外として、コンストラクタでの初期化時(まだ並行アクセスが発生しない段階)はロックなしで直接呼び出してよい。
      */
     protected fun writeLocked(modifiedData: MutableList<T>? = null) {
-        file.parentFile.mkdirs()
+        file.parentFile?.mkdirs()
         file.writeAs(TypedStore.serializer(serializer), TypedStore(version, modifiedData ?: this.data))
     }
 

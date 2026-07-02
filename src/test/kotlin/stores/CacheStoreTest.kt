@@ -81,7 +81,11 @@ class CacheStoreTest : FunSpec({
         CacheStore.readOrCreate(context, onNoCache = { "dummy-audio".toByteArray() }, onCached = {})
         val firstLastUsed = CacheStore.data.first { it.hash == context.hash() }.lastUsed
 
-        Thread.sleep(5)
+        // 環境によっては System.currentTimeMillis() の分解能が粗く、固定時間のスリープでは
+        // 時刻が進まずフレークしうるため、実際に時刻が進むまで待つ。
+        while (System.currentTimeMillis() <= firstLastUsed) {
+            Thread.sleep(1)
+        }
 
         var cacheHitCalled = false
         CacheStore.readOrCreate(context, onNoCache = { error("should not be called on cache hit") }, onCached = { cacheHitCalled = true })
