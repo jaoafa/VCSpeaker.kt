@@ -12,12 +12,14 @@ import java.io.File
 import kotlin.system.exitProcess
 
 @Serializable
+@Deprecated("Use database instead")
 data class TypedStore<T>(
     val version: Int,
     val list: List<T>
 )
 
 @Serializable
+@Deprecated("Use database instead")
 data class AnyStore(
     val version: Int,
     val list: JsonElement
@@ -33,7 +35,8 @@ data class AnyStore(
  * @param migrators Migrator 関数; Key をバージョンとし, v (Key - 1) のデータを v Key に移行します
  * @param auditor Auditor 関数; null の場合は何も変更されません。null でない場合、初期化時と [StoreStruct.write] 実行時にデータを監査します
  */
-open class StoreStruct<T>(
+@Deprecated("Use database instead")
+open class StoreStruct<T : DBMigratableData>(
     path: String,
     private val serializer: KSerializer<T>,
     deserializer: String.() -> TypedStore<T>, // To avoid type inference error. DO NOT REMOVE.
@@ -42,6 +45,7 @@ open class StoreStruct<T>(
     private val auditor: ((MutableList<T>) -> MutableList<T>)? = null
 ) {
     private val logger = KotlinLogging.logger {}
+    private val name = this::class.simpleName
 
     val file = File(path)
 
@@ -124,4 +128,21 @@ open class StoreStruct<T>(
 
     private fun auditData(dataCandidate: MutableList<T>): MutableList<T> =
         auditor?.let { it(dataCandidate) } ?: dataCandidate
+
+    fun migrateToDB() {
+        data.forEach {
+            try {
+                if (!it.migrated) {
+                    it.migrate()
+                    it.migrated = true
+                }
+            } catch (e: Exception) {
+                logger.error { "[$name] Failed to Migrate: $it; ${e.message}" }
+            }
+        }
+
+        logger.info { "[$name] Migration to database complete." }
+
+        write()
+    }
 }

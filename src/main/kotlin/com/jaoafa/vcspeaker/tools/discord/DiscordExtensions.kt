@@ -1,7 +1,8 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.database.tables.GuildSnapshot
+import com.jaoafa.vcspeaker.database.tables.VoiceSnapshot
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
@@ -12,9 +13,9 @@ import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.asChannelOf
-import dev.kord.core.entity.Guild
 import dev.kord.core.entity.User
 import dev.kord.core.entity.channel.Channel
+import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.FollowupMessageCreateBuilder
@@ -31,20 +32,14 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-typealias Options = Arguments
+typealias EmbedBuilderLambdaSuspend = suspend EmbedBuilder.() -> Unit
+typealias EmbedBuilderLambda = EmbedBuilder.() -> Unit
 
 /**
  * Discord 関連の拡張関数をまとめたオブジェクト。
  */
 object DiscordExtensions {
     private val logger = KotlinLogging.logger { }
-
-    fun Guild.getSettings() = GuildStore.getOrDefault(this.id)
-
-    /**
-     * 自動入退室が有効化されているかどうか。
-     */
-    fun Guild.autoJoinEnabled() = GuildStore.getOrDefault(this.id).autoJoin
 
     /**
      * AFK チャンネルかどうか。
@@ -65,6 +60,59 @@ object DiscordExtensions {
      * Embed の Author を [user] に設定します。
      */
     suspend fun EmbedBuilder.authorOf(user: UserBehavior) = authorOf(user.asUser())
+
+    fun EmbedBuilder.voiceParameterFieldsOf(snapshot: VoiceSnapshot) {
+        val emotionEmoji = snapshot.emotion?.emoji ?: ":neutral_face:"
+
+        field {
+            name = ":grinning: 話者"
+            value = snapshot.speaker.speakerName
+            inline = true
+        }
+        field {
+            name = "$emotionEmoji 感情"
+            value = snapshot.emotion?.emotionName ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":signal_strength: 感情レベル"
+            value = snapshot.emotionLevel?.let { "`Level $it`" } ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":arrow_up_down: ピッチ"
+            value = snapshot.pitch.let { "`$it%`" }
+            inline = true
+        }
+        field {
+            name = ":fast_forward: 速度"
+            value = snapshot.speed.let { "`$it%`" }
+            inline = true
+        }
+        field {
+            name = ":loud_sound: 音量"
+            value = snapshot.volume.let { "`$it%`" }
+            inline = true
+        }
+    }
+
+    suspend fun EmbedBuilder.guildParameterFieldsOf(snapshot: GuildSnapshot) {
+        field {
+            name = ":hash: 読み上げチャンネル"
+            value = snapshot.channelDid?.asChannelOf<TextChannel>()?.mention ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":symbols: プレフィックス"
+            value = snapshot.prefix?.let { "`$it`" } ?: "未設定"
+            inline = true
+        }
+        field {
+            name = ":inbox_tray: 自動入退室"
+            value = if (snapshot.autoJoin) "有効" else "無効"
+            inline = true
+        }
+    }
 
     object EmbedColors {
         val success = Color(0xa6e3a1)
@@ -120,9 +168,27 @@ object DiscordExtensions {
     suspend fun PublicSlashCommandContext<*, *>.respondEmbed(
         title: String,
         description: String? = null,
-        builder: suspend EmbedBuilder.() -> Unit = {}
+        builder: EmbedBuilderLambdaSuspend = {}
     ) = this.respond {
         embed(title, description, builder)
+    }
+
+    /**
+     * Embed を Interaction に返信します。
+     *
+     * @param builder 適用する EmbedBuilder
+     * @param override builder を上書きする EmbedBuilder
+     */
+    suspend fun PublicSlashCommandContext<*, *>.respondEmbedOf(
+        builder: EmbedBuilderLambdaSuspend,
+        override: EmbedBuilderLambdaSuspend? = null
+    ) = this.respond {
+        embed {
+            apply { builder() }
+            if (override != null) {
+                apply { override() }
+            }
+        }
     }
 
     /**
@@ -135,7 +201,7 @@ object DiscordExtensions {
     suspend fun FollowupMessageCreateBuilder.embed(
         title: String,
         description: String? = null,
-        builder: suspend EmbedBuilder.() -> Unit = {}
+        builder: EmbedBuilderLambdaSuspend = {}
     ) = this.embed {
         this.title = title
         this.description = description
@@ -176,7 +242,7 @@ object DiscordExtensions {
     /**
      * [BaseVoiceChannelBehavior] のチャンネル名を取得します。
      */
-    suspend fun BaseVoiceChannelBehavior.name() = this.asChannel().name
+    suspend fun BaseVoiceChannelBehavior.getName() = this.asChannel().name
 
     /**
      * [Channel] がスレッドかどうか。
@@ -190,7 +256,7 @@ object DiscordExtensions {
     /**
      * VC の GoLive 率を計算します。
      */
-    suspend fun BaseVoiceChannelBehavior.calculateGoLiveRate(): Int {
+    suspend fun BaseVoiceChannelBehavior.getGoLiveRate(): Int {
         val states = voiceStates.filter { !it.getMember().isBot && it.getMember().hasPermission(Permission.Stream) }
         val goLiveMemberCount = states.count { it.isSelfStreaming }
         val memberCount = states.count()
@@ -223,4 +289,8 @@ object DiscordExtensions {
             }
         }
     }
+
+    fun Snowflake.toLong() = this.value.toLong()
+
+    fun Long.toSnowflake() = Snowflake(this)
 }
