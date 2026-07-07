@@ -23,7 +23,8 @@ class CacheStoreTest : FunSpec({
         VCSpeaker.cacheFolder.mkdirs()
 
         val cacheFile = File(VCSpeaker.storeFolder, "caches.json")
-        if (!cacheFile.exists()) cacheFile.writeText("""{"version":1,"list":[]}""")
+        // 生の JSON を直書きするとバージョン変更時に追従できないため、CacheStore.write() で書き込む
+        if (!cacheFile.exists()) runBlocking { CacheStore.write(mutableListOf()) }
     }
 
     afterTest {
