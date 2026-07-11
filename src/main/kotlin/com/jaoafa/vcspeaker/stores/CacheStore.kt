@@ -103,25 +103,30 @@ object CacheStore : StoreStruct<CacheData>(
         val hash = context.hash()
 
         val deferred = pendingMutex.withLock {
-            pendingByHash.getOrPut(hash) {
-                fetchScope.async {
-                    val file = read(context)
-                    if (file != null) {
-                        onCached()
-                        file
-                    } else {
-                        cacheFile(context).writeText("")
-                        create(context, onNoCache())
-                    }
-                }.also { newDeferred ->
-                    // 呼び出し元のキャンセルとは無関係に、fetch 自体の完了時に一度だけ掃除する。
-                    // 呼び出し元の finally で remove すると、待機側だけがキャンセルされた場合に
-                    // fetch が完了していないのにエントリが消え、次の呼び出しが二重に fetch を開始してしまう。
-                    newDeferred.invokeOnCompletion {
-                        fetchScope.launch {
-                            pendingMutex.withLock {
-                                if (pendingByHash[hash] === newDeferred) pendingByHash.remove(hash)
-                            }
+            // 完了済みの Deferred は掃除が非同期のため一時的に残りうる。それに合流すると
+            // read()/onCached() を経ずに完了値だけを受け取り、キャッシュヒット時の lastUsed 更新が
+            // 抜けてしまう。完了済みエントリは不在扱いにして新規 fetch を起こし、真に fetch 中
+            // (未完了) の呼び出しだけを合流させる。
+            val inFlight = pendingByHash[hash]?.takeIf { !it.isCompleted }
+
+            inFlight ?: fetchScope.async {
+                val file = read(context)
+                if (file != null) {
+                    onCached()
+                    file
+                } else {
+                    cacheFile(context).writeText("")
+                    create(context, onNoCache())
+                }
+            }.also { newDeferred ->
+                pendingByHash[hash] = newDeferred
+                // 呼び出し元のキャンセルとは無関係に、fetch 自体の完了時に一度だけ掃除する。
+                // 呼び出し元の finally で remove すると、待機側だけがキャンセルされた場合に
+                // fetch が完了していないのにエントリが消え、次の呼び出しが二重に fetch を開始してしまう。
+                newDeferred.invokeOnCompletion {
+                    fetchScope.launch {
+                        pendingMutex.withLock {
+                            if (pendingByHash[hash] === newDeferred) pendingByHash.remove(hash)
                         }
                     }
                 }
