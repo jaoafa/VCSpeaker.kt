@@ -39,12 +39,12 @@ typealias Options = Arguments
 object DiscordExtensions {
     private val logger = KotlinLogging.logger { }
 
-    fun Guild.getSettings() = GuildStore.getOrDefault(this.id)
+    suspend fun Guild.getSettings() = GuildStore.getOrDefault(this.id)
 
     /**
      * 自動入退室が有効化されているかどうか。
      */
-    fun Guild.autoJoinEnabled() = GuildStore.getOrDefault(this.id).autoJoin
+    suspend fun Guild.autoJoinEnabled() = GuildStore.getOrDefault(this.id).autoJoin
 
     /**
      * AFK チャンネルかどうか。

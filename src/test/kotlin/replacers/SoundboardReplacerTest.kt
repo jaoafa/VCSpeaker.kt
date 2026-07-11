@@ -13,6 +13,7 @@ import dev.kord.common.entity.Snowflake
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -24,15 +25,15 @@ class SoundboardReplacerTest : FunSpec({
         every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
 
         val storeStruct = mockk<StoreStruct<IgnoreData>>()
-        every { storeStruct.write() } returns Unit
+        coEvery { storeStruct.write() } returns Unit
 
         mockkObject(IgnoreStore)
-        every { IgnoreStore.write() } returns Unit
+        coEvery { IgnoreStore.write() } returns Unit
 
         IgnoreStore.data.clear()
 
         mockkObject(AliasStore)
-        every { AliasStore.write() } returns Unit
+        coEvery { AliasStore.write() } returns Unit
 
         AliasStore.data.clear()
     }

@@ -32,7 +32,7 @@ class ParseCommand : Extension() {
                 val guildId = guild!!.id
                 val text = arguments.text
 
-                fun effectiveIgnores(text: String) = IgnoreStore.filter(guildId).filter {
+                suspend fun effectiveIgnores(text: String) = IgnoreStore.filter(guildId).filter {
                     when (it.type) {
                         IgnoreType.Equals -> text == it.search
                         IgnoreType.Contains -> text.contains(it.search)

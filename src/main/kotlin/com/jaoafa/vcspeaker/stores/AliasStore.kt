@@ -56,13 +56,13 @@ object AliasStore : StoreStruct<AliasData>(
         data.sortedByDescending { it.search.length }.toMutableList()
     }
 ) {
-    fun find(guildId: Snowflake, from: String) =
-        data.find { it.guildId == guildId && it.search == from }
+    suspend fun find(guildId: Snowflake, from: String) =
+        withData { data.find { it.guildId == guildId && it.search == from } }
 
-    fun filter(guildId: Snowflake?) = data.filter { it.guildId == guildId }
+    suspend fun filter(guildId: Snowflake?) = withData { data.filter { it.guildId == guildId } }
 
-    fun removeForGuild(guildId: Snowflake) {
+    suspend fun removeForGuild(guildId: Snowflake) = withData {
         data.removeIf { it.guildId == guildId }
-        write()
+        writeLocked()
     }
 }
