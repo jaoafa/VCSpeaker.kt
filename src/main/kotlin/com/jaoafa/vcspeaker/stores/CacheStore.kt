@@ -103,10 +103,8 @@ object CacheStore : StoreStruct<CacheData>(
         val hash = context.hash()
 
         val deferred = pendingMutex.withLock {
-            // 完了済みの Deferred は掃除が非同期のため一時的に残りうる。それに合流すると
-            // read()/onCached() を経ずに完了値だけを受け取り、キャッシュヒット時の lastUsed 更新が
-            // 抜けてしまう。完了済みエントリは不在扱いにして新規 fetch を起こし、真に fetch 中
-            // (未完了) の呼び出しだけを合流させる。
+            // 完了済み Deferred(掃除が非同期のため一時的に残る)に合流すると、
+            // read()/onCached() を経ずに lastUsed 更新が抜けるため、未完了のものだけ合流させる。
             val inFlight = pendingByHash[hash]?.takeIf { !it.isCompleted }
 
             inFlight ?: fetchScope.async {
@@ -120,9 +118,8 @@ object CacheStore : StoreStruct<CacheData>(
                 }
             }.also { newDeferred ->
                 pendingByHash[hash] = newDeferred
-                // 呼び出し元のキャンセルとは無関係に、fetch 自体の完了時に一度だけ掃除する。
-                // 呼び出し元の finally で remove すると、待機側だけがキャンセルされた場合に
-                // fetch が完了していないのにエントリが消え、次の呼び出しが二重に fetch を開始してしまう。
+                // 呼び出し元の finally で remove すると、待機側だけキャンセルされた場合に
+                // fetch 未完了のままエントリが消え二重 fetch を招くため、fetch 自体の完了時に掃除する。
                 newDeferred.invokeOnCompletion {
                     fetchScope.launch {
                         pendingMutex.withLock {
