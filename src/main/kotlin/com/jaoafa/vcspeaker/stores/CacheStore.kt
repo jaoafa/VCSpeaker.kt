@@ -103,25 +103,27 @@ object CacheStore : StoreStruct<CacheData>(
         val hash = context.hash()
 
         val deferred = pendingMutex.withLock {
-            pendingByHash.getOrPut(hash) {
-                fetchScope.async {
-                    val file = read(context)
-                    if (file != null) {
-                        onCached()
-                        file
-                    } else {
-                        cacheFile(context).writeText("")
-                        create(context, onNoCache())
-                    }
-                }.also { newDeferred ->
-                    // 呼び出し元のキャンセルとは無関係に、fetch 自体の完了時に一度だけ掃除する。
-                    // 呼び出し元の finally で remove すると、待機側だけがキャンセルされた場合に
-                    // fetch が完了していないのにエントリが消え、次の呼び出しが二重に fetch を開始してしまう。
-                    newDeferred.invokeOnCompletion {
-                        fetchScope.launch {
-                            pendingMutex.withLock {
-                                if (pendingByHash[hash] === newDeferred) pendingByHash.remove(hash)
-                            }
+            // 完了済み Deferred(掃除が非同期のため一時的に残る)に合流すると、
+            // read()/onCached() を経ずに lastUsed 更新が抜けるため、未完了のものだけ合流させる。
+            val inFlight = pendingByHash[hash]?.takeIf { !it.isCompleted }
+
+            inFlight ?: fetchScope.async {
+                val file = read(context)
+                if (file != null) {
+                    onCached()
+                    file
+                } else {
+                    cacheFile(context).writeText("")
+                    create(context, onNoCache())
+                }
+            }.also { newDeferred ->
+                pendingByHash[hash] = newDeferred
+                // 呼び出し元の finally で remove すると、待機側だけキャンセルされた場合に
+                // fetch 未完了のままエントリが消え二重 fetch を招くため、fetch 自体の完了時に掃除する。
+                newDeferred.invokeOnCompletion {
+                    fetchScope.launch {
+                        pendingMutex.withLock {
+                            if (pendingByHash[hash] === newDeferred) pendingByHash.remove(hash)
                         }
                     }
                 }
