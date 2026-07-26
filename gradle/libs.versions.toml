@@ -30,7 +30,7 @@ sentry = "8.48.0"
 jsoup = "1.22.2"
 reflections = "0.10.2"
 google-cloud-vision = "3.92.0"
-scrimage = "4.6.6"
+scrimage = "4.6.7"
 clikt = "5.1.0"
 konf = "1.1.2"
 
