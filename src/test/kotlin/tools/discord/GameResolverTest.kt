@@ -14,6 +14,9 @@ import io.mockk.every
 import io.mockk.mockkObject
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 
 class GameResolverTest : FunSpec({
     beforeSpec {
@@ -110,6 +113,31 @@ class GameResolverTest : FunSpec({
         val result = GameResolver.resolve(listOf(1L, 2L))
 
         result shouldBe mapOf(1L to "Game One", 2L to "Game Two")
+        coVerify(exactly = 1) { DiscordGameApi.getDetectableGames() }
+    }
+
+    test("If resolve is called concurrently while the catalog is stale, the refresh should still happen only once.") {
+        mockkObject(GameStore)
+        mockkObject(DiscordGameApi)
+        var lastFetchedAt: Long? = null
+        coEvery { GameStore.lastFetchedAt() } answers { lastFetchedAt }
+        coEvery { DiscordGameApi.getDetectableGames() } coAnswers {
+            delay(50)
+            mapOf(1L to "Game One", 2L to "Game Two")
+        }
+        coEvery { GameStore.replaceAll(any(), any()) } coAnswers {
+            lastFetchedAt = secondArg<Long>()
+        }
+        coEvery { GameStore.find(1L) } returns GameData(1L, "Game One", System.currentTimeMillis())
+        coEvery { GameStore.find(2L) } returns GameData(2L, "Game Two", System.currentTimeMillis())
+
+        coroutineScope {
+            val d1 = async { GameResolver.resolve(listOf(1L)) }
+            val d2 = async { GameResolver.resolve(listOf(2L)) }
+            d1.await()
+            d2.await()
+        }
+
         coVerify(exactly = 1) { DiscordGameApi.getDetectableGames() }
     }
 })
