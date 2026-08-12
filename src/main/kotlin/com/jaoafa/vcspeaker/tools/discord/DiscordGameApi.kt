@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tools.discord
 
 import com.jaoafa.vcspeaker.models.response.discord.DiscordDetectableApplication
+import com.jaoafa.vcspeaker.models.response.discord.DiscordRateLimitResponse
 import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -58,7 +59,14 @@ object DiscordGameApi {
             val response = client.get(URL)
 
             if (response.status == HttpStatusCode.TooManyRequests) {
-                applyCooldown(response.headers[HttpHeaders.RetryAfter])
+                // Try Retry-After header first; if missing, try retry_after in response body
+                val retryAfterSeconds = response.headers[HttpHeaders.RetryAfter]?.toDoubleOrNull()
+                    ?: try {
+                        response.body<DiscordRateLimitResponse>().retryAfter
+                    } catch (e: Exception) {
+                        null
+                    }
+                applyCooldown(retryAfterSeconds)
                 return null
             }
 
@@ -79,8 +87,8 @@ object DiscordGameApi {
         }
     }
 
-    private fun applyCooldown(retryAfterHeader: String?) {
-        val retryAfterSeconds = retryAfterHeader?.toDoubleOrNull() ?: return
-        cooldownUntil = System.currentTimeMillis() + (retryAfterSeconds * 1000).toLong()
+    private fun applyCooldown(retryAfterSeconds: Double?) {
+        val seconds = retryAfterSeconds ?: return
+        cooldownUntil = System.currentTimeMillis() + (seconds * 1000).toLong()
     }
 }
