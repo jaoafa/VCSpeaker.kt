@@ -9,7 +9,7 @@ log4j = "2.26.1"
 kotlin-logging = "8.0.4"
 
 # Test and Kotlin
-kotest-runner-junit5 = "6.2.2"
+kotest-runner-junit5 = "6.2.4"
 mockk = "1.14.11"
 junit = "4.13.2"
 
