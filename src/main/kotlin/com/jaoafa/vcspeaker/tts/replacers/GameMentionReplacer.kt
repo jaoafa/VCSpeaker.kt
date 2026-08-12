@@ -31,7 +31,14 @@ object GameMentionReplacer : BaseReplacer {
                 }
 
                 val matches = regex.findAll(text).toList()
-                val splitTexts = text.split(regex)
+                val splitTexts = buildList {
+                    var lastIndex = 0
+                    for (match in matches) {
+                        add(text.substring(lastIndex, match.range.first))
+                        lastIndex = match.range.last + 1
+                    }
+                    add(text.substring(lastIndex))
+                }
 
                 val additions = splitTexts.mixin { index ->
                     val match = matches[index]

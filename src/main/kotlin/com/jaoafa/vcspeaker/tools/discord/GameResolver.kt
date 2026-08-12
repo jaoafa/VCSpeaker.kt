@@ -6,9 +6,8 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.TimeUnit
 
 /**
- * game ID からゲーム名を解決する。キャッシュ(GameStore)の fresh/stale 判定は
- * game ID 単位ではなく、カタログ全体を最後に取得した時刻(GameStore.lastFetchedAt())
- * を基準に行う。
+ * game ID からゲーム名を解決する。fresh/stale 判定は game ID 単位ではなく、
+ * カタログ全体の最終取得時刻(GameStore.lastFetchedAt())を基準に行う。
  */
 object GameResolver {
     private val ttlMillis = TimeUnit.DAYS.toMillis(90)
@@ -24,7 +23,8 @@ object GameResolver {
     suspend fun resolve(gameIds: List<Long>): Map<Long, String?> {
         refreshCatalogIfStale()
 
-        return gameIds.associateWith { id -> GameStore.find(id)?.name }
+        val names = GameStore.findAll(gameIds.toSet())
+        return gameIds.associateWith { id -> names[id] }
     }
 
     private suspend fun refreshCatalogIfStale() {

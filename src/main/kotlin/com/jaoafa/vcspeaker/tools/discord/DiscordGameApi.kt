@@ -18,8 +18,7 @@ import kotlinx.serialization.json.Json
 
 /**
  * Discord の非公開 API `applications/detectable` との通信を担当する。
- * このエンドポイントは認証不要であることを実際の Bot token で確認済みのため、
- * Authorization ヘッダーは付与しない。
+ * このエンドポイントは認証不要のため、Authorization ヘッダーは付与しない。
  */
 object DiscordGameApi {
     private val logger = KotlinLogging.logger {}
@@ -44,8 +43,8 @@ object DiscordGameApi {
     private var cooldownUntil: Long? = null
 
     /**
-     * ゲーム一覧を全件取得する。失敗時(HTTP 429/5xx/401/403、タイムアウト、
-     * 接続失敗、JSON デコード失敗のいずれか)は例外を伝播させず null を返す。
+     * ゲーム一覧を全件取得する。取得に失敗した場合は例外を伝播させず null を返し、
+     * TTS 全体を停止させない。
      */
     suspend fun getDetectableGames(): Map<Long, String>? {
         val cooldown = cooldownUntil
@@ -62,8 +61,10 @@ object DiscordGameApi {
                     ?: try {
                         response.body<DiscordRateLimitResponse>().retryAfter
                     } catch (e: Exception) {
+                        logger.warn(e) { "Failed to decode rate limit response body for applications/detectable." }
                         null
                     }
+                logger.warn { "Rate limited on applications/detectable. retryAfterSeconds=$retryAfterSeconds" }
                 applyCooldown(retryAfterSeconds)
                 return null
             }

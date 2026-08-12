@@ -1,7 +1,6 @@
 package tools.discord
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.GameData
 import com.jaoafa.vcspeaker.stores.GameStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordGameApi
 import com.jaoafa.vcspeaker.tools.discord.GameResolver
@@ -41,7 +40,7 @@ class GameResolverTest : FunSpec({
         mockkObject(GameStore)
         mockkObject(DiscordGameApi)
         coEvery { GameStore.lastFetchedAt() } returns System.currentTimeMillis()
-        coEvery { GameStore.find(1L) } returns GameData(1L, "Game One", System.currentTimeMillis())
+        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One")
 
         val result = GameResolver.resolve(listOf(1L))
 
@@ -55,7 +54,7 @@ class GameResolverTest : FunSpec({
         coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns mapOf(1L to "Game One")
         coEvery { GameStore.replaceAll(any(), any()) } returns Unit
-        coEvery { GameStore.find(1L) } returns GameData(1L, "Game One", System.currentTimeMillis())
+        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One")
 
         val result = GameResolver.resolve(listOf(1L))
 
@@ -70,7 +69,7 @@ class GameResolverTest : FunSpec({
         coEvery { GameStore.lastFetchedAt() } returns staleTimestamp
         coEvery { DiscordGameApi.getDetectableGames() } returns mapOf(1L to "Game One (Updated)")
         coEvery { GameStore.replaceAll(any(), any()) } returns Unit
-        coEvery { GameStore.find(1L) } returns GameData(1L, "Game One (Updated)", System.currentTimeMillis())
+        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One (Updated)")
 
         val result = GameResolver.resolve(listOf(1L))
 
@@ -85,7 +84,7 @@ class GameResolverTest : FunSpec({
         mockkObject(DiscordGameApi)
         coEvery { GameStore.lastFetchedAt() } returns staleTimestamp
         coEvery { DiscordGameApi.getDetectableGames() } returns null
-        coEvery { GameStore.find(1L) } returns GameData(1L, "Old Game Name", staleTimestamp)
+        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Old Game Name")
 
         val result = GameResolver.resolve(listOf(1L))
 
@@ -98,7 +97,7 @@ class GameResolverTest : FunSpec({
         mockkObject(DiscordGameApi)
         coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns null
-        coEvery { GameStore.find(999L) } returns null
+        coEvery { GameStore.findAll(setOf(999L)) } returns emptyMap()
 
         val result = GameResolver.resolve(listOf(999L))
 
@@ -111,8 +110,7 @@ class GameResolverTest : FunSpec({
         coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns mapOf(1L to "Game One", 2L to "Game Two")
         coEvery { GameStore.replaceAll(any(), any()) } returns Unit
-        coEvery { GameStore.find(1L) } returns GameData(1L, "Game One", System.currentTimeMillis())
-        coEvery { GameStore.find(2L) } returns GameData(2L, "Game Two", System.currentTimeMillis())
+        coEvery { GameStore.findAll(setOf(1L, 2L)) } returns mapOf(1L to "Game One", 2L to "Game Two")
 
         val result = GameResolver.resolve(listOf(1L, 2L))
 
@@ -132,8 +130,8 @@ class GameResolverTest : FunSpec({
         coEvery { GameStore.replaceAll(any(), any()) } coAnswers {
             lastFetchedAt = secondArg<Long>()
         }
-        coEvery { GameStore.find(1L) } returns GameData(1L, "Game One", System.currentTimeMillis())
-        coEvery { GameStore.find(2L) } returns GameData(2L, "Game Two", System.currentTimeMillis())
+        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One")
+        coEvery { GameStore.findAll(setOf(2L)) } returns mapOf(2L to "Game Two")
 
         coroutineScope {
             val d1 = async { GameResolver.resolve(listOf(1L)) }
@@ -150,7 +148,7 @@ class GameResolverTest : FunSpec({
         mockkObject(DiscordGameApi)
         coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns null
-        coEvery { GameStore.find(1L) } returns null
+        coEvery { GameStore.findAll(setOf(1L)) } returns emptyMap()
 
         GameResolver.resolve(listOf(1L))
         GameResolver.resolve(listOf(1L))
