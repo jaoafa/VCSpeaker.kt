@@ -16,6 +16,11 @@ object GameResolver {
     // カタログの再取得を直列化する。キーは単一(カタログ全体で 1 つ)のため Mutex のみで足りる。
     private val refreshMutex = Mutex()
 
+    // 取得失敗時のプロセスローカル cooldown。プロセス内メモリのみで永続化せず、再起動でリセットされる。
+    // 固定値であり仕様値ではない。再取得の連続失敗によるリトライストームを避けるためのもの。
+    private var refreshFailedUntil: Long? = null
+    private val failureCooldownMillis = TimeUnit.MINUTES.toMillis(5)
+
     suspend fun resolve(gameIds: List<Long>): Map<Long, String?> {
         refreshCatalogIfStale()
 
@@ -29,7 +34,14 @@ object GameResolver {
             // ロック取得までの間に他の呼び出しが再取得済みの可能性があるため再チェックする
             if (!isStale()) return@withLock
 
-            val games = DiscordGameApi.getDetectableGames() ?: return@withLock
+            val failedUntil = refreshFailedUntil
+            if (failedUntil != null && System.currentTimeMillis() < failedUntil) return@withLock
+
+            val games = DiscordGameApi.getDetectableGames()
+            if (games == null) {
+                refreshFailedUntil = System.currentTimeMillis() + failureCooldownMillis
+                return@withLock
+            }
             GameStore.replaceAll(games, System.currentTimeMillis())
         }
     }

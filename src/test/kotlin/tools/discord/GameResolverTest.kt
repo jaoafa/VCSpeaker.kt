@@ -31,6 +31,10 @@ class GameResolverTest : FunSpec({
     afterTest {
         clearAllMocks()
         GameStore.data.clear()
+
+        val field = GameResolver::class.java.getDeclaredField("refreshFailedUntil")
+        field.isAccessible = true
+        field.set(GameResolver, null)
     }
 
     test("If the catalog is fresh, DiscordGameApi should not be called.") {
@@ -137,6 +141,19 @@ class GameResolverTest : FunSpec({
             d1.await()
             d2.await()
         }
+
+        coVerify(exactly = 1) { DiscordGameApi.getDetectableGames() }
+    }
+
+    test("If a refresh fails, the next resolve within the cooldown window should not retry the fetch.") {
+        mockkObject(GameStore)
+        mockkObject(DiscordGameApi)
+        coEvery { GameStore.lastFetchedAt() } returns null
+        coEvery { DiscordGameApi.getDetectableGames() } returns null
+        coEvery { GameStore.find(1L) } returns null
+
+        GameResolver.resolve(listOf(1L))
+        GameResolver.resolve(listOf(1L))
 
         coVerify(exactly = 1) { DiscordGameApi.getDetectableGames() }
     }

@@ -13,9 +13,8 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.SerializationException
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
-import java.io.IOException
 
 /**
  * Discord の非公開 API `applications/detectable` との通信を担当する。
@@ -59,7 +58,6 @@ object DiscordGameApi {
             val response = client.get(URL)
 
             if (response.status == HttpStatusCode.TooManyRequests) {
-                // Try Retry-After header first; if missing, try retry_after in response body
                 val retryAfterSeconds = response.headers[HttpHeaders.RetryAfter]?.toDoubleOrNull()
                     ?: try {
                         response.body<DiscordRateLimitResponse>().retryAfter
@@ -78,11 +76,10 @@ object DiscordGameApi {
             response.body<List<DiscordDetectableApplication>>()
                 .mapNotNull { app -> app.id.toLongOrNull()?.let { it to app.name } }
                 .toMap()
-        } catch (e: IOException) {
-            logger.warn(e) { "I/O error while fetching applications/detectable." }
-            null
-        } catch (e: SerializationException) {
-            logger.warn(e) { "Failed to decode applications/detectable response." }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger.warn(e) { "Failed to fetch applications/detectable." }
             null
         }
     }

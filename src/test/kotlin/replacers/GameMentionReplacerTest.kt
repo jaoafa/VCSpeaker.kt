@@ -82,4 +82,20 @@ class GameMentionReplacerTest : FunSpec({
 
         coVerify(exactly = 1) { GameResolver.resolve(listOf(1L)) }
     }
+
+    test("If a game id exceeds Long.MAX_VALUE, it should be replaced with 「ゲーム」 without throwing.") {
+        mockkObject(GameResolver)
+        coEvery { GameResolver.resolve(emptyList()) } returns emptyMap()
+
+        val tokens = mutableListOf(TextToken("Playing <@$99999999999999999999> now!"))
+        val expectedTokens = mutableListOf(
+            TextToken("Playing "),
+            TextToken("ゲーム", "Game `99999999999999999999` → 不明"),
+            TextToken(" now!")
+        )
+
+        val processedTokens = GameMentionReplacer.replace(tokens, Snowflake(0))
+
+        processedTokens shouldBe expectedTokens
+    }
 })

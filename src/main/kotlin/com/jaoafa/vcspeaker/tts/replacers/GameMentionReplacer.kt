@@ -13,11 +13,11 @@ object GameMentionReplacer : BaseReplacer {
     private val regex = Regex("<@\\$(\\d+)>")
 
     override suspend fun replace(tokens: MutableList<TextToken>, guildId: Snowflake): MutableList<TextToken> {
-        val ids = tokens.flatMap { token ->
-            regex.findAll(token.text).map { it.groupValues[1].toLong() }
-        }.distinct()
+        if (tokens.none { !it.replaced() && it.text.partialMatch(regex) }) return tokens
 
-        if (ids.isEmpty()) return tokens
+        val ids = tokens.flatMap { token ->
+            regex.findAll(token.text).mapNotNull { it.groupValues[1].toLongOrNull() }
+        }.distinct()
 
         val resolved = GameResolver.resolve(ids)
 
@@ -35,13 +35,14 @@ object GameMentionReplacer : BaseReplacer {
 
                 val additions = splitTexts.mixin { index ->
                     val match = matches[index]
-                    val id = match.groupValues[1].toLong()
-                    val name = resolved[id]
+                    val rawId = match.groupValues[1]
+                    val id = rawId.toLongOrNull()
+                    val name = id?.let { resolved[it] }
 
                     if (name != null) {
-                        TextToken(name, "Game `$id` →「$name」")
+                        TextToken(name, "Game `$rawId` →「$name」")
                     } else {
-                        TextToken("ゲーム", "Game `$id` → 不明")
+                        TextToken("ゲーム", "Game `$rawId` → 不明")
                     }
                 }
 
