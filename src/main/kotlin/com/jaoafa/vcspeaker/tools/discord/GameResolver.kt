@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
  * カタログ全体の最終取得時刻(GameStore.lastFetchedAt())を基準に行う。
  */
 object GameResolver {
-    private val ttlMillis = TimeUnit.DAYS.toMillis(90)
+    private val ttlMillis = TimeUnit.DAYS.toMillis(7)
 
     // カタログの再取得を直列化する。キーは単一(カタログ全体で 1 つ)のため Mutex のみで足りる。
     private val refreshMutex = Mutex()
