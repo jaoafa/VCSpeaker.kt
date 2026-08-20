@@ -78,6 +78,8 @@ object DiscordGameApi {
                 .mapNotNull { app -> app.id.toLongOrNull()?.let { it to app.name } }
                 .toMap()
         } catch (e: CancellationException) {
+            // CancellationException は Exception のサブクラスのため、下の catch (e: Exception) に
+            // 素通りさせるとコルーチンのキャンセル伝播が壊れる。ここで明示的に rethrow する。
             throw e
         } catch (e: Exception) {
             logger.warn(e) { "Failed to fetch applications/detectable." }
