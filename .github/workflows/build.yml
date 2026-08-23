@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 🐋 Setup QEMU
         uses: docker/setup-qemu-action@v4
@@ -64,7 +64,7 @@ jobs:
 
       - name: 📝 Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v6.0.0
+        uses: docker/metadata-action@v6.2.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -101,15 +101,15 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: current
 
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: ⌛ Restore caches
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}

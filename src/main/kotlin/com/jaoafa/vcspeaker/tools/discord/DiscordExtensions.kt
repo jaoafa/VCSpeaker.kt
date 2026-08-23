@@ -41,6 +41,13 @@ typealias EmbedBuilderLambda = EmbedBuilder.() -> Unit
 object DiscordExtensions {
     private val logger = KotlinLogging.logger { }
 
+    suspend fun Guild.getSettings() = GuildStore.getOrDefault(this.id)
+
+    /**
+     * 自動入退室が有効化されているかどうか。
+     */
+    suspend fun Guild.autoJoinEnabled() = GuildStore.getOrDefault(this.id).autoJoin
+
     /**
      * AFK チャンネルかどうか。
      */

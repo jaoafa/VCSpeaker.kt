@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: 📥 Checkout ${{ github.repository }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 🐍 Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.14"
 
@@ -35,7 +35,7 @@ jobs:
         run: python -m mkdocs build --verbose --clean --strict
 
       - name: 📤 Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 

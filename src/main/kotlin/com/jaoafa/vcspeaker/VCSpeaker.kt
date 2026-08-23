@@ -49,6 +49,7 @@ object VCSpeaker {
         val readableBot = storeFolder + File("readablebots.json")
         val readableChannel = storeFolder + File("readablechannels.json")
         val visionApiCounter = storeFolder + File("vision-api-counter.json")
+        val games = storeFolder + File("games.json")
 
         val visionApiCache = storeFolder + File("vision-api") + File("cache")
     }
