@@ -76,13 +76,13 @@ class GameStoreTest : FunSpec({
         test("If entries are stored, lastFetchedAt should return the given updatedAt.") {
             GameStore.replaceAll(mapOf(1L to "Game One", 2L to "Game Two"), 5000L)
 
-            GameResolver.lastFetchedAt shouldBe 5000L
+            GameStore.lastFetchedAt() shouldBe 5000L
         }
 
         test("If replaceAll is called with an empty map, lastFetchedAt should still return the given updatedAt.") {
             GameStore.replaceAll(emptyMap(), 6000L)
 
-            GameResolver.lastFetchedAt shouldBe 6000L
+            GameStore.lastFetchedAt() shouldBe 6000L
         }
     }
 })
