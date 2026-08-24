@@ -7,7 +7,6 @@ import com.jaoafa.vcspeaker.database.SnapshotFactory
 import com.jaoafa.vcspeaker.database.VersionedTable
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
