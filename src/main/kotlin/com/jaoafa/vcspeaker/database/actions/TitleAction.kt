@@ -3,7 +3,6 @@ package com.jaoafa.vcspeaker.database.actions
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.suspendTransactionResulting
 import com.jaoafa.vcspeaker.database.tables.VCTitleSnapshot
-import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.rename
@@ -28,33 +27,44 @@ object TitleAction {
         channel: BaseVoiceChannelBehavior,
         title: String,
         creator: UserBehavior
-    ): Pair<VCTitleSnapshot?, VCTitleSnapshot> = suspendTransaction transaction@{
-        val entity = getTitleEntityOf(channel)
-        val oldSnapshot = entity?.getSnapshot()
-
+    ): Pair<VCTitleSnapshot?, VCTitleSnapshot> {
         val originalName = channel.getName()
 
-        val newEntity = if (entity != null) {
-            entity.title = title
-            entity.creatorDid = creator.id
-            entity.version += 1
-            entity
-        } else {
-            Entity.new {
-                this.title = title
-                this.channelDid = channel.id
-                this.guildEntity = channel.guild.getEntity()
-                this.creatorDid = creator.id
-                this.originalTitle = originalName
-            }
-        }
-
-        val newSnapshot = newEntity.getSnapshot()
-
-        return@transaction oldSnapshot to newSnapshot
-    }.also {
         channel.rename(title)
-        logger.info { "Title Set: ${it.first} -> ${it.second}" }
+
+        return try {
+            suspendTransaction transaction@{
+                val entity = getTitleEntityOf(channel)
+                val oldSnapshot = entity?.getSnapshot()
+
+                val newEntity = if (entity != null) {
+                    entity.title = title
+                    entity.creatorDid = creator.id
+                    entity.version += 1
+                    entity
+                } else {
+                    Entity.new {
+                        this.title = title
+                        this.channelDid = channel.id
+                        this.guildEntity = channel.guild.getEntity()
+                        this.creatorDid = creator.id
+                        this.originalTitle = originalName
+                    }
+                }
+
+                commit()
+
+                val newSnapshot = newEntity.getSnapshot()
+
+                return@transaction oldSnapshot to newSnapshot
+            }.also {
+                logger.info { "Title Set: ${it.first} -> ${it.second}" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to set title for channel ${channel.id}" }
+            channel.rename(originalName)
+            throw e
+        }
     }
 
     /**
@@ -67,26 +77,35 @@ object TitleAction {
     suspend fun resetTitleOf(
         channel: BaseVoiceChannelBehavior,
         creator: UserBehavior
-    ): Pair<VCTitleSnapshot?, VCTitleSnapshot>? = suspendTransaction transaction@{
+    ): Pair<VCTitleSnapshot?, VCTitleSnapshot>? {
         val entity = getTitleEntityOf(channel)
         val oldSnapshot = entity?.getSnapshot()
 
         if (entity == null || oldSnapshot?.title == null) {
-            return@transaction null
+            return null
         }
 
-        transactionResulting(commit = true) {
-            entity.title = null
-            entity.creatorDid = creator.id
-            entity.version += 1
-        }.unwrap()
+        channel.rename(oldSnapshot.originalTitle)
 
-        val newSnapshot = entity.getSnapshot()
+        return try {
+            suspendTransaction transaction@{
+                entity.title = null
+                entity.creatorDid = creator.id
+                entity.version += 1
 
-        return@transaction oldSnapshot to newSnapshot
-    }?.also {
-        channel.rename(it.first.originalTitle)
-        logger.info { "Title Reset: ${it.first} -> ${it.second}" }
+                commit()
+
+                val newSnapshot = entity.getSnapshot()
+
+                return@transaction oldSnapshot to newSnapshot
+            }.also {
+                logger.info { "Title Reset: ${it.first} -> ${it.second}" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to reset title for channel ${channel.id}" }
+            channel.rename(oldSnapshot.title)
+            throw e
+        }
     }
 
     /**

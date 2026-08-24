@@ -37,7 +37,19 @@ class ResetTitleCommand : Extension() {
                     respond(it)
                 } ?: return@action
 
-                val (old, new) = TitleAction.resetTitleOf(channel, user) ?: run {
+                val (old, new) = try {
+                    TitleAction.resetTitleOf(channel, user)
+                } catch (_: Exception) {
+                    respondEmbed(
+                        ":x: Title Reset Failed",
+                        "タイトルのリセットに失敗しました。"
+                    ) {
+                        authorOf(user)
+                        errorColor()
+                    }
+
+                    return@action
+                } ?: run {
                     respondEmbed(
                         ":question: Title Not Reset",
                         "${channel.mention} にはタイトルが設定されていません。"

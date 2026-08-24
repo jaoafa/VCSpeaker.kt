@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.commands
 
 import com.jaoafa.vcspeaker.database.actions.TitleAction
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.orFallbackTo
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respond
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
@@ -45,7 +46,19 @@ class TitleCommand : Extension() {
                     respond(it)
                 } ?: return@action
 
-                val (old, new) = TitleAction.setTitleOf(channel, title, user)
+                val (old, new) = try {
+                    TitleAction.setTitleOf(channel, title, user)
+                } catch (_: Exception) {
+                    respondEmbed(
+                        ":x: Title Set Failed",
+                        "タイトルの設定に失敗しました。"
+                    ) {
+                        authorOf(user)
+                        errorColor()
+                    }
+
+                    return@action
+                }
 
                 respondEmbed(
                     ":regional_indicator_t: Title Set",
