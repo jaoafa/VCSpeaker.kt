@@ -2,6 +2,7 @@ package com.jaoafa.vcspeaker.database
 
 import com.jaoafa.vcspeaker.stores.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlin.system.exitProcess
 
 @Suppress("DEPRECATION")
 object StoreDBMigrator {
@@ -22,8 +23,15 @@ object StoreDBMigrator {
     val logger = KotlinLogging.logger {}
     suspend fun run() {
         for (store in stores) {
-            logger.info { "Migrating ${store::class.simpleName}..." }
-            store.migrateToDB()
+            val name = store::class.simpleName
+            logger.info { "Migrating $name to the database..." }
+            try {
+                store.migrateToDB()
+                logger.info { "Migration complete." }
+            } catch (e: StoreDBMigrationFailedException) {
+                logger.error(e) { "Migration failed. Exiting..." }
+                exitProcess(1)
+            }
         }
     }
 }

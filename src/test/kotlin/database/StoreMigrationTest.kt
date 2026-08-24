@@ -3,24 +3,45 @@ package database
 import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
 import com.jaoafa.vcspeaker.database.tables.*
+import com.jaoafa.vcspeaker.stores.DBMigratableData
 import com.jaoafa.vcspeaker.stores.GuildData
+import com.jaoafa.vcspeaker.stores.StoreDBMigrationFailedException
 import com.jaoafa.vcspeaker.stores.StoreStruct
 import com.jaoafa.vcspeaker.tts.EmotionData
 import com.jaoafa.vcspeaker.tts.Voice
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import utils.Constants.TEST_DB_MEM_URL
 import utils.ResourceUtil
 
+@Serializable
+data class DummyData(
+    val value: Int,
+    override var migrated: Boolean = false
+) : DBMigratableData {
+    override fun migrate() {
+        throw UnsupportedOperationException("DummyData cannot be migrated.")
+    }
+}
+
 @Suppress("DEPRECATION")
 class StoreMigrationTest : FunSpec({
+    beforeEach {
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
+        transaction {
+            DatabaseUtil.createTables()
+        }
+    }
+
     afterEach {
         transaction {
             GuildTable.deleteAll()
@@ -37,11 +58,6 @@ class StoreMigrationTest : FunSpec({
             GuildData.serializer(),
             { Json.decodeFromString(this) }
         ) {}
-
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        transaction {
-            DatabaseUtil.createTables()
-        }
 
         println(testGuildStore.data)
 
@@ -109,11 +125,6 @@ class StoreMigrationTest : FunSpec({
             { Json.decodeFromString(this) }
         ) {}
 
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        transaction {
-            DatabaseUtil.createTables()
-        }
-
         testGuildStore.migrateToDB()
 
         val storeData = testGuildStore.data
@@ -180,5 +191,18 @@ class StoreMigrationTest : FunSpec({
                 version = 0
             )
         )
+    }
+
+    test("If migration failed during execution, StoreDBMigrationFailedException should be thrown.") {
+        val tempFile = tempfile()
+        ResourceUtil.loadResourceFile("/dummy-migration-failed-test.json").copyTo(tempFile, true)
+
+        val testStore = object : StoreStruct<DummyData>(
+            tempFile.path,
+            DummyData.serializer(),
+            { Json.decodeFromString(this) }
+        ) {}
+
+        shouldThrowExactly<StoreDBMigrationFailedException> { testStore.migrateToDB() }
     }
 })

@@ -10,6 +10,8 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import org.h2.api.ErrorCode.DUPLICATE_KEY_1
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -128,11 +130,11 @@ open class StoreStruct<T : DBMigratableData>(
 
             try {
                 migrator(file)
-            } catch (exception: Exception) {
-                logger.error(exception) { "Failed to migrate ${file.name} to v$index. Rolling back..." }
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to migrate ${file.name} to v$index. Rolling back..." }
                 file.writeText(backup)
 
-                Sentry.captureException(exception)
+                Sentry.captureException(e)
 
                 exitProcess(1)
             }
@@ -143,18 +145,21 @@ open class StoreStruct<T : DBMigratableData>(
         auditor?.let { it(dataCandidate) } ?: dataCandidate
 
     suspend fun migrateToDB() = withData {
-        data.forEach {
+        for (entry in data) {
             try {
-                if (!it.migrated) {
-                    it.migrate()
-                    it.migrated = true
+                if (!entry.migrated) {
+                    entry.migrate()
+                    entry.migrated = true
                 }
             } catch (e: Exception) {
-                logger.error { "[$name] Failed to Migrate: $it; ${e.message}" }
+                if (e is ExposedSQLException && e.errorCode == DUPLICATE_KEY_1) {
+                    logger.warn { "$entry has a duplicated key. Skipping migration..." }
+                    continue
+                }
+
+                throw StoreDBMigrationFailedException(entry, name ?: "Unknown Store", e)
             }
         }
-
-        logger.info { "[$name] Migration to database complete." }
 
         writeLocked()
     }
