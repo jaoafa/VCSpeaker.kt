@@ -3,7 +3,7 @@ package com.jaoafa.vcspeaker.database
 import com.jaoafa.vcspeaker.database.tables.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.Flyway
-import org.flywaydb.core.api.output.MigrateResult
+import org.flywaydb.core.api.FlywayException
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -37,7 +37,7 @@ object DatabaseUtil {
         return db
     }
 
-    fun migrate(url: String): MigrateResult {
+    fun migrate(url: String): Boolean {
         val flywayLoader = Flyway.configure()
             .dataSource(url, null, null)
             .load()
@@ -53,7 +53,16 @@ object DatabaseUtil {
             .baselineDescription("Initialization Baseline")
             .dataSource(url, null, null)
             .load()
-        return flyway.migrate()
+
+        val result = try {
+            flyway.migrate()
+        } catch (e: FlywayException) {
+            logger.error(e) { "Migration failed." }
+            return false
+        }
+
+        logger.info { "Migration from ${result.initialSchemaVersion} to ${result.targetSchemaVersion}." }
+        return true
     }
 
     fun createTables() {

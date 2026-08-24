@@ -156,11 +156,13 @@ class Entrypoint : CliktCommand() {
 
         DatabaseUtil.connect(config[EnvSpec.databaseUrl])
         DatabaseUtil.createTables()
-        DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
+        val isMigrationSuccessful = DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
 
-        runBlocking {
-            StoreDBMigrator.run()
+        if (!isMigrationSuccessful) {
+            logger.error { "Database migration failed. Exiting..." }
+            exitProcess(1)
         }
+
         if (options.migrateStoreToDB) exitProcess(0)
 
         DataServer().start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
