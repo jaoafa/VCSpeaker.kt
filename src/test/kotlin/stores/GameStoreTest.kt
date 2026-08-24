@@ -2,6 +2,7 @@ package stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GameStore
+import com.jaoafa.vcspeaker.tools.discord.GameResolver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -69,19 +70,19 @@ class GameStoreTest : FunSpec({
 
     context("lastFetchedAt") {
         test("If no entry is stored, lastFetchedAt should return null.") {
-            GameStore.lastFetchedAt().shouldBeNull()
+            GameResolver.lastFetchedAt.shouldBeNull()
         }
 
         test("If entries are stored, lastFetchedAt should return the given updatedAt.") {
             GameStore.replaceAll(mapOf(1L to "Game One", 2L to "Game Two"), 5000L)
 
-            GameStore.lastFetchedAt() shouldBe 5000L
+            GameResolver.lastFetchedAt shouldBe 5000L
         }
 
         test("If replaceAll is called with an empty map, lastFetchedAt should still return the given updatedAt.") {
             GameStore.replaceAll(emptyMap(), 6000L)
 
-            GameStore.lastFetchedAt() shouldBe 6000L
+            GameResolver.lastFetchedAt shouldBe 6000L
         }
     }
 })

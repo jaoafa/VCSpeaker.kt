@@ -158,7 +158,9 @@ class Entrypoint : CliktCommand() {
         DatabaseUtil.createTables()
         DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
 
-        StoreDBMigrator.run()
+        runBlocking {
+            StoreDBMigrator.run()
+        }
         if (options.migrateStoreToDB) exitProcess(0)
 
         DataServer().start(options.dataApiPort ?: config[EnvSpec.dataApiPort])

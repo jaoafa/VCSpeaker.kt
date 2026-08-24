@@ -26,7 +26,8 @@ object DatabaseUtil {
         SpeechCacheTable,
         UserTable,
         VCTitleTable,
-        VisionAPICounterTable
+        VisionAPICounterTable,
+        GameTable
     )
 
     fun connect(url: String): Database {

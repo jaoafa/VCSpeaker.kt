@@ -142,7 +142,7 @@ open class StoreStruct<T : DBMigratableData>(
     private fun auditData(dataCandidate: MutableList<T>): MutableList<T> =
         auditor?.let { it(dataCandidate) } ?: dataCandidate
 
-    fun migrateToDB() {
+    suspend fun migrateToDB() = withData {
         data.forEach {
             try {
                 if (!it.migrated) {
@@ -156,6 +156,6 @@ open class StoreStruct<T : DBMigratableData>(
 
         logger.info { "[$name] Migration to database complete." }
 
-        write()
+        writeLocked()
     }
 }

@@ -20,7 +20,7 @@ object StoreDBMigrator {
     )
 
     val logger = KotlinLogging.logger {}
-    fun run() {
+    suspend fun run() {
         for (store in stores) {
             logger.info { "Migrating ${store::class.simpleName}..." }
             store.migrateToDB()

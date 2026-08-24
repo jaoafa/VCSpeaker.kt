@@ -5,6 +5,7 @@ import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -73,26 +74,23 @@ object CacheStore : StoreStruct<CacheData>(
     private fun <T : ProviderContext> cacheFile(context: T) =
         VCSpeaker.cacheFolder.resolve(File("${context.hash()}.${providerOf(context).format}"))
 
-    private fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
+    private suspend fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File = withData {
         val provider = providerOf(context)
         val hash = context.hash()
         val file = cacheFile(context).apply { writeBytes(byteArray) }
 
-        syncing {
-            data += CacheData(provider.id, hash, System.currentTimeMillis())
-        }
+        data += CacheData(provider.id, hash, System.currentTimeMillis())
 
-        return file
+        file
     }
 
-    private fun <T : ProviderContext> read(context: T): File? {
-        val cache = data.find { it.hash == context.hash() } ?: return null
+    private suspend fun <T : ProviderContext> read(context: T): File? = withData {
+        val cache = data.find { it.hash == context.hash() } ?: return@withData null
 
-        syncing { // update lastUsed
-            data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
-        }
+        // update lastUsed
+        data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
 
-        return cacheFile(context)
+        cacheFile(context)
     }
 
     suspend fun <T : ProviderContext> readOrCreate(
@@ -111,21 +109,19 @@ object CacheStore : StoreStruct<CacheData>(
         }
     }
 
-
-    private fun syncing(operation: () -> Unit) {
-        operation()
-        write()
-    }
-
     fun initiateAuditJob(interval: Int) {
         timer("CacheAudit", false, 0, (1000 * 60 * 60 * 24 * interval).toLong()) {
-            syncing {
-                data.sortByDescending { it.lastUsed }
-                data.drop(100).forEach {
-                    val provider = getProvider(it.providerId) ?: return@forEach
-                    VCSpeaker.cacheFolder.resolve(File("${it.hash}.${provider.format}")).delete()
+            runBlocking {
+                withData {
+                    data.sortByDescending { it.lastUsed }
+                    data.drop(100).forEach {
+                        val provider = getProvider(it.providerId) ?: return@forEach
+                        VCSpeaker.cacheFolder.resolve(File("${it.hash}.${provider.format}")).delete()
+                    }
+                    data = data.take(100).toMutableList()
+
+                    writeLocked()
                 }
-                data = data.take(100).toMutableList()
             }
         }
     }

@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.tools.discord
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.tables.GuildSnapshot
 import com.jaoafa.vcspeaker.database.tables.VoiceSnapshot
+import com.jaoafa.vcspeaker.stores.GuildStore
 import dev.kord.common.Color
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Permission
@@ -13,6 +14,7 @@ import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.behavior.channel.asChannelOf
+import dev.kord.core.entity.Guild
 import dev.kord.core.entity.User
 import dev.kord.core.entity.channel.Channel
 import dev.kord.core.entity.channel.TextChannel
@@ -40,13 +42,6 @@ typealias EmbedBuilderLambda = EmbedBuilder.() -> Unit
  */
 object DiscordExtensions {
     private val logger = KotlinLogging.logger { }
-
-    suspend fun Guild.getSettings() = GuildStore.getOrDefault(this.id)
-
-    /**
-     * 自動入退室が有効化されているかどうか。
-     */
-    suspend fun Guild.autoJoinEnabled() = GuildStore.getOrDefault(this.id).autoJoin
 
     /**
      * AFK チャンネルかどうか。
