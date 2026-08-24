@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tts.providers.voicetext
 
-import io.ktor.resources.Resource
+import io.ktor.resources.*
 import kotlinx.serialization.SerialName
 
 @Resource("/v1/tts")

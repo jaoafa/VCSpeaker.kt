@@ -1,12 +1,12 @@
 package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.features.Ignore.shouldIgnoreOn
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoice
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoiceTextChannelOrNull
+import com.jaoafa.vcspeaker.database.actions.IgnoreAction
+import com.jaoafa.vcspeaker.database.actions.UserAction
 import com.jaoafa.vcspeaker.reload.state.UseState
-import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.deleteOwnReactionSafe
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
@@ -21,7 +21,6 @@ import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
-import dev.kord.core.entity.channel.TextChannel
 import dev.schlaubi.lavakord.audio.Link
 import kotlin.reflect.full.createInstance
 
@@ -44,16 +43,16 @@ class Narrator @OptIn(KordVoice::class) constructor(
             voice: String,
             text: String,
             replier: (suspend (String) -> Unit)? = null,
-            isOnlyMessage: Boolean = false,
+            isMessageOnly: Boolean = false,
         ) {
             if (replier != null) {
                 replier(text)
             } else {
-                val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
+                val channel = this.getVoiceTextChannelOrNull()
                 channel?.createMessage(text)
             }
 
-            if (!isOnlyMessage)
+            if (!isMessageOnly)
                 getNarrator()?.scheduleAsSystem(voice)
         }
     }
@@ -63,13 +62,15 @@ class Narrator @OptIn(KordVoice::class) constructor(
      *
      * @param text 読み上げる文章
      */
-    suspend fun scheduleAsSystem(text: String) =
+    suspend fun scheduleAsSystem(text: String) {
+        val guild = VCSpeaker.kord.getGuild(guildId)
         schedule(
             text = text,
-            voice = GuildStore.getOrDefault(guildId).voice,
-            guild = VCSpeaker.kord.getGuild(guildId),
+            voice = guild.getVoice(),
+            guild = guild,
             actor = SpeechActor.System
         )
+    }
 
     /**
      * ユーザーの発言としてメッセージをキューに追加します。
@@ -80,7 +81,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
         schedule(
             message = message,
             text = message.content,
-            voice = VoiceStore.byIdOrDefault(message.author!!.id),
+            voice = UserAction.getVoiceOrDefaultOf(message.author!!.id),
             guild = message.getGuild(),
             actor = SpeechActor.User
         )
@@ -101,7 +102,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
         guild: Guild,
         actor: SpeechActor
     ) {
-        if (text.shouldIgnoreOn(guildId)) return
+        if (IgnoreAction.shouldBeIgnored(text, guildId)) return
 
         val sounds = soundRegex.findAll(text).mapNotNull {
             val id = it.groupValues[1].toLongOrNull() ?: return@mapNotNull null

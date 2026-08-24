@@ -1,16 +1,16 @@
 package com.jaoafa.vcspeaker.events
 
-import com.jaoafa.vcspeaker.features.Title.resetTitle
-import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoiceTextChannelOrNull
+import com.jaoafa.vcspeaker.database.actions.TitleAction
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
+import dev.kord.core.behavior.channel.createEmbed
+import dev.kord.core.event.user.VoiceStateUpdateEvent
+import dev.kordex.core.checks.isNotBot
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
-import dev.kord.core.behavior.channel.createEmbed
-import dev.kord.core.entity.channel.TextChannel
-import dev.kord.core.event.user.VoiceStateUpdateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.count
 
@@ -21,43 +21,41 @@ class TitleResetEvent : Extension() {
     override suspend fun setup() {
         event<VoiceStateUpdateEvent> {
             check {
-                failIf(event.state.getMember().isBot)
+                anyGuildRegistered()
+                isNotBot()
                 failIf(event.old?.getChannelOrNull() == null)
                 failIf(event.old?.getChannelOrNull()?.voiceStates?.count { !it.getMember().isBot } != 0)
             }
 
             action {
-                val user = event.state.getMember()
+                val guild = event.state.getGuild()
+                val member = event.state.getMember()
+                val voiceChannel = event.old?.getChannelOrNull() ?: return@action
 
-                val (oldData, newData) = event.old!!.getChannelOrNull()!!.resetTitle(user) // checked
+                val (old, new) = TitleAction.resetTitleOf(voiceChannel, member) ?: return@action
 
-                if (newData == null) return@action
-
-                val textChannel =
-                    GuildStore[event.state.guildId]?.channelId?.asChannelOf<TextChannel>() ?: return@action
-                val voiceChannel = event.old?.getChannelOrNull()!!
+                val textChannel = guild.getVoiceTextChannelOrNull() ?: return@action
 
                 textChannel.createEmbed {
                     title = ":broom: Title Reset"
                     description = "${voiceChannel.mention} のタイトルはリセットされました。"
 
-                    authorOf(user)
+                    authorOf(member)
 
                     field(":regional_indicator_o: チャンネル名", true) {
-                        "`${newData.original}` (デフォルト)"
+                        "`${new.originalTitle}` (デフォルト)"
                     }
 
                     field(":white_medium_small_square: 旧タイトル", true) {
-                        oldData?.title!!.let { "`$it`" }
+                        old?.title?.let { "`$it`" } ?: "未登録"
                     }
 
                     successColor()
                 }
 
-                val guildName = event.state.getGuild().name
-                val voiceName = voiceChannel.name()
+                val voiceName = voiceChannel.getName()
 
-                logger.info { "[$guildName] Title Reset: Title of $voiceName has been reset" }
+                logger.info { "[${guild.name}] Auto Title Reset: Title of $voiceName has been reset due to empty channel" }
             }
         }
     }

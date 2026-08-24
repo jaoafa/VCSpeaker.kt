@@ -1,15 +1,26 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.GameEntity
+import com.jaoafa.vcspeaker.stores.GameStore.LAST_FETCHED_AT_ID
+import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Serializable
 data class GameData(
     val id: Long,
     val name: String,
     val updatedAt: Long
-)
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
+        GameEntity.new(Snowflake(this@GameData.id)) {
+            name = this@GameData.name
+        }
+        return@transaction
+    }
+}
 
 /**
  * `applications/detectable` から取得したゲーム一覧のキャッシュ。
@@ -17,6 +28,7 @@ data class GameData(
  * Discord のゲーム ID は正の値のみのため、[LAST_FETCHED_AT_ID] を負の値の
  * sentinel エントリとして [data] に混在させ、空カタログでも最終取得時刻を保持する。
  */
+@Deprecated("Use database instead")
 object GameStore : StoreStruct<GameData>(
     VCSpeaker.Files.games.path,
     GameData.serializer(),

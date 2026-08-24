@@ -2,6 +2,7 @@ package stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.stores.GameStore
+import com.jaoafa.vcspeaker.tools.discord.GameResolver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -69,7 +70,7 @@ class GameStoreTest : FunSpec({
 
     context("lastFetchedAt") {
         test("If no entry is stored, lastFetchedAt should return null.") {
-            GameStore.lastFetchedAt().shouldBeNull()
+            GameResolver.lastFetchedAt.shouldBeNull()
         }
 
         test("If entries are stored, lastFetchedAt should return the given updatedAt.") {

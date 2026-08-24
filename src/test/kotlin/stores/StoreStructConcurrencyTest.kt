@@ -1,6 +1,7 @@
 package stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.stores.DBMigratableData
 import com.jaoafa.vcspeaker.stores.StoreStruct
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -14,7 +15,13 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 @Serializable
-data class DummyData(val value: Int)
+data class DummyData(
+    val value: Int
+) : DBMigratableData() {
+    override fun migrationTransaction() {
+        // no-op
+    }
+}
 
 class StoreStructConcurrencyTest : FunSpec({
     lateinit var store: StoreStruct<DummyData>

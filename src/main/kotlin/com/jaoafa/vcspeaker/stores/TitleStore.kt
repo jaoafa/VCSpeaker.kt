@@ -1,19 +1,35 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.VCTitleEntity
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Serializable
+@Deprecated("Use database instead")
 data class TitleData(
     val guildId: Snowflake,
     val channelId: Snowflake,
     val userId: Snowflake,
     val title: String? = null,
     val original: String
-)
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
+        VCTitleEntity.new {
+            guildEntity = GuildEntity[guildId]
+            channelDid = channelId
+            creatorDid = userId
+            title = this@TitleData.title
+            originalTitle = original
+        }
+        return@transaction
+    }
+}
 
+@Deprecated("Use database instead")
 object TitleStore : StoreStruct<TitleData>(
     VCSpeaker.Files.titles.path,
     TitleData.serializer(),

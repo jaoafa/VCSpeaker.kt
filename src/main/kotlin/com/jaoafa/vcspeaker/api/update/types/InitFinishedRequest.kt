@@ -1,4 +1,4 @@
-package com.jaoafa.vcspeaker.api.types
+package com.jaoafa.vcspeaker.api.update.types
 
 import kotlinx.serialization.Serializable
 

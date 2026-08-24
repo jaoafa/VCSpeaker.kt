@@ -41,7 +41,8 @@ object ChatCommandExtensions {
 
             devGuild()
 
-            apply { builder() }
+            @Suppress("UNCHECKED_CAST")
+            apply { builder(this as ChatCommand<Options>) }
         }
     }
 }
