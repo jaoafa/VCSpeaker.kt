@@ -65,7 +65,7 @@ class IgnoreCommand : Extension() {
                     val type = IgnoreType.valueOf(arguments.type)
                     val search = arguments.search
 
-                    val entity = transactionResulting {
+                    val entity = transactionResulting(commit = true) {
                         Entity.new {
                             this.guildEntity = guild.getEntity()
                             creatorDid = user.id

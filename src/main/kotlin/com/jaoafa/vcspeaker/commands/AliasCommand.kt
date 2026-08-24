@@ -104,7 +104,7 @@ class AliasCommand : Extension() {
 
                     if (!validateSoundboardAlias(type, replace)) return@action
 
-                    val entity = transactionResulting {
+                    val entity = transactionResulting(commit = true) {
                         Entity.new {
                             this.guildEntity = guild.getEntity()
                             this.creatorDid = user.id
