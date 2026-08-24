@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.tts
 import com.jaoafa.vcspeaker.database.tables.VoiceSnapshot
 import com.jaoafa.vcspeaker.features.EMOTION_LEVEL_DEFAULT
 import com.jaoafa.vcspeaker.features.PITCH_DEFAULT
+import com.jaoafa.vcspeaker.features.SPEAKER_DEFAULT
 import com.jaoafa.vcspeaker.features.SPEED_DEFAULT
 import com.jaoafa.vcspeaker.features.VOLUME_DEFAULT
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
@@ -19,7 +20,7 @@ data class EmotionData(
 
 @Serializable
 data class Voice(
-    val speaker: Speaker,
+    val speaker: Speaker = SPEAKER_DEFAULT,
     val emotionData: EmotionData? = null,
     val pitch: Int = PITCH_DEFAULT,
     val speed: Int = SPEED_DEFAULT,

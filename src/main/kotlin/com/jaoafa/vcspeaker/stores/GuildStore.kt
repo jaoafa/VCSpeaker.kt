@@ -4,7 +4,6 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -71,7 +70,7 @@ object GuildStore : StoreStruct<GuildData>(
         guildId,
         null,
         null,
-        Voice(speaker = Speaker.Hikari),
+        Voice(),
         false
     )
 

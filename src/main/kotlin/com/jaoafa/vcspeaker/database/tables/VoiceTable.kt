@@ -20,7 +20,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object VoiceTable : IntIdTable("voice"), VersionedTable {
     val speaker = enumerationByName<Speaker>("speaker", 16)
-        .default(Speaker.Hikari)
+        .default(SPEAKER_DEFAULT)
     val emotion = enumerationByName<Emotion>("emotion", 16)
         .nullable().default(null)
     val emotionLevel = integer("emotion_level")

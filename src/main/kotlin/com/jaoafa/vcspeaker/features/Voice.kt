@@ -14,6 +14,7 @@ const val SPEED_MIN = 50
 const val VOLUME_MAX = 200
 const val VOLUME_MIN = 50
 
+val SPEAKER_DEFAULT = Speaker.Hikari
 const val EMOTION_LEVEL_DEFAULT = 2
 const val PITCH_DEFAULT = 100
 const val SPEED_DEFAULT = 120

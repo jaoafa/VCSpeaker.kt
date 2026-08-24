@@ -4,7 +4,6 @@ import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.database.tables.UserEntity
 import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.tts.Voice
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -61,7 +60,7 @@ object VoiceStore : StoreStruct<VoiceData>(
 ) {
     suspend fun byId(userId: Snowflake) = withData { data.find { it.userId == userId }?.voice }
 
-    suspend fun byIdOrDefault(userId: Snowflake) = byId(userId) ?: Voice(speaker = Speaker.Hikari)
+    suspend fun byIdOrDefault(userId: Snowflake) = byId(userId) ?: Voice()
 
     suspend operator fun set(userId: Snowflake, voice: Voice) = withData {
         data.removeIf { it.userId == userId }
