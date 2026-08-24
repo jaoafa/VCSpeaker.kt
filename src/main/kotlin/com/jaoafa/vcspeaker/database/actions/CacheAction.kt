@@ -81,13 +81,13 @@ object CacheAction {
         transaction {
             SpeechCacheTable.deleteWhere { SpeechCacheTable.id inList snapshots.map { it.id } }
 
-            for (snapshot in snapshots) {
-                val provider = getProvider(snapshot.providerId) ?: continue
+            for ((_, providerId, hash, lastUsedAt) in snapshots) {
+                val provider = getProvider(providerId) ?: continue
                 VCSpeaker.cacheFolder
-                    .resolve(File("${snapshot.hash}.${provider.format}"))
+                    .resolve(File("$hash.${provider.format}"))
                     .delete()
 
-                logger.info { "Cache ${snapshot.hash} (${snapshot.lastUsedAt}) dropped" }
+                logger.info { "Cache $hash ($lastUsedAt) dropped" }
             }
         }
 
@@ -98,7 +98,11 @@ object CacheAction {
 
     fun initiateAuditJob(interval: Int) {
         timer("CacheAudit", false, 0, 1000L * 60 * 60 * 24 * interval) {
-            cleanCache()
+            try {
+                cleanCache()
+            } catch (e: Exception) {
+                logger.error(e) { "Cache audit failed." }
+            }
         }
     }
 }
