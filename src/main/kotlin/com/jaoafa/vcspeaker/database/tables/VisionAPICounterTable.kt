@@ -1,8 +1,10 @@
 package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import com.jaoafa.vcspeaker.database.EntitySnapshot
 import com.jaoafa.vcspeaker.database.SnappableEntity
 import com.jaoafa.vcspeaker.database.SnapshotFactory
+import com.jaoafa.vcspeaker.database.VersionedTable
 import com.jaoafa.vcspeaker.database.actions.VisionApiCounterAction.VISION_API_LIMIT
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -16,11 +18,12 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.time.Instant
 
-object VisionAPICounterTable : CompositeIdTable("vision_api_counter") {
+object VisionAPICounterTable : CompositeIdTable("vision_api_counter"), VersionedTable {
     val year = integer("year").entityId()
     val month = integer("month").entityId()
     val count = integer("count").default(0)
     val limitReachedAt = timestamp("limit_reached_at").nullable()
+    override val version = version()
 
     override val primaryKey = PrimaryKey(year, month)
 }
@@ -31,6 +34,7 @@ class VisionAPICounterEntity(id: EntityID<CompositeID>) : CompositeEntity(id),
 
     var count by VisionAPICounterTable.count
     var limitReachedAt by VisionAPICounterTable.limitReachedAt
+    var version by VisionAPICounterTable.version
 
     override fun getSnapshot() = transaction { VisionAPICounterSnapshot.from(readValues) }
 }
@@ -41,6 +45,7 @@ data class VisionAPICounterSnapshot(
     val month: Int,
     val count: Int,
     @Contextual val limitReachedAt: Instant?,
+    val version: Int
 ) : EntitySnapshot<VisionAPICounterEntity>() {
     companion object : SnapshotFactory<VisionAPICounterSnapshot> {
         override fun from(row: ResultRow) = VisionAPICounterSnapshot(
@@ -48,6 +53,7 @@ data class VisionAPICounterSnapshot(
             month = row[VisionAPICounterTable.month].value,
             count = row[VisionAPICounterTable.count],
             limitReachedAt = row[VisionAPICounterTable.limitReachedAt],
+            version = row[VisionAPICounterTable.version]
         )
     }
 

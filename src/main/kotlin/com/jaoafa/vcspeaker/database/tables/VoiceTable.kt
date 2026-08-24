@@ -53,6 +53,7 @@ class VoiceEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<VoiceSnaps
     var pitch by VoiceTable.pitch
     var speed by VoiceTable.speed
     var volume by VoiceTable.volume
+    var version by VoiceTable.version
 
     override fun getSnapshot() = transaction { VoiceSnapshot.from(readValues) }
 

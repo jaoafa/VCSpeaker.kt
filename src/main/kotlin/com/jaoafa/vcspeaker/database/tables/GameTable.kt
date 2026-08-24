@@ -23,6 +23,7 @@ class GameEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id), SnappableEntity
     companion object : SnowflakeEntityClass<GameEntity>(GameTable)
 
     var name by GameTable.name
+    var version by GameTable.version
 
     override fun getSnapshot() = transaction { GameSnapshot.from(readValues) }
 }

@@ -25,6 +25,7 @@ class UserEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id), SnappableEntity
     companion object : SnowflakeEntityClass<UserEntity>(UserTable)
 
     var voiceEntity by VoiceEntity referencedOn UserTable.voiceId
+    var version by VoiceTable.version
 
     override fun getSnapshot() = transaction { UserSnapshot.from(readValues) }
 }

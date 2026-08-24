@@ -1,10 +1,13 @@
 package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.database.DatabaseUtil.version
 import com.jaoafa.vcspeaker.database.EntitySnapshot
 import com.jaoafa.vcspeaker.database.SnappableEntity
 import com.jaoafa.vcspeaker.database.SnapshotFactory
+import com.jaoafa.vcspeaker.database.VersionedTable
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
@@ -14,11 +17,12 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.time.Instant
 
-object SpeechCacheTable : IntIdTable("speech_cache") {
+object SpeechCacheTable : IntIdTable("speech_cache"), VersionedTable {
     val providerId = varchar("provider_id", 255)
     val hash = varchar("hash", 32)
         .uniqueIndex("idx_speech_cache_hash")
     val lastUsedAt = timestamp("last_used_at")
+    override val version = version()
 }
 
 class SpeechCacheEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<SpeechCacheSnapshot, SpeechCacheEntity> {
@@ -27,6 +31,7 @@ class SpeechCacheEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<Spee
     var providerId by SpeechCacheTable.providerId
     var hash by SpeechCacheTable.hash
     var lastUsedAt by SpeechCacheTable.lastUsedAt
+    var version by SpeechCacheTable.version
 
     override fun getSnapshot() = transaction { SpeechCacheSnapshot.from(readValues) }
 }
@@ -37,6 +42,7 @@ data class SpeechCacheSnapshot(
     val providerId: String,
     val hash: String,
     @Contextual val lastUsedAt: Instant,
+    val version: Int
 ) : EntitySnapshot<SpeechCacheEntity>() {
     companion object : SnapshotFactory<SpeechCacheSnapshot> {
         override fun from(row: ResultRow) = SpeechCacheSnapshot(
@@ -44,6 +50,7 @@ data class SpeechCacheSnapshot(
             providerId = row[SpeechCacheTable.providerId],
             hash = row[SpeechCacheTable.hash],
             lastUsedAt = row[SpeechCacheTable.lastUsedAt],
+            version = row[SpeechCacheTable.version]
         )
     }
 
