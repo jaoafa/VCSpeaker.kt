@@ -30,7 +30,12 @@ class DataServer {
         routing {
             route(path) {
                 get {
-                    val limit = call.request.queryParameters["limit"]?.toInt()
+                    val limit = try {
+                        call.request.queryParameters["limit"]?.toInt()
+                    } catch (_: NumberFormatException) {
+                        call.respond(HttpStatusCode.BadRequest, "limit must be a valid number.")
+                        return@get
+                    }
 
                     val entities = transaction {
                         entityClass.all().let {
