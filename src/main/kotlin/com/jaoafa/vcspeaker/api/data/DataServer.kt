@@ -57,7 +57,11 @@ class DataServer {
                 }
 
                 get("/{id}") {
-                    val id = call.parameters["id"]?.castId() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    val id = try {
+                        call.parameters["id"]!!.castId()
+                    } catch (_: Exception) {
+                        return@get call.respond(HttpStatusCode.BadRequest)
+                    }
 
                     val entity = transaction { entityClass.findById(id) }
                     when (entity) {
@@ -83,7 +87,7 @@ class DataServer {
 
         val server = embeddedServer(CIO, port = port) {
             monitor.subscribe(ServerReady) {
-                logger.info { "Data API server is ready at port $port" }
+                logger.info { "Data API server is listening at localhost:$port" }
             }
 
             install(ContentNegotiation) {
@@ -102,6 +106,10 @@ class DataServer {
 
             // ID Format: YYYY-MM, e.g., 2026-04
             dataModule("/vision_api_counter", VisionAPICounterEntity.Companion) {
+                if (!Regex("\\d{4}-\\d{2}").matches(this)) {
+                    throw IllegalArgumentException("Invalid ID format.")
+                }
+
                 val (year, month) = split("-").map(String::toInt)
                 CompositeID {
                     it[VisionAPICounterTable.year] = year
