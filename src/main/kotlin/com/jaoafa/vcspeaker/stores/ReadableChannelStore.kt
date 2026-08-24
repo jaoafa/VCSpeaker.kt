@@ -14,10 +14,9 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 data class ReadableChannelData(
     val guildId: Snowflake,
     val channelId: Snowflake,
-    val addedByUserId: Snowflake,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+    val addedByUserId: Snowflake
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         ReadableChannelEntity.new {
             guildEntity = GuildEntity[guildId]
             channelDid = channelId

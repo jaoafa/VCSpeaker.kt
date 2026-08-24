@@ -15,10 +15,9 @@ data class TitleData(
     val channelId: Snowflake,
     val userId: Snowflake,
     val title: String? = null,
-    val original: String,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+    val original: String
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         VCTitleEntity.new {
             guildEntity = GuildEntity[guildId]
             channelDid = channelId

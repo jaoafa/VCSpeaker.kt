@@ -34,22 +34,20 @@ object TitleAction {
 
         val originalName = channel.getName()
 
-        val newEntity = transactionResulting(commit = true) {
-            if (entity != null) {
-                entity.title = title
-                entity.creatorDid = creator.id
-                entity.version += 1
-                entity
-            } else {
-                Entity.new {
-                    this.title = title
-                    this.channelDid = channel.id
-                    this.guildEntity = channel.guild.getEntity()
-                    this.creatorDid = creator.id
-                    this.originalTitle = originalName
-                }
+        val newEntity = if (entity != null) {
+            entity.title = title
+            entity.creatorDid = creator.id
+            entity.version += 1
+            entity
+        } else {
+            Entity.new {
+                this.title = title
+                this.channelDid = channel.id
+                this.guildEntity = channel.guild.getEntity()
+                this.creatorDid = creator.id
+                this.originalTitle = originalName
             }
-        }.unwrap()
+        }
 
         val newSnapshot = newEntity.getSnapshot()
 

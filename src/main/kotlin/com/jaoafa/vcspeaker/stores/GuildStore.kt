@@ -18,9 +18,8 @@ data class GuildData(
     var prefix: String?,
     var voice: Voice,
     var autoJoin: Boolean,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         GuildEntity.new(guildId) {
             channelDid = channelId
             prefix = this@GuildData.prefix

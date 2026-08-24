@@ -148,8 +148,7 @@ open class StoreStruct<T : DBMigratableData>(
         for (entry in data) {
             try {
                 if (!entry.migrated) {
-                    entry.migrate()
-                    entry.migrated = true
+                    entry.migrateEntryToDB()
                 }
             } catch (e: Exception) {
                 if (e is ExposedSQLException && e.errorCode == DUPLICATE_KEY_1) {

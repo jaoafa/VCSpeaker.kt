@@ -1,6 +1,13 @@
 package com.jaoafa.vcspeaker.stores
 
-interface DBMigratableData {
-    var migrated: Boolean
-    fun migrate()
+abstract class DBMigratableData {
+    var migrated: Boolean = false
+        private set
+
+    abstract fun migrationTransaction()
+
+    fun migrateEntryToDB() {
+        migrationTransaction()
+        migrated = true
+    }
 }

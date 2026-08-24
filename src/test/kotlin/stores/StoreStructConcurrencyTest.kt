@@ -16,10 +16,9 @@ import java.io.File
 
 @Serializable
 data class DummyData(
-    val value: Int,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() {
+    val value: Int
+) : DBMigratableData() {
+    override fun migrationTransaction() {
         // no-op
     }
 }

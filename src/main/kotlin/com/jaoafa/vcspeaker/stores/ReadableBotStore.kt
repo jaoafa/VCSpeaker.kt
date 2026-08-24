@@ -14,10 +14,9 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 data class ReadableBotData(
     val guildId: Snowflake,
     val userId: Snowflake,
-    val addedByUserId: Snowflake,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+    val addedByUserId: Snowflake
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         ReadableBotEntity.new {
             guildEntity = GuildEntity[guildId]
             botDid = userId

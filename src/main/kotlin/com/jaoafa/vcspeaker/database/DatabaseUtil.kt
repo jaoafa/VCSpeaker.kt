@@ -61,7 +61,7 @@ object DatabaseUtil {
             return false
         }
 
-        logger.info { "Migration from ${result.initialSchemaVersion} to ${result.targetSchemaVersion}." }
+        logger.info { "Migration from ${result.initialSchemaVersion} to ${result.targetSchemaVersion} was successful." }
         return true
     }
 

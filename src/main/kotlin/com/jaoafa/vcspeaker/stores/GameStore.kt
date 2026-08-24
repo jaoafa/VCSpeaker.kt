@@ -12,10 +12,9 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 data class GameData(
     val id: Long,
     val name: String,
-    val updatedAt: Long,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+    val updatedAt: Long
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         GameEntity.new(Snowflake(this@GameData.id)) {
             name = this@GameData.name
         }

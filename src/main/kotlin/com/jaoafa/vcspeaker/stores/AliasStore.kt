@@ -20,16 +20,15 @@ data class AliasData(
     val userId: Snowflake,
     val type: AliasType,
     val search: String,
-    val replace: String,
-    override var migrated: Boolean = false
-) : DBMigratableData {
+    val replace: String
+) : DBMigratableData() {
     private val searchDisplay = if (type == AliasType.Regex) " `$search` " else "「$search」"
 
     private fun describe() = "${type.displayName}${searchDisplay}→「$replace」<@$userId>"
 
     fun describeWithEmoji() = "${type.emoji} ${describe()}"
 
-    override fun migrate() = transaction {
+    override fun migrationTransaction() = transaction {
         AliasEntity.new {
             guildEntity = GuildEntity[guildId]
             creatorDid = userId

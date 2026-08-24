@@ -18,10 +18,9 @@ import kotlin.time.Instant
 data class CacheData(
     val providerId: String,
     val hash: String,
-    val lastUsed: Long,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+    val lastUsed: Long
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         SpeechCacheEntity.new {
             providerId = this@CacheData.providerId
             hash = this@CacheData.hash

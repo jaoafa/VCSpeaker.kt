@@ -14,10 +14,9 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 @Deprecated("Use database instead")
 data class VoiceData(
     val userId: Snowflake,
-    val voice: Voice,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+    val voice: Voice
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         UserEntity.new(userId) {
             voiceEntity = VoiceEntity.new {
                 speaker = voice.speaker

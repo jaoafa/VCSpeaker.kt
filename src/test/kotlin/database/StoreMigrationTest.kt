@@ -25,10 +25,9 @@ import utils.ResourceUtil
 
 @Serializable
 data class DummyData(
-    val value: Int,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() {
+    val value: Int
+) : DBMigratableData() {
+    override fun migrationTransaction() {
         throw UnsupportedOperationException("DummyData cannot be migrated.")
     }
 }
@@ -76,10 +75,10 @@ class StoreMigrationTest : FunSpec({
                         level = 1
                     ), pitch = 100, speed = 120, volume = 100
                 ),
-                autoJoin = true,
-                migrated = true
+                autoJoin = true
             )
         )
+        storeData[0].migrated shouldBe true
 
         val dbGuildSnapshots = transaction {
             GuildEntity.all().getSnapshots()
@@ -140,8 +139,7 @@ class StoreMigrationTest : FunSpec({
                         level = 1
                     ), pitch = 100, speed = 120, volume = 100
                 ),
-                autoJoin = true,
-                migrated = true
+                autoJoin = true
             ),
             GuildData(
                 guildId = Snowflake(1111111111111111111),
@@ -154,10 +152,11 @@ class StoreMigrationTest : FunSpec({
                     speed = 120,
                     volume = 100
                 ),
-                autoJoin = false,
-                migrated = false
+                autoJoin = false
             )
         )
+        storeData[0].migrated shouldBe true
+        storeData[1].migrated shouldBe false
 
         val dbGuildSnapshots = transaction {
             GuildEntity.all().getSnapshots()

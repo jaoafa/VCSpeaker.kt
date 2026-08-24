@@ -19,10 +19,9 @@ data class VisionApiCounterData(
     /** リクエスト数 */
     val count: Int,
     /** リミット到達日時 */
-    val limitReachedAt: Long? = null,
-    override var migrated: Boolean = false
-) : DBMigratableData {
-    override fun migrate() = transaction {
+    val limitReachedAt: Long? = null
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
         val (year, month) = yearMonth.split("/").map { it.toInt() }
         VisionAPICounterEntity.new(CompositeID {
             it[VisionAPICounterTable.year] = year

@@ -15,14 +15,13 @@ data class IgnoreData(
     val guildId: Snowflake,
     val userId: Snowflake,
     val type: IgnoreType,
-    val search: String,
-    override var migrated: Boolean = false
-) : DBMigratableData {
+    val search: String
+) : DBMigratableData() {
     fun toDisplay() = "${type.displayName}「$search」<@$userId>"
 
     fun toDisplayWithEmoji() = "${type.emoji} ${toDisplay()}"
 
-    override fun migrate() = transaction {
+    override fun migrationTransaction() = transaction {
         IgnoreEntity.new {
             guildEntity = GuildEntity[guildId]
             creatorDid = userId
