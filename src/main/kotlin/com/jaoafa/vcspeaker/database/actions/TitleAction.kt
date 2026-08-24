@@ -34,8 +34,6 @@ object TitleAction {
 
         val originalName = channel.getName()
 
-        channel.rename(title)
-
         val newEntity = transactionResulting(commit = true) {
             if (entity != null) {
                 entity.title = title
@@ -55,9 +53,10 @@ object TitleAction {
 
         val newSnapshot = newEntity.getSnapshot()
 
-        logger.info { "Title Set: $oldSnapshot -> $newSnapshot" }
-
         return@transaction oldSnapshot to newSnapshot
+    }.also {
+        channel.rename(title)
+        logger.info { "Title Set: ${it.first} -> ${it.second}" }
     }
 
     /**
@@ -70,30 +69,27 @@ object TitleAction {
     suspend fun resetTitleOf(
         channel: BaseVoiceChannelBehavior,
         creator: UserBehavior
-    ): Pair<VCTitleSnapshot?, VCTitleSnapshot>? =
-        suspendTransaction transaction@{
-            val entity = getTitleEntityOf(channel)
-            val oldSnapshot = entity?.getSnapshot()
+    ): Pair<VCTitleSnapshot?, VCTitleSnapshot>? = suspendTransaction transaction@{
+        val entity = getTitleEntityOf(channel)
+        val oldSnapshot = entity?.getSnapshot()
 
-            if (entity == null || oldSnapshot?.title == null) {
-                return@transaction null
-            }
-
-            channel.rename(oldSnapshot.originalTitle)
-
-            transactionResulting(commit = true) {
-                entity.title = null
-                entity.creatorDid = creator.id
-                entity.version += 1
-            }.unwrap()
-
-            val newSnapshot = entity.getSnapshot()
-
-            logger.info { "Title Reset: $oldSnapshot -> $newSnapshot" }
-
-            return@transaction oldSnapshot to newSnapshot
-
+        if (entity == null || oldSnapshot?.title == null) {
+            return@transaction null
         }
+
+        transactionResulting(commit = true) {
+            entity.title = null
+            entity.creatorDid = creator.id
+            entity.version += 1
+        }.unwrap()
+
+        val newSnapshot = entity.getSnapshot()
+
+        return@transaction oldSnapshot to newSnapshot
+    }?.also {
+        channel.rename(it.first.originalTitle)
+        logger.info { "Title Reset: ${it.first} -> ${it.second}" }
+    }
 
     /**
      * 現在のボイスチャットのチャンネル名を、元のタイトルとして保存します。
