@@ -97,7 +97,7 @@ object CacheAction {
     }
 
     fun initiateAuditJob(interval: Int) {
-        timer("CacheAudit", false, 0, (1000 * 60 * 60 * 24 * interval).toLong()) {
+        timer("CacheAudit", false, 0, 1000L * 60 * 60 * 24 * interval) {
             cleanCache()
         }
     }
