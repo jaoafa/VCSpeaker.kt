@@ -6,6 +6,8 @@ import kotlin.system.exitProcess
 
 @Suppress("DEPRECATION")
 object StoreDBMigrator {
+    private val logger = KotlinLogging.logger {}
+
     val stores = listOf(
         // guild dependents
         GuildStore,
@@ -20,7 +22,6 @@ object StoreDBMigrator {
         CacheStore
     )
 
-    val logger = KotlinLogging.logger {}
     suspend fun run() {
         for (store in stores) {
             val name = store::class.simpleName
