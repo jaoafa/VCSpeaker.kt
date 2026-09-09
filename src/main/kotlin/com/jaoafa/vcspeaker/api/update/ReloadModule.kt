@@ -63,7 +63,6 @@ class ReloadModule(
 
     val selfId = Reload.serverIds.random()
 
-    @OptIn(ExperimentalEncodingApi::class)
     val selfToken = run {
         val random = SecureRandom()
         val bytes = ByteArray(32)

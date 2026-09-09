@@ -19,7 +19,8 @@ object StoreDBMigrator {
         // independents
         VisionApiCounterStore,
         VoiceStore,
-        CacheStore
+        CacheStore,
+        GameStore
     )
 
     suspend fun run() {

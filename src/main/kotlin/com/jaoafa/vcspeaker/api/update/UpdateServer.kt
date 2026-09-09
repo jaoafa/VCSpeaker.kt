@@ -47,7 +47,6 @@ class UpdateServer(val type: UpdateServerType, var targetToken: String? = null, 
 
     val selfId = Reload.serverIds.random()
 
-    @OptIn(ExperimentalEncodingApi::class)
     val selfToken = run {
         val random = SecureRandom()
         val bytes = ByteArray(32)
@@ -65,7 +64,6 @@ class UpdateServer(val type: UpdateServerType, var targetToken: String? = null, 
 
 
     // todo: add timeout for each request (to prevent stucking)
-
     private var server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>? = null
 
     /**

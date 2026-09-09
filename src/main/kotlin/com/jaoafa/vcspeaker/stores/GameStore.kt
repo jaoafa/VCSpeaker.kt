@@ -15,6 +15,8 @@ data class GameData(
     val updatedAt: Long
 ) : DBMigratableData() {
     override fun migrationTransaction() = transaction {
+        if (this@GameData.id == -1L) return@transaction
+
         GameEntity.new(Snowflake(this@GameData.id)) {
             name = this@GameData.name
         }
