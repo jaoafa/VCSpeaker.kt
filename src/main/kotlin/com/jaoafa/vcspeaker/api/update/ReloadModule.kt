@@ -37,7 +37,6 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.security.SecureRandom
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.system.exitProcess
 
 class ReloadModule(

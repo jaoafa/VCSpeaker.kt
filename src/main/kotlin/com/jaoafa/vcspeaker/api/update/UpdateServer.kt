@@ -19,7 +19,6 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.security.SecureRandom
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 enum class UpdateServerType {
     Latest, Current, Unknown
