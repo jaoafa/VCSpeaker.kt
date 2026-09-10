@@ -14,6 +14,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import java.net.SocketException
 import kotlin.reflect.full.createInstance
+import kotlin.time.Duration.Companion.milliseconds
 
 object KordStarter {
     private val logger = KotlinLogging.logger {}
@@ -100,7 +101,7 @@ object KordStarter {
             logger.error(e) { "Failed to connect to Discord. Retrying after 10 seconds..." }
 
             instance?.stop()
-            delay(10000) // wait 10 seconds before retrying
+            delay(10000.milliseconds) // wait 10 seconds before retrying
             instance?.start()
         }
     }
