@@ -105,9 +105,9 @@ class SaveTitleCommand : Extension() {
                     respondEmbed(
                         ":inbox_tray: Title Saved",
                         """
-                                ${channel.mention} のタイトル「${new.originalTitle}」を保存しました。
-                                レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
-                            """.trimIndent()
+                            ${channel.mention} のタイトル「${new.originalTitle}」を保存しました。
+                            レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
+                        """.trimIndent()
                     ) {
                         authorOf(user)
                         successColor()

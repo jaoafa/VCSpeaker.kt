@@ -63,9 +63,9 @@ class ResetTitleCommand : Extension() {
                 respondEmbed(
                     ":broom: Title Reset",
                     """
-                            ${channel.mention} のタイトルはリセットされました。
-                            レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
-                        """.trimIndent()
+                        ${channel.mention} のタイトルはリセットされました。
+                        レートリミットにより、チャンネル名が反映されるまで時間がかかる場合があります。
+                    """.trimIndent()
                 ) {
                     authorOf(user)
 
