@@ -107,6 +107,14 @@ class VCSpeakerCommand : Extension() {
             name = "auto-join"
             description = "VC に自動で入退室するかどうか"
         }
+
+        val soundboardVolume by optionalInt {
+            name = "soundboard-volume"
+            description = "サウンドボード（Soundmoji）の再生音量。0 で再生を無効化"
+
+            maxValue = 100
+            minValue = 0
+        }
     }
 
     override suspend fun setup() {
@@ -151,7 +159,8 @@ class VCSpeakerCommand : Extension() {
                                 volume = args.volume ?: currentVoice?.volume ?: DEFAULT_VOLUME
                             )
                         },
-                        autoJoin = arguments.autoJoin ?: oldGuildData?.autoJoin ?: true
+                        autoJoin = arguments.autoJoin ?: oldGuildData?.autoJoin ?: true,
+                        soundboardVolume = arguments.soundboardVolume ?: oldGuildData?.soundboardVolume ?: 50
                     )
 
                     val emotionEmoji = newGuildData.voice.emotion?.emoji ?: ":neutral_face:"
@@ -204,6 +213,11 @@ class VCSpeakerCommand : Extension() {
                         field {
                             name = ":loud_sound: 音量"
                             value = newGuildData.voice.volume.let { "`$it%`" }
+                            inline = true
+                        }
+                        field {
+                            name = ":loud_sound: サウンドボード音量"
+                            value = newGuildData.soundboardVolume.let { "`$it%`" }
                             inline = true
                         }
                         field {

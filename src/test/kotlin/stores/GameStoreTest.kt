@@ -12,7 +12,7 @@ import java.io.File
 class GameStoreTest : FunSpec({
     beforeSpec {
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker-test-${System.currentTimeMillis()}")
+        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
         VCSpeaker.storeFolder.mkdirs()
 
         val gameFile = File(VCSpeaker.storeFolder, "games.json")

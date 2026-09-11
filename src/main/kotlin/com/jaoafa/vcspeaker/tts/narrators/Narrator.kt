@@ -37,7 +37,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
     val channelId: Snowflake,
     val link: Link,
-    val scheduler: Scheduler = Scheduler(link),
+    val scheduler: Scheduler = Scheduler(link, guildId),
 ) : UseState<NarratorState>() {
     companion object {
         suspend fun Guild.announce(
@@ -63,13 +63,17 @@ class Narrator @OptIn(KordVoice::class) constructor(
      *
      * @param text 読み上げる文章
      */
-    suspend fun scheduleAsSystem(text: String) =
+    suspend fun scheduleAsSystem(text: String) {
+        val guildData = GuildStore.getOrDefault(guildId)
+
         schedule(
             text = text,
-            voice = GuildStore.getOrDefault(guildId).voice,
+            voice = guildData.voice,
             guild = VCSpeaker.kord.getGuild(guildId),
-            actor = SpeechActor.System
+            actor = SpeechActor.System,
+            soundboardVolume = guildData.soundboardVolume
         )
+    }
 
     /**
      * ユーザーの発言としてメッセージをキューに追加します。
@@ -82,7 +86,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
             text = message.content,
             voice = VoiceStore.byIdOrDefault(message.author!!.id),
             guild = message.getGuild(),
-            actor = SpeechActor.User
+            actor = SpeechActor.User,
+            soundboardVolume = GuildStore.getOrDefault(guildId).soundboardVolume
         )
 
     /**
@@ -93,13 +98,15 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * @param voice 読み上げに使用する音声
      * @param guild サーバー
      * @param actor 読み上げの種類
+     * @param soundboardVolume ギルドのサウンドボード音量設定
      */
     private suspend fun schedule(
         message: Message? = null,
         text: String,
         voice: Voice,
         guild: Guild,
-        actor: SpeechActor
+        actor: SpeechActor,
+        soundboardVolume: Int
     ) {
         if (text.shouldIgnoreOn(guildId)) return
 
@@ -121,6 +128,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
             if (i < sounds.size)
                 contexts.add(SoundmojiContext(Snowflake(sounds[i].second)))
         }
+
+        filterDisabledSoundmoji(contexts, soundboardVolume)
 
         if (contexts.isEmpty()) return
 
@@ -217,4 +226,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
     }
 
     private val soundRegex = Regex("<sound:\\d+:(\\d+)>")
+
+    internal fun filterDisabledSoundmoji(contexts: MutableList<ProviderContext>, soundboardVolume: Int) {
+        if (soundboardVolume <= 0) contexts.removeAll { it is SoundmojiContext }
+    }
 }

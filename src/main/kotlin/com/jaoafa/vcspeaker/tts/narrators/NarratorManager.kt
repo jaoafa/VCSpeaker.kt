@@ -74,7 +74,7 @@ object NarratorManager {
                 guildId = guildId,
                 channelId = channelId,
                 link,
-                Scheduler(link, queue.map {
+                Scheduler(link, guildId, queue.map {
                     it.copy(tracks = BatchProvider(link, it.contexts).start())
                 }.toMutableList())
             )

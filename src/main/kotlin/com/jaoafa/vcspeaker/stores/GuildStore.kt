@@ -13,7 +13,8 @@ data class GuildData(
     var channelId: Snowflake?,
     var prefix: String?,
     var voice: Voice,
-    var autoJoin: Boolean
+    var autoJoin: Boolean,
+    var soundboardVolume: Int
 )
 
 object GuildStore : StoreStruct<GuildData>(
@@ -21,7 +22,7 @@ object GuildStore : StoreStruct<GuildData>(
     GuildData.serializer(),
     { Json.decodeFromString(this) },
 
-    version = 2,
+    version = 3,
     migrators = mapOf(
         1 to { file ->
             val list = Json.decodeFromString<List<GuildDataV1>>(file.readText())
@@ -36,8 +37,17 @@ object GuildStore : StoreStruct<GuildData>(
             val list = Json.decodeFromString<TypedStore<GuildDataV1>>(file.readText()).list.map { it.toV2() }
             file.writeText(
                 Json.encodeToString(
-                    TypedStore.serializer(GuildData.serializer()),
+                    TypedStore.serializer(GuildDataV2.serializer()),
                     TypedStore(2, list)
+                )
+            )
+        },
+        3 to { file ->
+            val list = Json.decodeFromString<TypedStore<GuildDataV2>>(file.readText()).list.map { it.toV3() }
+            file.writeText(
+                Json.encodeToString(
+                    TypedStore.serializer(GuildData.serializer()),
+                    TypedStore(3, list)
                 )
             )
         }
@@ -50,7 +60,8 @@ object GuildStore : StoreStruct<GuildData>(
         null,
         null,
         Voice(speaker = Speaker.Hikari),
-        false
+        false,
+        50
     )
 
     suspend fun getTextChannels() = withData { data.filter { it.channelId != null }.map { it.channelId!! } }
@@ -60,9 +71,11 @@ object GuildStore : StoreStruct<GuildData>(
         channelId: Snowflake?,
         prefix: String?,
         voice: Voice,
-        autoJoin: Boolean
+        autoJoin: Boolean,
+        soundboardVolume: Int
     ): GuildData = withData {
         val index = data.indexOfFirst { it.guildId == guildId }
+        val clampedSoundboardVolume = soundboardVolume.coerceIn(0, 100)
 
         val guildData = if (index != -1) {
             data[index].apply {
@@ -70,9 +83,10 @@ object GuildStore : StoreStruct<GuildData>(
                 this.prefix = prefix
                 this.voice = voice
                 this.autoJoin = autoJoin
+                this.soundboardVolume = clampedSoundboardVolume
             }
         } else {
-            GuildData(guildId, channelId, prefix, voice, autoJoin).also { data.add(it) }
+            GuildData(guildId, channelId, prefix, voice, autoJoin, clampedSoundboardVolume).also { data.add(it) }
         }
 
         writeLocked()

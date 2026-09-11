@@ -110,15 +110,13 @@ object VoiceExtensions {
         }
     }
 
-    suspend fun Player.speak(speech: Speech) {
+    suspend fun Player.speak(speech: Speech, volume: Int) {
         val guildName = speech.guildName
 
         try {
-            // applyFilters { // FIXME: StackOverflowError
-            //     volume = if (speech.contexts[0] is SoundmojiContext) 20F else 100F
-            // }
-
-            this.playTrack(speech.tracks[0])
+            this.playTrack(speech.tracks[0]) {
+                this.volume = volume
+            }
 
             logger.info {
                 "[$guildName] Playing Track: Audio for ${speech.describe()} is playing now"

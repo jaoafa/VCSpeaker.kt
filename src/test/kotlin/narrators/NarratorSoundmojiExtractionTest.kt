@@ -83,4 +83,39 @@ class NarratorSoundmojiExtractionTest : FunSpec({
             SoundmojiContext(Snowflake(987654321098765432))
         )
     }
+
+    test("filterDisabledSoundmoji should remove only SoundmojiContext when soundboardVolume is 0") {
+        val link = mockk<Link>(relaxed = true)
+        val scheduler = mockk<Scheduler>(relaxed = true)
+        val narrator = Narrator(Snowflake(1), Snowflake(2), link, scheduler)
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val contexts = mutableListOf<ProviderContext>(
+            VoiceTextContext(voice, "hello"),
+            SoundmojiContext(Snowflake(123456789012345678))
+        )
+
+        narrator.filterDisabledSoundmoji(contexts, 0)
+
+        contexts shouldBe listOf(VoiceTextContext(voice, "hello"))
+    }
+
+    test("filterDisabledSoundmoji should not remove anything when soundboardVolume is above 0") {
+        val link = mockk<Link>(relaxed = true)
+        val scheduler = mockk<Scheduler>(relaxed = true)
+        val narrator = Narrator(Snowflake(1), Snowflake(2), link, scheduler)
+        val voice = Voice(speaker = Speaker.Hikari)
+
+        val contexts = mutableListOf<ProviderContext>(
+            VoiceTextContext(voice, "hello"),
+            SoundmojiContext(Snowflake(123456789012345678))
+        )
+
+        narrator.filterDisabledSoundmoji(contexts, 50)
+
+        contexts shouldBe listOf(
+            VoiceTextContext(voice, "hello"),
+            SoundmojiContext(Snowflake(123456789012345678))
+        )
+    }
 })
