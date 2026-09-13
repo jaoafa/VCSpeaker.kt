@@ -588,10 +588,10 @@ object UrlReplacer : BaseReplacer {
 
             val item = Steam.getAppDetail(appId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
-                "Steam アイテムへのリンク"
+                "Steamアイテムへのリンク" // whitespace ignore
             )
 
-            val replaceTo = "Steam アイテム「${item.data?.name}」へのリンク"
+            val replaceTo = "Steamアイテム「${item.data?.name}」へのリンク" // whitespace ignore
 
             replacedText.replace(matchResult.value, replaceTo)
         }
@@ -613,11 +613,11 @@ object UrlReplacer : BaseReplacer {
             val authorName = video.authorName.shorten(15)
 
             // URL からアイテムの種別を断定できる場合は、それに応じたテンプレートを使用する
-            val replaceTo = when (videoType) {
-                "shorts" -> "YouTube の「${authorName}」によるショート「${videoTitle}」へのリンク"
-                "live" -> "YouTube の「${authorName}」による配信「${videoTitle}」へのリンク"
-                else -> "YouTube の「${authorName}」による動画「${videoTitle}」へのリンク"
-            }
+            val replaceTo = when (videoType) { // whitespace ignore-begin
+                "shorts" -> "YouTubeの「${authorName}」によるショート「${videoTitle}」へのリンク"
+                "live" -> "YouTubeの「${authorName}」による配信「${videoTitle}」へのリンク"
+                else -> "YouTubeの「${authorName}」による動画「${videoTitle}」へのリンク"
+            } // whitespace ignore-end
 
             replacedText.replace(matchResult.value, replaceTo)
         }
@@ -631,10 +631,10 @@ object UrlReplacer : BaseReplacer {
 
             val playlist = YouTube.getPlaylist(playlistId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
-                "YouTube プレイリストへのリンク"
+                "YouTubeプレイリストへのリンク" // whitespace ignore
             )
 
-            val replaceTo = "YouTube の「${playlist.authorName}」によるプレイリスト「${playlist.title}」へのリンク"
+            val replaceTo = "YouTubeの「${playlist.authorName}」によるプレイリスト「${playlist.title}」へのリンク" // whitespace ignore
 
             replacedText.replace(matchResult.value, replaceTo)
         }
@@ -652,7 +652,7 @@ object UrlReplacer : BaseReplacer {
             val urlParams = Url(url).parameters
             val query = urlParams["q"] ?: return@replaceAll replacedText
 
-            val replaceTo = "Google 検索「$query」へのリンク"
+            val replaceTo = "Google検索「$query」へのリンク" // whitespace ignore
 
             replacedText.replace(matchResult.value, replaceTo)
         }
@@ -666,18 +666,19 @@ object UrlReplacer : BaseReplacer {
 
             val replaceTo = try {
                 val title = getPageTitle(url)?.shorten(30) ?: return@replaceAll replacedText
-                "Web ページ「$title」へのリンク"
+                "Webページ「$title」へのリンク" // whitespace ignore
             } catch (_: ConnectTimeoutException) {
-                "存在しない Web ページへのリンク"
+                "存在しないWebページへのリンク" // whitespace ignore
             } catch (_: UnresolvedAddressException) {
-                "存在しない Web ページへのリンク"
+                "存在しないWebページへのリンク" // whitespace ignore
             }
 
             replacedText.replace(matchResult.value, replaceTo)
         }
 
     /**
-     * URL をもとに、拡張子を取得し置き換えます。拡張子がない場合は、「Web ページのリンク」と置き換えます。
+     * // whitespace ignore-nextline
+     * URL をもとに、拡張子を取得し置き換えます。拡張子がない場合は、「Webページのリンク」と置き換えます。
      */
     private suspend fun replaceUrl(text: String, guildId: Snowflake) =
         urlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -685,7 +686,7 @@ object UrlReplacer : BaseReplacer {
 
             val extension = getExtension(url) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
-                "Web ページのリンク"
+                "Webページのリンク" // whitespace ignore
             )
 
             if (extensionNameMap.containsKey(extension)) {
