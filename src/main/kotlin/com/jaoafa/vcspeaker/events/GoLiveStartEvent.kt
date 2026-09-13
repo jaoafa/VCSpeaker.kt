@@ -23,11 +23,11 @@ class GoLiveStartEvent : Extension() {
                 anyGuildRegistered()
                 isVoiceTextChannelSet()
 
-                // VCに参加したときではないこと
+                // VC に参加したときではないこと
                 failIf(event.old?.isSelfStreaming == null)
-                // GoLiveのステータスが変わったときのみ
+                // GoLive のステータスが変わったときのみ
                 failIf(event.old?.isSelfStreaming == event.state.isSelfStreaming)
-                // GoLiveを開始したときのみ
+                // GoLive を開始したときのみ
                 failIfNot(event.state.isSelfStreaming)
             }
 

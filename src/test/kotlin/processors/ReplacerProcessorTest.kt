@@ -220,7 +220,7 @@ class ReplacerProcessorTest : FunSpec({
     // ユーザメンションはエイリアスでの置き換えができないこと
     test("User mentions shouldn't be replaced by aliases.") {
         every { VCSpeaker.kord } returns mockk {
-            every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+            every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
             coEvery { getGuildOrNull(Snowflake(0)) } returns mockk {
                 coEvery { getMember(Snowflake(123456789012345678)) } returns mockk {
                     every { effectiveName } returns "test-user" // テスト用のユーザー名
@@ -271,7 +271,7 @@ class ReplacerProcessorTest : FunSpec({
         }
 
         val text = "Please visit https://example.com for more information."
-        val expected = "Please visit Webページ「例のドメイン」へのリンク for more information."
+        val expected = "Please visit Webページ「例のドメイン」へのリンク for more information." // whitespace ignore
 
         val (processedText, processedVoice) = ReplacerProcessor().process(message, text, voice)
 

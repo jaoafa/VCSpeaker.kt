@@ -330,7 +330,7 @@ class AliasCommand : Extension() {
 
         respondEmbed(
             ":x: Invalid Soundboard",
-            "サウンドボードのURL、`<sound:0:ID>`、もしくはIDのみを指定してください。"
+            "サウンドボードの URL、`<sound:0:ID>`、もしくは ID のみを指定してください。"
         ) {
             authorOf(user)
             errorColor()

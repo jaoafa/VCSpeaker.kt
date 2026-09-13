@@ -37,7 +37,7 @@ import kotlinx.serialization.json.Json
 import java.net.MalformedURLException
 
 /**
- * URLを置換するクラス
+ * URL を置換するクラス
  */
 object UrlReplacer : BaseReplacer {
     override val priority = ReplacerPriority.High
@@ -84,7 +84,7 @@ object UrlReplacer : BaseReplacer {
     }
 
     /**
-     * DiscordのメッセージURLを表す正規表現
+     * Discord のメッセージ URL を表す正規表現
      *
      * 例: https://discord.com/channels/123456789012345678/123456789012345678/123456789012345678
      * 例: https://discordapp.com/channels/123456789012345678/123456789012345678/123456789012345678
@@ -97,7 +97,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * DiscordのチャンネルURLを表す正規表現
+     * Discord のチャンネル URL を表す正規表現
      *
      * 例: https://discord.com/channels/123456789012345678/123456789012345678
      * 例: https://discordapp.com/channels/123456789012345678/123456789012345678
@@ -110,7 +110,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * Discordのイベントへの直接URLを表す正規表現
+     * Discord のイベントへの直接 URL を表す正規表現
      *
      * 例: https://discord.com/events/123456789012345678/123456789012345678
      * 例: https://discordapp.com/events/123456789012345678/123456789012345678
@@ -123,7 +123,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * Discordのイベントへの招待URLを表す正規表現
+     * Discord のイベントへの招待 URL を表す正規表現
      *
      * 例: https://discord.com/invite/abcdef?event=123456789012345678
      * 例: https://discordapp.com/invite/abcdef?event=123456789012345678
@@ -142,7 +142,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * Discordの招待URLを表す正規表現
+     * Discord の招待 URL を表す正規表現
      *
      * 例: https://discord.com/invite/abcdef
      * 例: https://discordapp.com/invite/abcdef
@@ -158,7 +158,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * ツイートURLを表す正規表現
+     * ツイート URL を表す正規表現
      *
      * 例: https://twitter.com/username/status/123456789012345678
      * 例: https://twitter.com/username/status/123456789012345678?query=example
@@ -175,7 +175,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * SteamアイテムへのURLを表す正規表現
+     * Steam アイテムへの URL を表す正規表現
      *
      * 例: https://store.steampowered.com/app/1234567890
      * 例: https://store.steampowered.com/app/1234567890?query=example
@@ -186,7 +186,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * YouTubeのURLを表す正規表現 (動画、ライブ、ショートに対応。no-cookieも対応)
+     * YouTube の URL を表す正規表現 (動画、ライブ、ショートに対応。no-cookie も対応)
      *
      * 例: https://www.youtube.com/watch?v=abcdefg
      * 例: http://youtube.com/watch?v=abcdefg
@@ -210,7 +210,7 @@ object UrlReplacer : BaseReplacer {
     )
 
     /**
-     * YouTubeのプレイリストURLを表す正規表現
+     * YouTube のプレイリスト URL を表す正規表現
      *
      * 例: https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
      * 例: http://youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI
@@ -234,14 +234,14 @@ object UrlReplacer : BaseReplacer {
     private val titleRegex = Regex("<title.*>([^<]+)</title>", RegexOption.IGNORE_CASE)
 
     /**
-     * URLを表す正規表現
+     * URL を表す正規表現
      */
     private val urlRegex = Regex("https?://\\S+", RegexOption.IGNORE_CASE)
 
     /**
      * 拡張子名とその拡張子に対応する呼び名のマップ
      */
-    private val extensionNameMap = mapOf(
+    private val extensionNameMap = mapOf( // whitespace ignore-begin
         "jpg" to "JPEGファイル",
         "apng" to "アニメーションPNGファイル",
         "txt" to "テキストファイル",
@@ -271,7 +271,7 @@ object UrlReplacer : BaseReplacer {
         "conf" to "設定ファイル",
         "config" to "設定ファイル",
         "md" to "Markdownファイル",
-    )
+    ) // whitespace ignore-end
 
     /**
      * チャンネルタイプに応じて、読み上げるチャンネル種別テキストを返します。
@@ -285,7 +285,7 @@ object UrlReplacer : BaseReplacer {
     }
 
     /**
-     * チャンネルIDをもとに、チャンネルを取得します。スレッドの場合は、親チャンネルを取得します。
+     * チャンネル ID をもとに、チャンネルを取得します。スレッドの場合は、親チャンネルを取得します。
      */
     private suspend fun getChannel(guild: Guild, channelId: Snowflake): GuildChannel? {
         val channel = guild.getChannelOrNull(channelId) ?: return null
@@ -297,7 +297,7 @@ object UrlReplacer : BaseReplacer {
     }
 
     /**
-     * チャンネルIDをもとに、スレッドを取得します。スレッドでない場合はnullを返します。
+     * チャンネル ID をもとに、スレッドを取得します。スレッドでない場合は null を返します。
      */
     private suspend fun getThread(guild: Guild, channelId: Snowflake): ThreadChannel? {
         val channel = guild.getChannelOrNull(channelId) ?: return null
@@ -345,7 +345,7 @@ object UrlReplacer : BaseReplacer {
     }
 
     /**
-     * URLをもとに、ページタイトルを取得します。titleタグがない場合はnullを返します。
+     * URL をもとに、ページタイトルを取得します。title タグがない場合は null を返します。
      */
     private suspend fun getPageTitle(url: String): String? {
         var byteArray = ByteArray(0)
@@ -384,20 +384,20 @@ object UrlReplacer : BaseReplacer {
     }
 
     /**
-     * URLから拡張子を取得します。
+     * URL から拡張子を取得します。
      */
     private fun getExtension(url: String): String? {
         try {
             val path = Url(url).segments.lastOrNull() ?: return null
             val dotPath = path.split(".")
             return if (dotPath.size > 1) dotPath.last() else null
-        } catch (e: MalformedURLException) {
+        } catch (_: MalformedURLException) {
             return null
         }
     }
 
     /**
-     * メッセージURLを置換します。
+     * メッセージ URL を置換します。
      */
     private suspend fun replaceMessageUrl(text: String, guildId: Snowflake) =
         messageUrlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -406,7 +406,7 @@ object UrlReplacer : BaseReplacer {
             val urlChannelId = Snowflake(urlChannelIdRaw)
             val urlMessageId = Snowflake(urlMessageIdRaw)
 
-            // URLに含まれているIDをもとに、エンティティを取得する
+            // URL に含まれている ID をもとに、エンティティを取得する
             val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId)
             val channel = guild?.let { getChannel(it, urlChannelId) }
 
@@ -433,8 +433,8 @@ object UrlReplacer : BaseReplacer {
         }
 
     /**
-     * メッセージの内容を取得して、読み上げるテキストを生成します。取得できない場合はnullを返します。
-     * ReadableChannel に登録されていないチャンネルの場合は、nullを返します。
+     * メッセージの内容を取得して、読み上げるテキストを生成します。取得できない場合は null を返します。
+     * ReadableChannel に登録されていないチャンネルの場合は、null を返します。
      */
     private suspend fun getMessageDetailText(guild: Guild, channel: GuildChannel, messageId: Snowflake): String? {
         if (channel.type != ChannelType.GuildText) return null
@@ -458,7 +458,7 @@ object UrlReplacer : BaseReplacer {
     }
 
     /**
-     * チャンネルURLを置換します。
+     * チャンネル URL を置換します。
      */
     private suspend fun replaceChannelUrl(text: String, guildId: Snowflake) =
         channelUrlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -466,7 +466,7 @@ object UrlReplacer : BaseReplacer {
             val urlGuildId = Snowflake(urlGuildIdRaw)
             val urlChannelId = Snowflake(urlChannelIdRaw)
 
-            // URLに含まれているIDをもとに、エンティティを取得する
+            // URL に含まれている ID をもとに、エンティティを取得する
             val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId)
             val channel = guild?.let { getChannel(it, urlChannelId) }
 
@@ -486,7 +486,7 @@ object UrlReplacer : BaseReplacer {
         }
 
     /**
-     * イベントへの直接URLを置換します。
+     * イベントへの直接 URL を置換します。
      */
     private suspend fun replaceEventDirectUrl(text: String, guildId: Snowflake) =
         eventDirectUrlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -494,7 +494,7 @@ object UrlReplacer : BaseReplacer {
             val urlGuildId = Snowflake(urlGuildIdRaw)
             val urlEventId = Snowflake(urlEventIdRaw)
 
-            // URLに含まれているIDをもとに、エンティティを取得する
+            // URL に含まれている ID をもとに、エンティティを取得する
             val guild = VCSpeaker.kord.getGuildOrNull(urlGuildId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
                 "どこかのサーバのイベントへのリンク"
@@ -516,7 +516,7 @@ object UrlReplacer : BaseReplacer {
         }
 
     /**
-     * イベントへの招待URLを置換します。
+     * イベントへの招待 URL を置換します。
      */
     private suspend fun replaceEventInviteUrl(text: String, guildId: Snowflake) =
         eventInviteUrlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -542,7 +542,7 @@ object UrlReplacer : BaseReplacer {
         inviteUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (inviteCode) = matchResult.destructured
 
-            // URLに含まれているIDをもとに、エンティティを取得する
+            // URL に含まれている ID をもとに、エンティティを取得する
             val invite = getInvite(inviteCode)
                 ?: return@replaceAll replacedText.replace(
                     matchResult.value,
@@ -559,7 +559,7 @@ object UrlReplacer : BaseReplacer {
         }
 
     /**
-     * ツイートURLを置換します。
+     * ツイート URL を置換します。
      */
     private suspend fun replaceTweetUrl(text: String, guildId: Snowflake) =
         tweetUrlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -580,7 +580,7 @@ object UrlReplacer : BaseReplacer {
         }
 
     /**
-     * SteamアイテムへのURLを置換します。
+     * Steam アイテムへの URL を置換します。
      */
     private suspend fun replaceSteamAppUrl(text: String, guildId: Snowflake) =
         steamAppUrlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -588,23 +588,23 @@ object UrlReplacer : BaseReplacer {
 
             val item = Steam.getAppDetail(appId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
-                "Steamアイテムへのリンク"
+                "Steam アイテムへのリンク"
             )
 
-            val replaceTo = "Steamアイテム「${item.data?.name}」へのリンク"
+            val replaceTo = "Steam アイテム「${item.data?.name}」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
 
     /**
-     * YouTubeのURLを置換します。動画、ショート、ライブなどに対応しています。プレイリストは {@link #replaceYouTubePlaylistUrl} で置換します。
+     * YouTube の URL を置換します。動画、ショート、ライブなどに対応しています。プレイリストは {@link #replaceYouTubePlaylistUrl} で置換します。
      */
     private suspend fun replaceYouTubeUrl(text: String, guildId: Snowflake) =
         youtubeUrlRegex.replaceAll(text) { replacedText, matchResult ->
             val (videoType, videoId) = matchResult.destructured
             val video = YouTube.getVideo(videoId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
-                "YouTube動画へのリンク"
+                "YouTube動画へのリンク" // whitespace ignore
             )
 
             // 動画タイトルが20文字を超える場合は、20文字に短縮して「以下略」を付ける
@@ -612,18 +612,18 @@ object UrlReplacer : BaseReplacer {
             // 投稿者名が15文字を超える場合は、15文字に短縮して「以下略」を付ける
             val authorName = video.authorName.shorten(15)
 
-            // URLからアイテムの種別を断定できる場合は、それに応じたテンプレートを使用する
+            // URL からアイテムの種別を断定できる場合は、それに応じたテンプレートを使用する
             val replaceTo = when (videoType) {
-                "shorts" -> "YouTubeの「${authorName}」によるショート「${videoTitle}」へのリンク"
-                "live" -> "YouTubeの「${authorName}」による配信「${videoTitle}」へのリンク"
-                else -> "YouTubeの「${authorName}」による動画「${videoTitle}」へのリンク"
+                "shorts" -> "YouTube の「${authorName}」によるショート「${videoTitle}」へのリンク"
+                "live" -> "YouTube の「${authorName}」による配信「${videoTitle}」へのリンク"
+                else -> "YouTube の「${authorName}」による動画「${videoTitle}」へのリンク"
             }
 
             replacedText.replace(matchResult.value, replaceTo)
         }
 
     /**
-     * YouTubeのプレイリストURLを置換します。
+     * YouTube のプレイリスト URL を置換します。
      */
     private suspend fun replaceYouTubePlaylistUrl(text: String, guildId: Snowflake) =
         youtubePlaylistUrlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -631,16 +631,16 @@ object UrlReplacer : BaseReplacer {
 
             val playlist = YouTube.getPlaylist(playlistId) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
-                "YouTubeプレイリストへのリンク"
+                "YouTube プレイリストへのリンク"
             )
 
-            val replaceTo = "YouTubeの「${playlist.authorName}」によるプレイリスト「${playlist.title}」へのリンク"
+            val replaceTo = "YouTube の「${playlist.authorName}」によるプレイリスト「${playlist.title}」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
 
     /**
-     * Google検索のURLを置換します。
+     * Google 検索の URL を置換します。
      */
     private suspend fun replaceGoogleSearchUrl(text: String, guildId: Snowflake) =
         urlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -652,13 +652,13 @@ object UrlReplacer : BaseReplacer {
             val urlParams = Url(url).parameters
             val query = urlParams["q"] ?: return@replaceAll replacedText
 
-            val replaceTo = "Google検索「$query」へのリンク"
+            val replaceTo = "Google 検索「$query」へのリンク"
 
             replacedText.replace(matchResult.value, replaceTo)
         }
 
     /**
-     * URLをページのタイトルに置換します。
+     * URL をページのタイトルに置換します。
      */
     private suspend fun replaceUrlToTitle(text: String, guildId: Snowflake) =
         urlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -666,18 +666,18 @@ object UrlReplacer : BaseReplacer {
 
             val replaceTo = try {
                 val title = getPageTitle(url)?.shorten(30) ?: return@replaceAll replacedText
-                "Webページ「$title」へのリンク"
+                "Web ページ「$title」へのリンク"
             } catch (_: ConnectTimeoutException) {
-                "存在しないWebページへのリンク"
+                "存在しない Web ページへのリンク"
             } catch (_: UnresolvedAddressException) {
-                "存在しないWebページへのリンク"
+                "存在しない Web ページへのリンク"
             }
 
             replacedText.replace(matchResult.value, replaceTo)
         }
 
     /**
-     * URLをもとに、拡張子を取得し置き換えます。拡張子がない場合は、「Webページのリンク」と置き換えます。
+     * URL をもとに、拡張子を取得し置き換えます。拡張子がない場合は、「Web ページのリンク」と置き換えます。
      */
     private suspend fun replaceUrl(text: String, guildId: Snowflake) =
         urlRegex.replaceAll(text) { replacedText, matchResult ->
@@ -685,7 +685,7 @@ object UrlReplacer : BaseReplacer {
 
             val extension = getExtension(url) ?: return@replaceAll replacedText.replace(
                 matchResult.value,
-                "Webページのリンク"
+                "Web ページのリンク"
             )
 
             if (extensionNameMap.containsKey(extension)) {

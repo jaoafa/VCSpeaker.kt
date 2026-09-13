@@ -14,7 +14,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 
 /**
- * AttachmentProcessorのテスト
+ * AttachmentProcessor のテスト
  */
 class AttachmentProcessorTest : FunSpec({
     afterTest {

@@ -10,7 +10,7 @@ import io.mockk.clearAllMocks
 import io.mockk.mockk
 
 /**
- * CharLimitProcessorのテスト
+ * CharLimitProcessor のテスト
  */
 class CharLimitProcessorTest : FunSpec({
     afterTest {

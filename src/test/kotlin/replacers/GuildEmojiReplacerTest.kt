@@ -21,7 +21,7 @@ class GuildEmojiReplacerTest : FunSpec({
         processedTokens shouldBe expectedTokens
     }
 
-    // サーバGIF絵文字が絵文字名に置き換わること
+    // サーバ GIF 絵文字が絵文字名に置き換わること
     test("If an server GIF emoji found, the replaced text should be returned.") {
         val tokens = mutableListOf(TextToken("Hello, <a:world:123456789012345678>!"))
         val expectedTokens = mutableListOf(

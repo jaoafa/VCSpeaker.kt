@@ -28,9 +28,9 @@ import utils.createMessageMockk
 import kotlin.reflect.full.createInstance
 
 /**
- * Processorの複合テスト
+ * Processor の複合テスト
  *
- * 複数のProcessorが組み合わさった場合の挙動をテストします。
+ * 複数の Processor が組み合わさった場合の挙動をテストします。
  * これは、ユーザーが実際に操作したときの最終的な挙動に近いテストです。
  */
 class CompositeProcessorTest : FunSpec({
@@ -76,7 +76,7 @@ class CompositeProcessorTest : FunSpec({
     }
 
     context("Ignore と Alias の複合テスト") {
-        // 1. ignoreされたテキストが、エイリアス対象であったとしても無視されること
+        // 1. ignore されたテキストが、エイリアス対象であったとしても無視されること
         test("If the text is ignored, it should remain ignored even if it matches an alias pattern") {
             val guild = createGuildMockk(Snowflake(0))
             val message = createMessageMockk(Snowflake(0))
@@ -103,12 +103,12 @@ class CompositeProcessorTest : FunSpec({
 
             // IgnoreBeforeReplaceProcessor (priority 70) で無視されるため、
             // ReplacerProcessor (priority 80) でエイリアスは適用されず、
-            // プロセッサチェーンはnullを返す
+            // プロセッサチェーンは null を返す
             val result = processWithAllProcessors(message, "hello", voice)
             result.shouldBeNull()
         }
 
-        // 2. 部分一致でignoreされたテキストが、エイリアス対象であったとしても無視されること
+        // 2. 部分一致で ignore されたテキストが、エイリアス対象であったとしても無視されること
         test("If the text partially matches ignore pattern, it should be ignored even if it contains alias") {
             val guild = createGuildMockk(Snowflake(0))
             val message = createMessageMockk(Snowflake(0))
@@ -134,14 +134,14 @@ class CompositeProcessorTest : FunSpec({
             }
 
             // "test" が含まれているが "ignore" も含まれているため、
-            // IgnoreBeforeReplaceProcessorで無視される
+            // IgnoreBeforeReplaceProcessor で無視される
             val result = processWithAllProcessors(message, "this is ignore test", voice)
             result.shouldBeNull()
         }
     }
 
-    context("URL置き換えとIgnoreの複合テスト") {
-        // 3. URL置き換えなどでignore対象になった場合、無視されること
+    context("URL 置き換えと Ignore の複合テスト") {
+        // 3. URL 置き換えなどで ignore 対象になった場合、無視されること
         test("If URL replacement results in text matching ignore pattern, it should be ignored") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
@@ -150,6 +150,7 @@ class CompositeProcessorTest : FunSpec({
             val message = createMessageMockk(Snowflake(0))
             val voice = Voice(speaker = Speaker.Hikari)
 
+            // whitespace ignore-begin
             transaction {
                 // "Webページ" を含む文字列を無視する設定
                 IgnoreEntity.new {
@@ -165,9 +166,10 @@ class CompositeProcessorTest : FunSpec({
             // IgnoreAfterReplaceProcessor (priority 90) で無視される
             val result = processWithAllProcessors(message, "Check this: https://example.com", voice)
             result.shouldBeNull()
+            // whitespace ignore-end
         }
 
-        // 4. URL置き換え後にエイリアスが適用されてからIgnoreされること
+        // 4. URL 置き換え後にエイリアスが適用されてから Ignore されること
         test("URL replacement should apply, then alias, then ignore check") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
@@ -195,6 +197,7 @@ class CompositeProcessorTest : FunSpec({
                 }
             }
 
+            // whitespace ignore-nextline
             // ReplacerProcessor で URL → "Webページ「Example Domain」へのリンク" → (エイリアス) "Webページ「例のドメイン」へのリンク"
             // IgnoreAfterReplaceProcessor で "例のドメイン" を含むので無視される
             val result = processWithAllProcessors(message, "Visit https://example.com", voice)
@@ -202,8 +205,8 @@ class CompositeProcessorTest : FunSpec({
         }
     }
 
-    context("Aliasが適用されてからIgnoreチェックされること") {
-        // 5. エイリアス置き換え後の文字列がignore対象になる場合、無視されること
+    context("Alias が適用されてから Ignore チェックされること") {
+        // 5. エイリアス置き換え後の文字列が ignore 対象になる場合、無視されること
         test("If alias replacement results in text matching ignore pattern, it should be ignored") {
             val guild = createGuildMockk(Snowflake(0))
             val message = createMessageMockk(Snowflake(0))
@@ -235,7 +238,7 @@ class CompositeProcessorTest : FunSpec({
         }
     }
 
-    context("複数のProcessor機能が組み合わさった正常系テスト") {
+    context("複数の Processor 機能が組み合わさった正常系テスト") {
         // 6. 正常に処理が完了するケース
         test("Multiple processors should work together correctly for valid text") {
             val guild = createGuildMockk(Snowflake(0))
@@ -267,7 +270,7 @@ class CompositeProcessorTest : FunSpec({
             result.first shouldBe "こんにちは world"
         }
 
-        // 7. URL置き換えとエイリアスが両方適用されるケース
+        // 7. URL 置き換えとエイリアスが両方適用されるケース
         test("URL replacement and alias should both apply when not ignored") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
@@ -298,7 +301,7 @@ class CompositeProcessorTest : FunSpec({
             // URL が置き換えられ、さらにエイリアスも適用される
             val result = processWithAllProcessors(message, "Visit https://example.com for info", voice)
             result.shouldNotBeNull()
-            result.first shouldBe "Visit Webページ「例のドメイン」へのリンク for info"
+            result.first shouldBe "Visit Webページ「例のドメイン」へのリンク for info" // whitespace ignore
         }
     }
 })

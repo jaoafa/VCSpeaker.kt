@@ -1,6 +1,7 @@
 package processors
 
 import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.actions.IgnoreAction
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.database.tables.GuildTable
 import com.jaoafa.vcspeaker.database.tables.IgnoreEntity
@@ -16,11 +17,13 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.koin.core.time.measureDuration
 import utils.Constants.TEST_DB_MEM_URL
 import utils.createMessageMockk
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * IgnoreProcessorのテスト
+ * IgnoreProcessor のテスト
  */
 class IgnoreProcessorTest : FunSpec({
     beforeSpec {
@@ -128,6 +131,26 @@ class IgnoreProcessorTest : FunSpec({
 
             val processor = IgnoreAfterReplaceProcessor()
             processor.process(message, "no match", voice)
+
+            processor.isCancelled() shouldBe false
+        }
+
+        test("test") {
+            val message = createMessageMockk(Snowflake(0))
+
+            val voice = Voice(speaker = Speaker.Hikari)
+
+            val processor = IgnoreAfterReplaceProcessor()
+
+            processor.process(message, "no match", voice)
+
+            val duration = measureDuration {
+                IgnoreAction.getIgnoresOf(message.getGuild().id)
+                IgnoreAction.getIgnoresOf(message.getGuild().id)
+                IgnoreAction.getIgnoresOf(message.getGuild().id)
+            }
+
+            println("Duration : ${duration.milliseconds}ms")
 
             processor.isCancelled() shouldBe false
         }

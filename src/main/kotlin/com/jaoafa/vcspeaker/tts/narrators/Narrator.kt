@@ -150,7 +150,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             val (processedText, processedVoice) = processor.process(message, processText, processVoice)
             println("Processed by ${processor::class.simpleName}: $processedText [isCancelled=${processor.isCancelled()}, isImmediately=${processor.isImmediately()}]")
             if (processor.isCancelled()) return null // キャンセルされた場合は、即座に null を返却。
-            if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、このProcessorを最後とし読み上げる
+            if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、この Processor を最後とし読み上げる
 
             processedText to processedVoice
         }

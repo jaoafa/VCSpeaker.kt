@@ -30,7 +30,7 @@ class NewMessageEvent : Extension() {
                     // 人間なら弾かない
                     if (!author.isBot) return@failIf false
 
-                    // 読み上げ可能Botでない場合は弾く
+                    // 読み上げ可能 Bot でない場合は弾く
                     !author.isReadableBotOn(guild)
                 }
             }

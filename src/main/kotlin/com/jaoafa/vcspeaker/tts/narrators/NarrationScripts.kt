@@ -4,6 +4,7 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.entity.Member
 
+// whitespace ignore-file
 object NarrationScripts {
     const val SELF_JOIN = "接続しました。"
     const val SELF_MOVE = "移動しました。"

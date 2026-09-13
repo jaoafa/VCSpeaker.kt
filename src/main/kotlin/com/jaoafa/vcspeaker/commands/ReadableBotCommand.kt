@@ -31,22 +31,22 @@ class ReadableBotCommand : Extension() {
     class AddOptions : Options() {
         val user by user {
             name = "user"
-            description = "読み上げを許可するBotのユーザー"
+            description = "読み上げを許可する Bot のユーザー"
         }
     }
 
     class RemoveOptions : Options() {
         val user by user {
             name = "user"
-            description = "読み上げを許可しなくなるBotのユーザー"
+            description = "読み上げを許可しなくなる Bot のユーザー"
         }
     }
 
     @OptIn(AlwaysPublicResponse::class)
     override suspend fun setup() {
-        publicSlashCommand("readablebot", "読み上げを許可するBotを設定します。") {
+        publicSlashCommand("readablebot", "読み上げを許可する Bot を設定します。") {
             check { anyGuildRegistered() }
-            publicSubCommand("add", "読み上げを許可するBotを追加します。", ::AddOptions) {
+            publicSubCommand("add", "読み上げを許可する Bot を追加します。", ::AddOptions) {
                 action {
                     val guild = guild ?: return@action
                     val targetUser = arguments.user
@@ -60,7 +60,7 @@ class ReadableBotCommand : Extension() {
                     }.onDuplicate {
                         respondEmbed(
                             ":speaking_head: Already Added",
-                            "${targetUser.mention} は既に読み上げを許可するBotに追加されています。"
+                            "${targetUser.mention} は既に読み上げを許可する Bot に追加されています。"
                         ) {
                             authorOf(user)
                             errorColor()
@@ -71,7 +71,7 @@ class ReadableBotCommand : Extension() {
 
                     respondEmbed(
                         ":speaking_head: Added Readable Bot",
-                        "${targetUser.mention} を読み上げを許可するBotに追加しました。"
+                        "${targetUser.mention} を読み上げを許可する Bot に追加しました。"
                     ) {
                         authorOf(user)
                         successColor()
@@ -83,7 +83,7 @@ class ReadableBotCommand : Extension() {
                 }
             }
 
-            publicSubCommand("remove", "読み上げを許可するBotを削除します。", ::RemoveOptions) {
+            publicSubCommand("remove", "読み上げを許可する Bot を削除します。", ::RemoveOptions) {
                 action {
                     val guild = guild ?: return@action
                     val targetUser = arguments.user
@@ -97,7 +97,7 @@ class ReadableBotCommand : Extension() {
                     if (entity == null) {
                         respondEmbed(
                             ":face_with_symbols_over_mouth: Not Found",
-                            "${targetUser.mention} は読み上げを許可するBotに追加されていません。"
+                            "${targetUser.mention} は読み上げを許可する Bot に追加されていません。"
                         ) {
                             authorOf(user)
                             errorColor()
@@ -111,7 +111,7 @@ class ReadableBotCommand : Extension() {
 
                     respondEmbed(
                         ":face_with_symbols_over_mouth: Removed Readable Bot",
-                        "${targetUser.mention} を読み上げを許可するBotから削除しました。"
+                        "${targetUser.mention} を読み上げを許可する Bot から削除しました。"
                     ) {
                         authorOf(user)
                         successColor()
@@ -123,7 +123,7 @@ class ReadableBotCommand : Extension() {
                 }
             }
 
-            publicSubCommand("list", "読み上げを許可するBotの一覧を表示します.") {
+            publicSubCommand("list", "読み上げを許可する Bot の一覧を表示します.") {
                 action {
                     val guild = guild ?: return@action
                     val snapshots = transaction { Entity.find { Table.guildDid eq guild.id }.getSnapshots() }
@@ -131,7 +131,7 @@ class ReadableBotCommand : Extension() {
                     if (snapshots.isEmpty()) {
                         respondEmbed(
                             ":speaking_head: No Readable Bots",
-                            "このサーバーには読み上げを許可するBotが設定されていません。"
+                            "このサーバーには読み上げを許可する Bot が設定されていません。"
                         ) {
                             authorOf(user)
                             successColor()
