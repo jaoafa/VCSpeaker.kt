@@ -163,7 +163,10 @@ class Entrypoint : CliktCommand() {
             exitProcess(1)
         }
 
-        if (options.migrateStoreToDB) exitProcess(0)
+        if (options.migrateStoreToDB) {
+            runBlocking { StoreDBMigrator.run() }
+            exitProcess(0)
+        }
 
         DataServer().start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
 
