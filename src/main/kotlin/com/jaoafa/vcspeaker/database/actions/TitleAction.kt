@@ -1,9 +1,7 @@
 package com.jaoafa.vcspeaker.database.actions
 
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
-import com.jaoafa.vcspeaker.database.suspendTransactionResulting
 import com.jaoafa.vcspeaker.database.tables.VCTitleSnapshot
-import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.rename
 import dev.kord.core.behavior.GuildBehavior
@@ -118,43 +116,57 @@ object TitleAction {
     suspend fun saveTitleOf(
         channel: BaseVoiceChannelBehavior,
         creator: UserBehavior
-    ): Pair<VCTitleSnapshot, VCTitleSnapshot>? =
-        suspendTransaction transaction@{
-            val entity = getTitleEntityOf(channel) ?: return@transaction null
-            val oldSnapshot = entity.getSnapshot()
+    ): Pair<VCTitleSnapshot, VCTitleSnapshot>? {
+        val entity = getTitleEntityOf(channel) ?: return null
+        val oldSnapshot = entity.getSnapshot()
 
-            suspendTransactionResulting(commit = true) {
-                entity.originalTitle = channel.getName()
+        val channelName = channel.getName()
+
+        return try {
+            suspendTransaction transaction@{
+                entity.originalTitle = channelName
                 entity.title = null
                 entity.creatorDid = creator.id
                 entity.version += 1
-            }.unwrap()
 
-            val newSnapshot = entity.getSnapshot()
+                commit()
 
-            logger.info { "Title Saved: $oldSnapshot -> $newSnapshot" }
+                val newSnapshot = entity.getSnapshot()
 
-            return@transaction oldSnapshot to newSnapshot
+                return@transaction oldSnapshot to newSnapshot
+            }.also {
+                logger.info { "Title Saved: ${it.first} -> ${it.second}" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to save title for channel ${channel.id}" }
+            throw e
         }
+    }
 
-    suspend fun saveAllTitlesOf(guild: GuildBehavior, creator: UserBehavior): Map<VCTitleSnapshot, VCTitleSnapshot> =
-        suspendTransaction transaction@{
-            val entities = Entity.find { Table.guildDid eq guild.id }.toList()
-            val oldSnapshots = entities.map { it.getSnapshot() }
+    suspend fun saveAllTitlesOf(guild: GuildBehavior, creator: UserBehavior): Map<VCTitleSnapshot, VCTitleSnapshot> {
+        val entities = transaction { Entity.find { Table.guildDid eq guild.id }.toList() }
+        val oldSnapshots = entities.map { it.getSnapshot() }
 
-            suspendTransactionResulting(commit = true) {
-                for (entity in entities) {
-                    val channel = guild.getChannel(entity.channelDid)
+        val channels = entities.map { guild.getChannel(it.channelDid) }
 
+        return try {
+            suspendTransaction transaction@{
+                for ((entity, channel) in entities.zip(channels)) {
                     entity.originalTitle = channel.name
                     entity.title = null
                     entity.creatorDid = creator.id
                     entity.version += 1
                 }
-            }.unwrap()
 
-            val newSnapshots = entities.map { it.getSnapshot() }
+                commit()
 
-            return@transaction oldSnapshots.zip(newSnapshots).toMap()
+                val newSnapshots = entities.map { it.getSnapshot() }
+
+                return@transaction oldSnapshots.zip(newSnapshots).toMap()
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to save all titles for guild ${guild.id}" }
+            throw e
         }
+    }
 }
