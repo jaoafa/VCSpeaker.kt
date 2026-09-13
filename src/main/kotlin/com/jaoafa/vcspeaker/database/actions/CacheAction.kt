@@ -10,6 +10,8 @@ import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
@@ -54,11 +56,13 @@ object CacheAction {
         return context.getCacheFile()
     }
 
+    val readOrCreateMutex = Mutex()
+
     suspend fun <T : ProviderContext> readOrCreate(
         context: T,
         onMissProvide: suspend () -> ByteArray,
         onHit: () -> Unit
-    ): File {
+    ): File = readOrCreateMutex.withLock {
         val readCache = read(context)
 
         if (readCache != null) {
