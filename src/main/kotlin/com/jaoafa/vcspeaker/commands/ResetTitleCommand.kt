@@ -39,7 +39,7 @@ class ResetTitleCommand : Extension() {
 
                 val (old, new) = try {
                     TitleAction.resetTitleOf(channel, user)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     respondEmbed(
                         ":x: Title Reset Failed",
                         "タイトルのリセットに失敗しました。"
@@ -47,6 +47,8 @@ class ResetTitleCommand : Extension() {
                         authorOf(user)
                         errorColor()
                     }
+
+                    logger.error(e) { "Failed to reset title for channel ${channel.id}" }
 
                     return@action
                 } ?: run {

@@ -48,7 +48,7 @@ class TitleCommand : Extension() {
 
                 val (old, new) = try {
                     TitleAction.setTitleOf(channel, title, user)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     respondEmbed(
                         ":x: Title Set Failed",
                         "タイトルの設定に失敗しました。"
@@ -56,6 +56,8 @@ class TitleCommand : Extension() {
                         authorOf(user)
                         errorColor()
                     }
+
+                    logger.error(e) { "Failed to set title for channel ${channel.id}" }
 
                     return@action
                 }
