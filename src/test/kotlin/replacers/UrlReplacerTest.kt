@@ -1,12 +1,19 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction
+import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction.isReadableChannel
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.GuildTable
+import com.jaoafa.vcspeaker.database.tables.ReadableChannelEntity
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.original.twitter.Tweet
 import com.jaoafa.vcspeaker.models.response.steam.SteamAppDetail
 import com.jaoafa.vcspeaker.models.response.steam.SteamAppDetailData
 import com.jaoafa.vcspeaker.models.response.youtube.YouTubeOEmbedResponse
-import com.jaoafa.vcspeaker.stores.ReadableChannelStore
 import com.jaoafa.vcspeaker.tools.Steam
 import com.jaoafa.vcspeaker.tools.Twitter
 import com.jaoafa.vcspeaker.tools.YouTube
@@ -15,54 +22,65 @@ import com.jaoafa.vcspeaker.tts.replacers.UrlReplacer
 import dev.kord.common.entity.ChannelType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.ClientResources
+import dev.kord.core.behavior.channel.TextChannelBehavior
 import dev.kord.core.behavior.channel.asChannelOf
 import dev.kord.core.entity.GuildScheduledEvent
 import dev.kord.core.entity.Message
+import dev.kord.core.entity.User
+import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.entity.channel.thread.ThreadChannel
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.*
 import kotlinx.coroutines.flow.flow
-import java.io.File
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.Constants.TEST_DB_MEM_URL
+import utils.createGuildMockk
 
 class UrlReplacerTest : FunSpec({
+    val mockedGuildId = Snowflake(123456789012345678)
+    val mockedChannelId = Snowflake(876543210987654321)
+    val mockedInviterId = Snowflake(2)
+    val mockedEventId = Snowflake(3)
+    val mockedMessageId = Snowflake(123456789012345678)
     // テスト前に早期にモックを初期化
     beforeSpec {
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
+        DatabaseUtil.createTables()
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
-        VCSpeaker.storeFolder.mkdirs()
-        // ReadableChannelStore用の空のファイルを作成 (マイグレーション前のフォーマット)
-        val readableChannelFile = File(VCSpeaker.storeFolder, "readablechannels.json")
-        readableChannelFile.writeText("[]")
     }
-    
+
     // テスト前にモックを初期化
-    beforeTest {
-        mockkObject(ReadableChannelStore)
+    beforeEach {
+        mockkObject(ReadableChannelAction)
+        transaction {
+            GuildEntity.new(id = mockedGuildId) {
+                this.speakerVoiceEntity = VoiceEntity.new { }
+            }
+        }
     }
 
     // テスト後にモックを削除
-    afterTest {
+    afterEach {
+        transaction {
+            GuildTable.deleteAll()
+        }
         clearAllMocks()
     }
 
-    // 全てのテスト後にフォルダを削除
-    afterSpec {
-        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
-    }
-
-    // メッセージURLの置き換え
+    // メッセージ URL の置き換え
     context("Make message URLs readable.") {
-        // 既知の通常のメッセージURLを置き換える
+        // 既知の通常のメッセージ URL を置き換える
         test("URL(s) to another message(s) on known server's channel should be replaced with readable text.") {
-            // ReadableChannelStoreをモック化して、常にfalseを返すようにする
-            coEvery { ReadableChannelStore.isReadableChannel(any(), any()) } returns false
-            
+            // ReadableChannelAction をモック化して、常に false を返すようにする
+            every { any<TextChannelBehavior>().isReadableChannel() } returns false
+
             listOf(
-                "test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678",
-                "test https://discordapp.com/channels/123456789012345678/876543210987654321/123456789012345678",
-                "test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678?query=example",
-                "test https://discordapp.com/channels/123456789012345678/876543210987654321/123456789012345678?query=example",
+                "test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId",
+                "test https://discordapp.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId",
+                "test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId?query=example",
+                "test https://discordapp.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId?query=example",
             ).forEach { text ->
                 mapOf(
                     ChannelType.GuildText to "テキストチャンネル",
@@ -70,15 +88,15 @@ class UrlReplacerTest : FunSpec({
                     ChannelType.GuildCategory to "カテゴリ",
                     ChannelType.GuildNews to "ニュースチャンネル",
                 ).forEach { (channelType, channelTypeText) ->
-                    // GuildTextの場合はTextChannelのモックを作成、それ以外は通常のGuildChannelのモック
+                    // GuildText の場合は TextChannel のモックを作成、それ以外は通常の GuildChannel のモック
                     val channelMock = if (channelType == ChannelType.GuildText) {
-                        mockk<dev.kord.core.entity.channel.TextChannel> {
+                        mockk<TextChannel> {
                             val channel = this
                             every { name } returns "test-channel"
                             every { type } returns channelType
-                            every { id } returns Snowflake(876543210987654321)
+                            every { id } returns mockedChannelId
                             every { supplier } returns mockk {
-                                coEvery { getChannel(Snowflake(876543210987654321)) } returns channel
+                                coEvery { getChannel(mockedChannelId) } returns channel
                             }
                             coEvery { getMessageOrNull(any()) } returns null
                         }
@@ -87,27 +105,27 @@ class UrlReplacerTest : FunSpec({
                             val channel = this
                             every { name } returns "test-channel"
                             every { type } returns channelType
-                            every { id } returns Snowflake(876543210987654321)
+                            every { id } returns mockedChannelId
                             every { supplier } returns mockk {
-                                coEvery { getChannel(Snowflake(876543210987654321)) } returns channel
+                                coEvery { getChannel(mockedChannelId) } returns channel
                             }
                         }
                     }
-                    
+
                     every { VCSpeaker.kord } returns mockk {
                         every { resources } returns mockk<ClientResources>()
-                        coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                            every { id } returns Snowflake(123456789012345678)
-                            coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                        coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                            every { id } returns mockedGuildId
+                            coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                             every { supplier } returns mockk {
-                                coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                                coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                             }
                         }
                     }
 
                     val message = mockk<Message>()
                     coEvery { message.getGuild() } returns mockk {
-                        every { id } returns Snowflake(123456789012345678)
+                        every { id } returns mockedGuildId
                     }
 
                     val tokens = mutableListOf(TextToken(text))
@@ -115,7 +133,7 @@ class UrlReplacerTest : FunSpec({
                         mutableListOf(TextToken("test ${channelTypeText}「test-channel」で送信したメッセージのリンク"))
 
                     val processedTokens = UrlReplacer.replace(
-                        tokens, Snowflake(123456789012345678)
+                        tokens, mockedGuildId
                     )
 
                     processedTokens shouldBe expectedTokens
@@ -123,16 +141,16 @@ class UrlReplacerTest : FunSpec({
             }
         }
 
-        // 既知のスレッドチャンネルメッセージURLを置き換える
+        // 既知のスレッドチャンネルメッセージ URL を置き換える
         test("URL(s) to another message(s) on known thread channel should be replaced with readable text.") {
-            // ReadableChannelStoreをモック化して、常にfalseを返すようにする
-            coEvery { ReadableChannelStore.isReadableChannel(any(), any()) } returns false
-            
+            // ReadableChannelAction をモック化して、常に false を返すようにする
+            every { any<TextChannelBehavior>().isReadableChannel() } returns false
+
             mapOf(
                 ChannelType.GuildText to "テキストチャンネル",
                 ChannelType.GuildNews to "ニュースチャンネル",
             ).forEach { (channelType, channelTypeText) ->
-                val parentChannelMock = mockk<dev.kord.core.entity.channel.TextChannel> {
+                val parentChannelMock = mockk<TextChannel> {
                     val parent = this
                     every { name } returns "test-thread-parent-channel"
                     every { type } returns channelType
@@ -140,12 +158,12 @@ class UrlReplacerTest : FunSpec({
                         coEvery { getChannel(any()) } returns parent
                     }
                 }
-                
+
                 val threadChannelMock = mockk<ThreadChannel> {
                     val thread = this
                     every { name } returns "test-thread-channel"
                     every { type } returns ChannelType.PublicGuildThread
-                    every { id } returns Snowflake(876543210987654321)
+                    every { id } returns mockedChannelId
                     every { supplier } returns mockk {
                         coEvery { getChannel(any()) } returns thread
                     }
@@ -160,25 +178,25 @@ class UrlReplacerTest : FunSpec({
                         }
                     }
                 }
-                
+
                 every { VCSpeaker.kord } returns mockk {
                     every { resources } returns mockk<ClientResources>()
-                    coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                        every { id } returns Snowflake(123456789012345678)
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns threadChannelMock
+                    coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                        every { id } returns mockedGuildId
+                        coEvery { getChannelOrNull(mockedChannelId) } returns threadChannelMock
                         every { supplier } returns mockk {
-                            coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns threadChannelMock
+                            coEvery { getChannelOrNull(mockedChannelId) } returns threadChannelMock
                         }
                     }
                 }
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens =
-                    mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123789456012345678"))
+                    mutableListOf(TextToken("test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId"))
                 val expectedTokens =
                     mutableListOf(TextToken("test ${channelTypeText}「test-thread-parent-channel」のスレッド「test-thread-channel」で送信したメッセージのリンク"))
 
@@ -190,35 +208,36 @@ class UrlReplacerTest : FunSpec({
             }
         }
 
-        // 未知のチャンネルメッセージURLを置き換える
+        // 未知のチャンネルメッセージ URL を置き換える
         test("URL(s) to another message(s) on unknown channel should be replaced with readable text.") {
             every { VCSpeaker.kord } returns mockk {
-                every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns null
+                every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                coEvery { getGuildOrNull(mockedGuildId) } returns null
             }
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens =
-                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123789456012345678"))
+                mutableListOf(TextToken("test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId"))
             val expectedTokens = mutableListOf(TextToken("test どこかのチャンネルで送信したメッセージのリンク"))
 
             val processedTokens = UrlReplacer.replace(
-                tokens, Snowflake(0)
+                tokens, mockedGuildId
             )
 
             processedTokens shouldBe expectedTokens
         }
 
-        // ReadableChannelStoreに登録されているチャンネルのメッセージ内容を含むテキストに置き換える
+        // ReadableChannelAction に登録されているチャンネルのメッセージ内容を含むテキストに置き換える
         test("URL(s) to message(s) on readable channel should include message content and author.") {
-            // ReadableChannelStoreのモックを解除して実際のストアを使う
-            unmockkObject(ReadableChannelStore)
+            // ReadableChannelAction のモックを解除して実際のストアを使う
+            unmockkObject(ReadableChannelAction)
+            val guild = createGuildMockk(mockedGuildId)
 
-            val authorMock = mockk<dev.kord.core.entity.User> {
+            val authorMock = mockk<User> {
                 every { username } returns "TestUser"
             }
 
@@ -227,53 +246,52 @@ class UrlReplacerTest : FunSpec({
                 every { content } returns "これはテストメッセージです"
             }
 
-            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+            val channelMock = mockk<TextChannel>(relaxed = true) {
                 every { name } returns "test-channel"
                 every { type } returns ChannelType.GuildText
-                every { id } returns Snowflake(876543210987654321)
-                coEvery { getMessageOrNull(any()) } returns messageMock
+                every { id } returns mockedChannelId
+                every { guildId } returns mockedGuildId
+                coEvery { getMessageOrNull(mockedMessageId) } returns messageMock
             }
 
-            // ReadableChannelStoreに直接追加
-            ReadableChannelStore.data.add(
-                com.jaoafa.vcspeaker.stores.ReadableChannelData(
-                    guildId = Snowflake(123456789012345678),
-                    channelId = Snowflake(876543210987654321),
-                    addedByUserId = Snowflake(0)
-                )
-            )
+            // ReadableChannelAction に直接追加
+            transaction {
+                ReadableChannelEntity.new {
+                    this.guildEntity = guild.getEntity()
+                    channelDid = mockedChannelId
+                    creatorDid = Snowflake(0)
+                }
+            }
 
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>()
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
-                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                    every { id } returns mockedGuildId
+                    coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     every { supplier } returns mockk {
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                        coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     }
                 }
             }
 
             val tokens =
-                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+                mutableListOf(TextToken("test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId"))
             val expectedTokens =
                 mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「TestUser」が送信したメッセージ「これはテストメッセージです」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
-                tokens, Snowflake(123456789012345678)
+                tokens, mockedGuildId
             )
 
             processedTokens shouldBe expectedTokens
-
-            // テスト後にデータをクリア
-            ReadableChannelStore.data.clear()
         }
 
-        // ReadableChannelStoreに登録されているが、メッセージ内容が長い場合は180文字で切り詰める
+        // ReadableChannelAction に登録されているが、メッセージ内容が長い場合は180文字で切り詰める
         test("URL(s) to message(s) on readable channel with long content should be truncated at 180 code points.") {
-            unmockkObject(ReadableChannelStore)
+            unmockkObject(ReadableChannelAction)
+            val guild = createGuildMockk(mockedGuildId)
 
-            val authorMock = mockk<dev.kord.core.entity.User> {
+            val authorMock = mockk<User> {
                 every { username } returns "TestUser"
             }
 
@@ -283,51 +301,52 @@ class UrlReplacerTest : FunSpec({
                 every { content } returns longContent
             }
 
-            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+            val channelMock = mockk<TextChannel>(relaxed = true) {
                 every { name } returns "test-channel"
                 every { type } returns ChannelType.GuildText
-                every { id } returns Snowflake(876543210987654321)
-                coEvery { getMessageOrNull(any()) } returns messageMock
+                every { id } returns mockedChannelId
+                every { guildId } returns mockedGuildId
+                coEvery { getMessageOrNull(mockedMessageId) } returns messageMock
             }
 
-            ReadableChannelStore.data.add(
-                com.jaoafa.vcspeaker.stores.ReadableChannelData(
-                    guildId = Snowflake(123456789012345678),
-                    channelId = Snowflake(876543210987654321),
-                    addedByUserId = Snowflake(0)
-                )
-            )
+            transaction {
+                ReadableChannelEntity.new {
+                    this.guildEntity = guild.getEntity()
+                    channelDid = mockedChannelId
+                    creatorDid = Snowflake(0)
+                }
+            }
 
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>()
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
-                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                    every { id } returns mockedGuildId
+                    coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     every { supplier } returns mockk {
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                        coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     }
                 }
             }
 
             val tokens =
-                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+                mutableListOf(TextToken("test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId"))
             val expectedContent = "あ".repeat(180) + " 以下略"
             val expectedTokens =
                 mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「TestUser」が送信したメッセージ「$expectedContent」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
-                tokens, Snowflake(123456789012345678)
+                tokens, mockedGuildId
             )
 
             processedTokens shouldBe expectedTokens
-            ReadableChannelStore.data.clear()
         }
 
-        // ReadableChannelStoreに登録されているが、メッセージ内容が空の場合のフォールバック
+        // ReadableChannelAction に登録されているが、メッセージ内容が空の場合のフォールバック
         test("URL(s) to message(s) on readable channel with empty content should show fallback text.") {
-            unmockkObject(ReadableChannelStore)
+            unmockkObject(ReadableChannelAction)
+            val guild = createGuildMockk(mockedGuildId)
 
-            val authorMock = mockk<dev.kord.core.entity.User> {
+            val authorMock = mockk<User> {
                 every { username } returns "TestUser"
             }
 
@@ -336,141 +355,142 @@ class UrlReplacerTest : FunSpec({
                 every { content } returns ""
             }
 
-            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+            val channelMock = mockk<TextChannel>(relaxed = true) {
                 every { name } returns "test-channel"
                 every { type } returns ChannelType.GuildText
-                every { id } returns Snowflake(876543210987654321)
-                coEvery { getMessageOrNull(any()) } returns messageMock
+                every { id } returns mockedChannelId
+                every { guildId } returns mockedGuildId
+                coEvery { getMessageOrNull(mockedMessageId) } returns messageMock
             }
 
-            ReadableChannelStore.data.add(
-                com.jaoafa.vcspeaker.stores.ReadableChannelData(
-                    guildId = Snowflake(123456789012345678),
-                    channelId = Snowflake(876543210987654321),
-                    addedByUserId = Snowflake(0)
-                )
-            )
+            transaction {
+                ReadableChannelEntity.new {
+                    this.guildEntity = guild.getEntity()
+                    channelDid = mockedChannelId
+                    creatorDid = Snowflake(0)
+                }
+            }
 
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>()
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
-                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                    every { id } returns mockedGuildId
+                    coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     every { supplier } returns mockk {
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                        coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     }
                 }
             }
 
             val tokens =
-                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+                mutableListOf(TextToken("test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId"))
             val expectedTokens =
                 mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「TestUser」が送信したメッセージ「添付ファイルのみのメッセージ」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
-                tokens, Snowflake(123456789012345678)
+                tokens, mockedGuildId
             )
 
             processedTokens shouldBe expectedTokens
-            ReadableChannelStore.data.clear()
         }
 
-        // ReadableChannelStoreに登録されているが、作者が不明な場合のフォールバック
+        // ReadableChannelAction に登録されているが、作者が不明な場合のフォールバック
         test("URL(s) to message(s) on readable channel with unknown author should show fallback text.") {
-            unmockkObject(ReadableChannelStore)
+            unmockkObject(ReadableChannelAction)
+            val guild = createGuildMockk(mockedGuildId)
 
             val messageMock = mockk<Message> {
                 every { author } returns null
                 every { content } returns "テストメッセージ"
             }
 
-            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+            val channelMock = mockk<TextChannel>(relaxed = true) {
                 every { name } returns "test-channel"
                 every { type } returns ChannelType.GuildText
-                every { id } returns Snowflake(876543210987654321)
-                coEvery { getMessageOrNull(any()) } returns messageMock
+                every { id } returns mockedChannelId
+                every { guildId } returns mockedGuildId
+                coEvery { getMessageOrNull(mockedMessageId) } returns messageMock
             }
 
-            ReadableChannelStore.data.add(
-                com.jaoafa.vcspeaker.stores.ReadableChannelData(
-                    guildId = Snowflake(123456789012345678),
-                    channelId = Snowflake(876543210987654321),
-                    addedByUserId = Snowflake(0)
-                )
-            )
+            transaction {
+                ReadableChannelEntity.new {
+                    this.guildEntity = guild.getEntity()
+                    channelDid = mockedChannelId
+                    creatorDid = Snowflake(0)
+                }
+            }
 
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>()
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
-                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                    every { id } returns mockedGuildId
+                    coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     every { supplier } returns mockk {
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                        coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     }
                 }
             }
 
             val tokens =
-                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+                mutableListOf(TextToken("test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId"))
             val expectedTokens =
                 mutableListOf(TextToken("test テキストチャンネル「test-channel」でユーザー「不明なユーザー」が送信したメッセージ「テストメッセージ」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
-                tokens, Snowflake(123456789012345678)
+                tokens, mockedGuildId
             )
 
             processedTokens shouldBe expectedTokens
-            ReadableChannelStore.data.clear()
         }
 
-        // ReadableChannelStore に登録済みでもメッセージ取得が失敗した場合は従来の読み上げにフォールバックする
+        // ReadableChannelAction に登録済みでもメッセージ取得が失敗した場合は従来の読み上げにフォールバックする
         test("URL(s) to message(s) on readable channel when message not found should fall back to channel name only.") {
-            unmockkObject(ReadableChannelStore)
+            unmockkObject(ReadableChannelAction)
+            val guild = createGuildMockk(mockedGuildId)
 
-            val channelMock = mockk<dev.kord.core.entity.channel.TextChannel>(relaxed = true) {
+            val channelMock = mockk<TextChannel>(relaxed = true) {
                 every { name } returns "test-channel"
                 every { type } returns ChannelType.GuildText
-                every { id } returns Snowflake(876543210987654321)
+                every { id } returns mockedChannelId
                 // メッセージが見つからない場合
                 coEvery { getMessageOrNull(any()) } returns null
             }
 
-            ReadableChannelStore.data.add(
-                com.jaoafa.vcspeaker.stores.ReadableChannelData(
-                    guildId = Snowflake(123456789012345678),
-                    channelId = Snowflake(876543210987654321),
-                    addedByUserId = Snowflake(0)
-                )
-            )
+            transaction {
+                ReadableChannelEntity.new {
+                    this.guildEntity = guild.getEntity()
+                    channelDid = mockedChannelId
+                    creatorDid = Snowflake(0)
+                }
+            }
 
             every { VCSpeaker.kord } returns mockk {
                 every { resources } returns mockk<ClientResources>()
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
-                    coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                    every { id } returns mockedGuildId
+                    coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     every { supplier } returns mockk {
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns channelMock
+                        coEvery { getChannelOrNull(mockedChannelId) } returns channelMock
                     }
                 }
             }
 
             val tokens =
-                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321/123456789012345678"))
+                mutableListOf(TextToken("test https://discord.com/channels/$mockedGuildId/$mockedChannelId/$mockedMessageId"))
             val expectedTokens =
                 mutableListOf(TextToken("test テキストチャンネル「test-channel」で送信したメッセージのリンク"))
 
             val processedTokens = UrlReplacer.replace(
-                tokens, Snowflake(123456789012345678)
+                tokens, mockedGuildId
             )
 
             processedTokens shouldBe expectedTokens
-            ReadableChannelStore.data.clear()
         }
     }
 
-    // チャンネルURLの置き換え
+    // チャンネル URL の置き換え
     context("replaceChannelUrl") {
-        // 既知の通常のチャンネルURLを置き換える
+        // 既知の通常のチャンネル URL を置き換える
         test("URL(s) to known channel(s) should be replaced with readable text.") {
             listOf(
                 "test https://discord.com/channels/123456789012345678/876543210987654321",
@@ -485,9 +505,9 @@ class UrlReplacerTest : FunSpec({
                     ChannelType.GuildNews to "ニュースチャンネル",
                 ).forEach { (channelType, channelTypeText) ->
                     every { VCSpeaker.kord } returns mockk {
-                        every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                        coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                            coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns mockk {
+                        every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                        coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                            coEvery { getChannelOrNull(mockedChannelId) } returns mockk {
                                 every { name } returns "test-channel" // テスト用のチャンネル名
                                 every { type } returns channelType
                             }
@@ -496,7 +516,7 @@ class UrlReplacerTest : FunSpec({
 
                     val message = mockk<Message>()
                     coEvery { message.getGuild() } returns mockk {
-                        every { id } returns Snowflake(123456789012345678)
+                        every { id } returns mockedGuildId
                     }
 
                     val tokens = mutableListOf(TextToken(text))
@@ -511,16 +531,16 @@ class UrlReplacerTest : FunSpec({
             }
         }
 
-        // 既知のスレッドチャンネルURLを置き換える
+        // 既知のスレッドチャンネル URL を置き換える
         test("URL(s) to known thread channel(s) should be replaced with readable text.") {
             mapOf(
                 ChannelType.GuildText to "テキストチャンネル",
                 ChannelType.GuildNews to "ニュースチャンネル",
             ).forEach { (channelType, channelTypeText) ->
                 every { VCSpeaker.kord } returns mockk {
-                    every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                    coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                        coEvery { getChannelOrNull(Snowflake(876543210987654321)) } returns mockk<ThreadChannel> {
+                    every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                    coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                        coEvery { getChannelOrNull(mockedChannelId) } returns mockk<ThreadChannel> {
                             every { name } returns "test-thread-channel" // テスト用のスレッドチャンネル名
                             every { type } returns ChannelType.PublicGuildThread
                             coEvery { asChannelOf<ThreadChannel>() } returns mockk {
@@ -539,7 +559,7 @@ class UrlReplacerTest : FunSpec({
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens =
@@ -555,19 +575,20 @@ class UrlReplacerTest : FunSpec({
             }
         }
 
-        // 未知のチャンネルURLを置き換える
+        // 未知のチャンネル URL を置き換える
         test("URL(s) to unknown channel(s) should be replaced with readable text.") {
             every { VCSpeaker.kord } returns mockk {
-                every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns null
+                every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                coEvery { getGuildOrNull(mockedGuildId) } returns null
             }
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
-            val tokens = mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321"))
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/channels/123456789012345678/876543210987654321"))
             val expectedTokens = mutableListOf(TextToken("test どこかのチャンネルへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
@@ -578,7 +599,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // イベントへの直接URLの置き換え
+    // イベントへの直接 URL の置き換え
     context("Make direct event URLs readable.") {
         // メッセージが投稿されたサーバでのイベントへのリンクを置き換える
         test("URL(s) to Event on the guild should be replaced with readable text.") {
@@ -589,12 +610,12 @@ class UrlReplacerTest : FunSpec({
                 "test https://discordapp.com/events/123456789012345678/876543210987654321?query=example",
             ).forEach { text ->
                 every { VCSpeaker.kord } returns mockk {
-                    every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                    coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                        every { id } returns Snowflake(123456789012345678)
+                    every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                    coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                        every { id } returns mockedGuildId
                         every { scheduledEvents } returns flow {
                             emit(mockk<GuildScheduledEvent> {
-                                every { id } returns Snowflake(876543210987654321)
+                                every { id } returns mockedChannelId
                                 every { name } returns "test-event" // テスト用のイベント名
                             })
                         }
@@ -603,14 +624,14 @@ class UrlReplacerTest : FunSpec({
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens = mutableListOf(TextToken(text))
                 val expectedTokens = mutableListOf(TextToken("test イベント「test-event」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
-                    tokens, Snowflake(123456789012345678)
+                    tokens, mockedGuildId
                 )
 
                 processedTokens shouldBe expectedTokens
@@ -620,13 +641,13 @@ class UrlReplacerTest : FunSpec({
         // 他のサーバでのイベントへのリンクを置き換える
         test("URL(s) to Event on external guild(s) should be replaced with readable text.") {
             every { VCSpeaker.kord } returns mockk {
-                every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                    every { id } returns mockedGuildId
                     every { name } returns "test-guild" // テスト用のサーバ名
                     every { scheduledEvents } returns flow {
                         emit(mockk<GuildScheduledEvent> {
-                            every { id } returns Snowflake(876543210987654321)
+                            every { id } returns mockedChannelId
                             every { name } returns "test-event" // テスト用のイベント名
                         })
                     }
@@ -638,7 +659,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123789456012345678)
             }
 
-            val tokens = mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
             val expectedTokens = mutableListOf(TextToken("test サーバ「test-guild」のイベント「test-event」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
@@ -651,9 +673,9 @@ class UrlReplacerTest : FunSpec({
         // 既知のサーバだが未知のイベントへのリンクを置き換える
         test("URL(s) to unknown Event on known guild(s) should be replaced with readable text.") {
             every { VCSpeaker.kord } returns mockk {
-                every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                coEvery { getGuildOrNull(mockedGuildId) } returns mockk {
+                    every { id } returns mockedGuildId
                     every { name } returns "test-guild" // テスト用のサーバ名
                     every { scheduledEvents } returns flow {}
                 }
@@ -664,7 +686,8 @@ class UrlReplacerTest : FunSpec({
                 every { id } returns Snowflake(123789456012345678)
             }
 
-            val tokens = mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
             val expectedTokens = mutableListOf(TextToken("test サーバ「test-guild」のイベントへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
@@ -677,16 +700,17 @@ class UrlReplacerTest : FunSpec({
         // 未知のサーバでのイベントへのリンクを置き換える
         test("URL(s) to Event on unknown guild(s) should be replaced with readable text.") {
             every { VCSpeaker.kord } returns mockk {
-                every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
-                coEvery { getGuildOrNull(Snowflake(123456789012345678)) } returns null
+                every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
+                coEvery { getGuildOrNull(mockedGuildId) } returns null
             }
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
-            val tokens = mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
+            val tokens =
+                mutableListOf(TextToken("test https://discord.com/events/123456789012345678/876543210987654321"))
             val expectedTokens = mutableListOf(TextToken("test どこかのサーバのイベントへのリンク"))
 
             val processedTokens = UrlReplacer.replace(
@@ -697,7 +721,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // イベント招待URLの置き換え
+    // イベント招待 URL の置き換え
     context("Make event invitation URLs readable.") {
         // メッセージが投稿されたサーバでのイベントへのリンクを置き換える
         test("If events are on the guild.") {
@@ -714,32 +738,32 @@ class UrlReplacerTest : FunSpec({
                 "test discord.gg/abcdef?event=123456789012345678&query=example",
             ).forEach { text ->
                 every { VCSpeaker.kord } returns mockk {
-                    every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+                    every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
                 }
 
                 mockkObject(UrlReplacer)
-                coEvery { UrlReplacer["getInvite"]("abcdef", Snowflake(123456789012345678)) } returns DiscordInvite(
+                coEvery { UrlReplacer["getInvite"]("abcdef", mockedGuildId) } returns DiscordInvite(
                     code = "abcdef",
-                    guildId = Snowflake(123456789012345678),
+                    guildId = mockedGuildId,
                     guildName = "test-guild",
-                    channelId = Snowflake(876543210987654321),
+                    channelId = mockedChannelId,
                     channelName = "test-channel",
-                    inviterId = Snowflake(123456789012345678),
+                    inviterId = mockedInviterId,
                     inviterName = "test-user",
-                    eventId = Snowflake(876543210987654321),
+                    eventId = mockedEventId,
                     eventName = "test-event",
                 )
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens = mutableListOf(TextToken(text))
                 val expectedTokens = mutableListOf(TextToken("test イベント「test-event」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
-                    tokens, Snowflake(123456789012345678)
+                    tokens, mockedGuildId
                 )
 
                 processedTokens shouldBe expectedTokens
@@ -749,20 +773,20 @@ class UrlReplacerTest : FunSpec({
         // 他のサーバでのイベントへのリンクを置き換える
         test("If events are on another guilds.") {
             every { VCSpeaker.kord } returns mockk {
-                every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+                every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
             }
 
 
             mockkObject(UrlReplacer)
-            coEvery { UrlReplacer["getInvite"]("abcdef", Snowflake(123456789012345678)) } returns DiscordInvite(
+            coEvery { UrlReplacer["getInvite"]("abcdef", mockedGuildId) } returns DiscordInvite(
                 code = "abcdef",
-                guildId = Snowflake(123456789012345678),
+                guildId = mockedGuildId,
                 guildName = "test-guild",
-                channelId = Snowflake(876543210987654321),
+                channelId = mockedChannelId,
                 channelName = "test-channel",
-                inviterId = Snowflake(123456789012345678),
+                inviterId = mockedInviterId,
                 inviterName = "test-user",
-                eventId = Snowflake(876543210987654321),
+                eventId = mockedEventId,
                 eventName = "test-event",
             )
 
@@ -784,11 +808,11 @@ class UrlReplacerTest : FunSpec({
         // 招待リンクが取得できなかった場合の置き換え
         test("If invitation details could not be retrieved, replace it as unknown invite.") {
             every { VCSpeaker.kord } returns mockk {
-                every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+                every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
             }
 
             mockkObject(UrlReplacer)
-            coEvery { UrlReplacer["getInvite"]("abcdef", Snowflake(123456789012345678)) } returns null
+            coEvery { UrlReplacer["getInvite"]("abcdef", mockedGuildId) } returns null
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
@@ -806,7 +830,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // ツイートURLの置き換え
+    // ツイート URL の置き換え
     context("Make tweet URLs readable.") {
         // 存在するツイートで、短いツイートの場合
         test("If the tweet exists and short enough, read whole tweet.") {
@@ -830,7 +854,7 @@ class UrlReplacerTest : FunSpec({
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens = mutableListOf(TextToken(text))
@@ -856,7 +880,7 @@ class UrlReplacerTest : FunSpec({
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens = mutableListOf(TextToken("test https://twitter.com/username/status/123456789012345678"))
@@ -882,7 +906,7 @@ class UrlReplacerTest : FunSpec({
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens = mutableListOf(TextToken("test https://twitter.com/username/status/123456789012345678"))
@@ -903,7 +927,7 @@ class UrlReplacerTest : FunSpec({
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens = mutableListOf(TextToken("test https://twitter.com/username/status/123456789012345678"))
@@ -917,7 +941,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // 招待URLの置き換え
+    // 招待 URL の置き換え
     context("Make invitation URLs readable.") {
         // メッセージが投稿されたサーバでの招待リンクを置き換える
         test("If the invite is for a channel in the guild, read the name of the channel.") {
@@ -933,26 +957,26 @@ class UrlReplacerTest : FunSpec({
                 mockkObject(UrlReplacer)
                 coEvery { UrlReplacer["getInvite"]("abcdef", any<Snowflake>()) } returns DiscordInvite(
                     code = "abcdef",
-                    guildId = Snowflake(123456789012345678),
+                    guildId = mockedGuildId,
                     guildName = "test-guild",
-                    channelId = Snowflake(876543210987654321),
+                    channelId = mockedChannelId,
                     channelName = "test-channel",
-                    inviterId = Snowflake(123456789012345678),
+                    inviterId = mockedInviterId,
                     inviterName = "test-user",
-                    eventId = Snowflake(876543210987654321),
+                    eventId = mockedEventId,
                     eventName = "test-event",
                 )
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens = mutableListOf(TextToken(text))
                 val expectedTokens = mutableListOf(TextToken("test チャンネル「test-channel」への招待リンク"))
 
                 val processedTokens = UrlReplacer.replace(
-                    tokens, Snowflake(123456789012345678)
+                    tokens, mockedGuildId
                 )
 
                 processedTokens shouldBe expectedTokens
@@ -964,13 +988,13 @@ class UrlReplacerTest : FunSpec({
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getInvite"]("abcdef", any<Snowflake>()) } returns DiscordInvite(
                 code = "abcdef",
-                guildId = Snowflake(123456789012345678),
+                guildId = mockedGuildId,
                 guildName = "test-guild",
-                channelId = Snowflake(876543210987654321),
+                channelId = mockedChannelId,
                 channelName = "test-channel",
-                inviterId = Snowflake(123456789012345678),
+                inviterId = mockedInviterId,
                 inviterName = "test-user",
-                eventId = Snowflake(876543210987654321),
+                eventId = mockedEventId,
                 eventName = "test-event",
             )
 
@@ -980,7 +1004,8 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens = mutableListOf(TextToken("test https://discord.com/invite/abcdef"))
-            val expectedTokens = mutableListOf(TextToken("test サーバ「test-guild」のチャンネル「test-channel」への招待リンク"))
+            val expectedTokens =
+                mutableListOf(TextToken("test サーバ「test-guild」のチャンネル「test-channel」への招待リンク"))
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(123789456012345678)
@@ -996,7 +1021,7 @@ class UrlReplacerTest : FunSpec({
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens = mutableListOf(TextToken("test https://discord.com/invite/abcdef"))
@@ -1010,7 +1035,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // SteamアプリURLの置き換え
+    // Steam アプリ URL の置き換え
     context("Make Steam Store URLs readable.") {
         // 存在するアプリの場合
         test("If the app exists, read its name.") {
@@ -1028,10 +1053,11 @@ class UrlReplacerTest : FunSpec({
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens = mutableListOf(TextToken(text))
+                // whitespace ignore-nextline
                 val expectedTokens = mutableListOf(TextToken("test Steamアイテム「test-app」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
@@ -1049,11 +1075,11 @@ class UrlReplacerTest : FunSpec({
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens = mutableListOf(TextToken("test https://store.steampowered.com/app/1234567890"))
-            val expectedTokens = mutableListOf(TextToken("test Steamアイテムへのリンク"))
+            val expectedTokens = mutableListOf(TextToken("test Steamアイテムへのリンク")) // whitespace ignore
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1063,7 +1089,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // YouTubeURLの置き換え
+    // YouTube URL の置き換え
     context("Make YouTube URLs readable.") {
         // 存在する動画の場合
         test("If the video exists, read its title and author.") {
@@ -1103,11 +1129,11 @@ class UrlReplacerTest : FunSpec({
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens = mutableListOf(TextToken(text))
-                val expectedTokens =
+                val expectedTokens = // whitespace ignore-nextline
                     mutableListOf(TextToken("test YouTubeの「test-user」による${type}「test-video」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
@@ -1139,11 +1165,11 @@ class UrlReplacerTest : FunSpec({
 
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens = mutableListOf(TextToken("test https://www.youtube.com/watch?v=abcdefg"))
-            val expectedTokens =
+            val expectedTokens = // whitespace ignore-nextline
                 mutableListOf(TextToken("test YouTubeの「test-usertest-u 以下略」による動画「test-videotest-video 以下略」へのリンク"))
 
             val processedTokens = UrlReplacer.replace(
@@ -1154,7 +1180,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // YouTubeプレイリストURLの置き換え
+    // YouTube プレイリスト URL の置き換え
     context("Make YouTube playlist URLs readable.") {
         // 存在するプレイリストの場合
         test("If the playlist exists, read its title and author.") {
@@ -1189,11 +1215,11 @@ class UrlReplacerTest : FunSpec({
 
                 val message = mockk<Message>()
                 coEvery { message.getGuild() } returns mockk {
-                    every { id } returns Snowflake(123456789012345678)
+                    every { id } returns mockedGuildId
                 }
 
                 val tokens = mutableListOf(TextToken(text))
-                val expectedTokens =
+                val expectedTokens = // whitespace ignore-nextline
                     mutableListOf(TextToken("test YouTubeの「test-user」によるプレイリスト「test-playlist」へのリンク"))
 
                 val processedTokens = UrlReplacer.replace(
@@ -1205,17 +1231,17 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // Google検索URLの置き換え
+    // Google 検索 URL の置き換え
     context("Make Google Search URLs readable.") {
-        // 通常の検索URL
+        // 通常の検索 URL
         test("If the URL contains no special characters, just read it.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens = mutableListOf(TextToken("test https://www.google.com/search?q=example"))
-            val expectedTokens = mutableListOf(TextToken("test Google検索「example」へのリンク"))
+            val expectedTokens = mutableListOf(TextToken("test Google検索「example」へのリンク")) // whitespace ignore
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1224,16 +1250,16 @@ class UrlReplacerTest : FunSpec({
             processedTokens shouldBe expectedTokens
         }
 
-        // 日本語文字列の検索URL (URLエンコードされている文字列)
+        // 日本語文字列の検索 URL (URL エンコードされている文字列)
         test("If the URL contains Javascript, decode the URL and read it.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
-                every { id } returns Snowflake(123456789012345678)
+                every { id } returns mockedGuildId
             }
 
             val tokens =
                 mutableListOf(TextToken("test https://www.google.com/search?q=%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF"))
-            val expectedTokens = mutableListOf(TextToken("test Google検索「こんにちは」へのリンク"))
+            val expectedTokens = mutableListOf(TextToken("test Google検索「こんにちは」へのリンク")) // whitespace ignore
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1243,9 +1269,9 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // URLからtitleタグ値への置き換え
+    // URL から title タグ値への置き換え
     context("Make URLs readable.") {
-        // 単一のURL
+        // 単一の URL
         test("If the content contains only a single URL, read its title.") {
             val message = mockk<Message>()
             coEvery { message.getGuild() } returns mockk {
@@ -1253,7 +1279,7 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens = mutableListOf(TextToken("https://example.com"))
-            val expectedTokens = mutableListOf(TextToken("Webページ「Example Domain」へのリンク"))
+            val expectedTokens = mutableListOf(TextToken("Webページ「Example Domain」へのリンク")) // whitespace ignore
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1262,7 +1288,7 @@ class UrlReplacerTest : FunSpec({
             processedTokens shouldBe expectedTokens
         }
 
-        // 単一のURLにテキストが付随
+        // 単一の URL にテキストが付随
         test("If the content contains a single URL, read its title.") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
@@ -1273,7 +1299,7 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens = mutableListOf(TextToken("Please visit https://example.com for more information."))
-            val expectedTokens =
+            val expectedTokens = // whitespace ignore-nextline
                 mutableListOf(TextToken("Please visit Webページ「Example Domain」へのリンク for more information."))
 
             val processedTokens = UrlReplacer.replace(
@@ -1283,7 +1309,7 @@ class UrlReplacerTest : FunSpec({
             processedTokens shouldBe expectedTokens
         }
 
-        // 複数のURL
+        // 複数の URL
         test("If the content contains multiple URLs, read their title.") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com") } returns "Example Domain"
@@ -1296,7 +1322,7 @@ class UrlReplacerTest : FunSpec({
 
             val tokens =
                 mutableListOf(TextToken("https://www.iana.org/help/example-domains explains why https://example.com is reserved."))
-            val expectedTokens =
+            val expectedTokens = // whitespace ignore-nextline
                 mutableListOf(TextToken("Webページ「Example Domains」へのリンク explains why Webページ「Example Domain」へのリンク is reserved."))
 
             val processedTokens = UrlReplacer.replace(
@@ -1314,7 +1340,7 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens = mutableListOf(TextToken("test https://example.invalid")) // RFC 2606
-            val expectedTokens = mutableListOf(TextToken("test 存在しないWebページへのリンク"))
+            val expectedTokens = mutableListOf(TextToken("test 存在しないWebページへのリンク")) // whitespace ignore
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1324,9 +1350,9 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // URLを拡張子に置き換える
+    // URL を拡張子に置き換える
     context("Make URLs with extension readable.") {
-        // 定義された拡張子を持つURL
+        // 定義された拡張子を持つ URL
         test("If the URL has known extension, read its readable name.") {
             mockkObject(UrlReplacer)
             coEvery { UrlReplacer["getPageTitle"]("https://example.com/test.jpg") } returns null
@@ -1337,7 +1363,7 @@ class UrlReplacerTest : FunSpec({
             }
 
             val tokens = mutableListOf(TextToken("test https://example.com/test.jpg"))
-            val expectedTokens = mutableListOf(TextToken("test JPEGファイルへのリンク"))
+            val expectedTokens = mutableListOf(TextToken("test JPEGファイルへのリンク")) // whitespace ignore
 
             val processedTokens = UrlReplacer.replace(
                 tokens, Snowflake(0)
@@ -1347,7 +1373,7 @@ class UrlReplacerTest : FunSpec({
         }
     }
 
-    // 未定義の拡張子を持つURL
+    // 未定義の拡張子を持つ URL
     test("If the URL has unknown extension, read its name.") {
         mockkObject(UrlReplacer)
         coEvery { UrlReplacer["getPageTitle"]("https://example.com/test.hoge") } returns null
@@ -1358,7 +1384,7 @@ class UrlReplacerTest : FunSpec({
         }
 
         val tokens = mutableListOf(TextToken("test https://example.com/test.hoge"))
-        val expectedTokens = mutableListOf(TextToken("test hogeファイルへのリンク"))
+        val expectedTokens = mutableListOf(TextToken("test hogeファイルへのリンク")) // whitespace ignore
 
         val processedTokens = UrlReplacer.replace(
             tokens, Snowflake(0)
@@ -1367,7 +1393,7 @@ class UrlReplacerTest : FunSpec({
         processedTokens shouldBe expectedTokens
     }
 
-    // 拡張子を持たないURL
+    // 拡張子を持たない URL
     test("If the URL doesn't have extension, read its title.") {
         mockkObject(UrlReplacer)
         coEvery { UrlReplacer["getPageTitle"]("https://example.com/test") } returns null
@@ -1378,7 +1404,7 @@ class UrlReplacerTest : FunSpec({
         }
 
         val tokens = mutableListOf(TextToken("test https://example.com/test"))
-        val expectedTokens = mutableListOf(TextToken("test Webページのリンク"))
+        val expectedTokens = mutableListOf(TextToken("test Webページのリンク")) // whitespace ignore
 
         val processedTokens = UrlReplacer.replace(
             tokens, Snowflake(0)

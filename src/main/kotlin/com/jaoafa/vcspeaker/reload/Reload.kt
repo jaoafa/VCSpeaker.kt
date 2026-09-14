@@ -1,26 +1,24 @@
 package com.jaoafa.vcspeaker.reload
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.api.Server
-import com.jaoafa.vcspeaker.api.ServerType
+import com.jaoafa.vcspeaker.api.update.UpdateServer
+import com.jaoafa.vcspeaker.api.update.UpdateServerType
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.VCSpeakerUserAgent
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.onDownload
-import io.ktor.client.request.get
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
 
 @Serializable
 data class GitHubAsset(
@@ -241,14 +239,14 @@ object Reload {
                 }
             }
 
-        val server = Server(ServerType.Current)
-        VCSpeaker.apiServer?.stop()
-        VCSpeaker.apiServer = server
-        server.start(2000)
+        val updateServer = UpdateServer(UpdateServerType.Current)
+        VCSpeaker.apiUpdateServer?.stop()
+        VCSpeaker.apiUpdateServer = updateServer
+        updateServer.start(2000)
 
         // Remove update-specific options that will be re-added with new values
         // These options always have a value following them
-        val optionsToRemove = setOf("--api-port", "--wait-for", "--api-token")
+        val optionsToRemove = setOf("--update-api-port", "--wait-for", "--api-token")
         val preservedArgs = VCSpeaker.args.filterIndexed { index, arg ->
             // Keep the arg if it's not in optionsToRemove
             if (arg in optionsToRemove) {
@@ -265,12 +263,12 @@ object Reload {
             add("-jar")
             add(updateJar.absolutePath)
             addAll(preservedArgs) // keep original CLI options (e.g., config path, store path, dev id)
-            add("--api-port")
+            add("--update-api-port")
             add("2001")
             add("--wait-for")
-            add(server.selfId)
+            add(updateServer.selfId)
             add("--api-token")
-            add(server.selfToken)
+            add(updateServer.selfToken)
         }
 
         ProcessBuilder(command)
