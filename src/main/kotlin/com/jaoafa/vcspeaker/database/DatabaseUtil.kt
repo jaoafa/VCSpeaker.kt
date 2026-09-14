@@ -43,19 +43,19 @@ object DatabaseUtil {
             .dataSource(url, null, null)
             .load()
 
-        val info = flywayLoader.info().all()
-        val latest = info.maxOf { it.version }
-
-        logger.info { "Starting migration to $latest..." }
-
-        val flyway = Flyway.configure()
-            .baselineOnMigrate(true)
-            .baselineVersion(latest)
-            .baselineDescription("Initialization Baseline")
-            .dataSource(url, null, null)
-            .load()
-
         val result = try {
+            val info = flywayLoader.info().all()
+            val latest = info.maxOf { it.version }
+
+            logger.info { "Starting migration to $latest..." }
+
+            val flyway = Flyway.configure()
+                .baselineOnMigrate(true)
+                .baselineVersion(latest)
+                .baselineDescription("Initialization Baseline")
+                .dataSource(url, null, null)
+                .load()
+
             flyway.migrate()
         } catch (e: FlywayException) {
             logger.error(e) { "Migration failed." }
