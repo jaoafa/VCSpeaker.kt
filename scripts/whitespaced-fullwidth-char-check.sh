@@ -2,6 +2,8 @@
 
 # 日本語と半角 Latin 文字が混在しており、その間に半角スペースが無い行を検出する (.kt ファイルのみ)
 # このようなlineがdetectされる
+# プロジェクトのルートディレクトリで
+# $ ./scripts/whitespaced-fullwidth-char-check.sh
 #
 # 警告の無視設定 :
 # // whitespace ignore ... この行を無視する
