@@ -103,7 +103,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          gradle-version: current
+          gradle-version: 9.7.1
 
       - name: 📥 Checkout ${{ github.repository }}
         uses: actions/checkout@v7
