@@ -101,7 +101,6 @@ class ParseCommand : Extension() {
                 }
 
                 // step 2: apply alias
-                // fixme
                 val tokens = ReplacerProcessor().replacers.fold(mutableListOf(TextToken(text))) { tokens, replacer ->
                     replacer.replace(tokens, guildId)
                 }
