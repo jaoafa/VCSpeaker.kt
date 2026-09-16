@@ -31,7 +31,7 @@ class UserMentionReplacerTest : FunSpec({
     // 既知のユーザーメンションを置き換える
     test("Mentions of known users should be replaced with its associated name.") {
         every { VCSpeaker.kord } returns mockk {
-            every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+            every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
             coEvery { getGuildOrNull(Snowflake(0)) } returns mockk {
                 coEvery { getMember(Snowflake(123456789012345678)) } returns mockk {
                     every { effectiveName } returns "test-user" // テスト用のユーザー名
@@ -61,7 +61,7 @@ class UserMentionReplacerTest : FunSpec({
     // 未知のユーザーメンションを置き換える
     test("Mentions of unknown users should be replaced as unknown users.") {
         every { VCSpeaker.kord } returns mockk {
-            every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+            every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
             coEvery { getGuildOrNull(Snowflake(0)) } returns null
         }
 

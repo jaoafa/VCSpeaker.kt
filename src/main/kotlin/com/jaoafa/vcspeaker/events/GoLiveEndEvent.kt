@@ -1,13 +1,15 @@
 package com.jaoafa.vcspeaker.events
 
-import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.calculateGoLiveRate
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getGoLiveRate
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.selfVoiceChannel
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
+import com.jaoafa.vcspeaker.tools.discord.isVoiceTextChannelSet
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator.Companion.announce
+import dev.kord.core.event.user.VoiceStateUpdateEvent
+import dev.kordex.core.checks.isNotBot
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
-import dev.kord.core.event.user.VoiceStateUpdateEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class GoLiveEndEvent : Extension() {
@@ -17,11 +19,9 @@ class GoLiveEndEvent : Extension() {
     override suspend fun setup() {
         event<VoiceStateUpdateEvent> {
             check {
-                // Botではないこと
-                failIf(event.state.getMember().isBot)
-                // 読み上げチャンネルが設定されていること
-                val settings = GuildStore.getOrDefault(event.state.guildId)
-                failIf(settings.channelId == null)
+                isNotBot()
+                anyGuildRegistered()
+                isVoiceTextChannelSet()
 
                 val oldStreaming = event.old?.isSelfStreaming ?: false
                 val newStreaming = event.state.isSelfStreaming
@@ -46,7 +46,7 @@ class GoLiveEndEvent : Extension() {
                     NarrationScripts.userEndGoLiveOtherChannel(member, channelGoLiveEnded)
                 }
 
-                val goLiveRate = channelGoLiveEnded.calculateGoLiveRate()
+                val goLiveRate = channelGoLiveEnded.getGoLiveRate()
 
                 guild.announce(
                     voice = voice,

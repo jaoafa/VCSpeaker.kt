@@ -46,7 +46,8 @@ object SlashCommandExtensions {
 
             devGuild()
 
-            apply { builder() }
+            @Suppress("UNCHECKED_CAST")
+            apply { builder(this as PublicSlashCommand<Options, M>) }
         }
     }
 
@@ -79,7 +80,8 @@ object SlashCommandExtensions {
 
             devGuild()
 
-            apply { builder() }
+            @Suppress("UNCHECKED_CAST")
+            apply { builder(this as PublicSlashCommand<Options, ModalForm>) }
         }
     }
 
@@ -111,7 +113,8 @@ object SlashCommandExtensions {
             this.name = name
             this.description = description
 
-            apply { builder() }
+            @Suppress("UNCHECKED_CAST")
+            apply { builder(this as PublicSlashCommand<Options, M>) }
         }
     }
 
@@ -140,7 +143,8 @@ object SlashCommandExtensions {
             this.name = name
             this.description = description
 
-            apply { builder() }
+            @Suppress("UNCHECKED_CAST")
+            apply { builder(this as PublicSlashCommand<Options, ModalForm>) }
         }
     }
 }

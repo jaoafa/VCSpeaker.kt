@@ -10,16 +10,20 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import org.h2.api.ErrorCode.DUPLICATE_KEY_1
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import java.io.File
 import kotlin.system.exitProcess
 
 @Serializable
+@Deprecated("Use database instead")
 data class TypedStore<T>(
     val version: Int,
     val list: List<T>
 )
 
 @Serializable
+@Deprecated("Use database instead")
 data class AnyStore(
     val version: Int,
     val list: JsonElement
@@ -35,7 +39,8 @@ data class AnyStore(
  * @param migrators Migrator 関数; Key をバージョンとし, v (Key - 1) のデータを v Key に移行します
  * @param auditor Auditor 関数; null の場合は何も変更されません。null でない場合、初期化時と [StoreStruct.write] 実行時にデータを監査します
  */
-open class StoreStruct<T>(
+@Deprecated("Use database instead")
+open class StoreStruct<T : DBMigratableData>(
     path: String,
     private val serializer: KSerializer<T>,
     deserializer: String.() -> TypedStore<T>, // To avoid type inference error. DO NOT REMOVE.
@@ -44,6 +49,7 @@ open class StoreStruct<T>(
     private val auditor: ((MutableList<T>) -> MutableList<T>)? = null
 ) {
     private val logger = KotlinLogging.logger {}
+    private val name = this::class.simpleName
     private val mutex = Mutex()
 
     val file = File(path)
@@ -124,11 +130,11 @@ open class StoreStruct<T>(
 
             try {
                 migrator(file)
-            } catch (exception: Exception) {
-                logger.error(exception) { "Failed to migrate ${file.name} to v$index. Rolling back..." }
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to migrate ${file.name} to v$index. Rolling back..." }
                 file.writeText(backup)
 
-                Sentry.captureException(exception)
+                Sentry.captureException(e)
 
                 exitProcess(1)
             }
@@ -137,4 +143,23 @@ open class StoreStruct<T>(
 
     private fun auditData(dataCandidate: MutableList<T>): MutableList<T> =
         auditor?.let { it(dataCandidate) } ?: dataCandidate
+
+    suspend fun migrateToDB() = withData {
+        for (entry in data) {
+            try {
+                if (!entry.migrated) {
+                    entry.migrateEntryToDB()
+                }
+            } catch (e: Exception) {
+                if (e is ExposedSQLException && e.errorCode == DUPLICATE_KEY_1) {
+                    logger.warn { "$entry has a duplicated key. Skipping migration..." }
+                    continue
+                }
+
+                throw StoreDBMigrationFailedException(entry, name ?: "Unknown Store", e)
+            }
+        }
+
+        writeLocked()
+    }
 }

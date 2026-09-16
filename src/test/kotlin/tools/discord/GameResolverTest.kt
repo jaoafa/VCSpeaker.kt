@@ -1,46 +1,55 @@
 package tools.discord
 
-import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.GameStore
+import com.jaoafa.vcspeaker.database.DatabaseUtil
+import com.jaoafa.vcspeaker.database.tables.GameEntity
+import com.jaoafa.vcspeaker.database.tables.GameTable
 import com.jaoafa.vcspeaker.tools.discord.DiscordGameApi
 import com.jaoafa.vcspeaker.tools.discord.GameResolver
+import dev.kord.common.entity.Snowflake
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockkObject
-import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.Constants.TEST_DB_MEM_URL
+import kotlin.time.Duration.Companion.milliseconds
 
 class GameResolverTest : FunSpec({
     beforeSpec {
-        mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker-test-${System.currentTimeMillis()}")
-        VCSpeaker.storeFolder.mkdirs()
-
-        val gameFile = File(VCSpeaker.storeFolder, "games.json")
-        gameFile.writeText("""{"version":1,"list":[]}""")
+        DatabaseUtil.connect(TEST_DB_MEM_URL)
+        DatabaseUtil.createTables()
     }
 
-    afterTest {
+    afterEach {
         clearAllMocks()
-        GameStore.data.clear()
+        transaction {
+            GameTable.deleteAll()
+        }
 
-        val field = GameResolver::class.java.getDeclaredField("refreshFailedUntil")
-        field.isAccessible = true
-        field.set(GameResolver, null)
+        val refreshFailedUntilField = GameResolver::class.java.getDeclaredField("refreshFailedUntil")
+        refreshFailedUntilField.isAccessible = true
+        refreshFailedUntilField.set(GameResolver, null)
+
+        val lastFetchedAtField = GameResolver::class.java.getDeclaredField("lastFetchedAt")
+        lastFetchedAtField.isAccessible = true
+        lastFetchedAtField.set(GameResolver, null)
     }
 
     test("If the catalog is fresh, DiscordGameApi should not be called.") {
-        mockkObject(GameStore)
         mockkObject(DiscordGameApi)
-        coEvery { GameStore.lastFetchedAt() } returns System.currentTimeMillis()
-        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One")
+        GameResolver.setFetchTimestamp(System.currentTimeMillis())
+        transaction {
+            GameEntity.new(Snowflake(1L)) {
+                name = "Game One"
+            }
+        }
 
         val result = GameResolver.resolve(listOf(1L))
 
@@ -49,12 +58,8 @@ class GameResolverTest : FunSpec({
     }
 
     test("If the catalog has never been fetched, DiscordGameApi should be called.") {
-        mockkObject(GameStore)
         mockkObject(DiscordGameApi)
-        coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns mapOf(1L to "Game One")
-        coEvery { GameStore.replaceAll(any(), any()) } returns Unit
-        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One")
 
         val result = GameResolver.resolve(listOf(1L))
 
@@ -62,55 +67,54 @@ class GameResolverTest : FunSpec({
         coVerify(exactly = 1) { DiscordGameApi.getDetectableGames() }
     }
 
-    test("If the catalog is stale, DiscordGameApi should be called and the store should be replaced.") {
+    test("If the catalog is stale, DiscordGameApi should be called and the database rows should be replaced.") {
         val staleTimestamp = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(91)
-        mockkObject(GameStore)
+        GameResolver.setFetchTimestamp(staleTimestamp)
+        transaction {
+            GameEntity.new(Snowflake(1L)) {
+                name = "Game One (Old)"
+            }
+        }
         mockkObject(DiscordGameApi)
-        coEvery { GameStore.lastFetchedAt() } returns staleTimestamp
         coEvery { DiscordGameApi.getDetectableGames() } returns mapOf(1L to "Game One (Updated)")
-        coEvery { GameStore.replaceAll(any(), any()) } returns Unit
-        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One (Updated)")
 
         val result = GameResolver.resolve(listOf(1L))
 
         result shouldBe mapOf(1L to "Game One (Updated)")
         coVerify(exactly = 1) { DiscordGameApi.getDetectableGames() }
-        coVerify(exactly = 1) { GameStore.replaceAll(mapOf(1L to "Game One (Updated)"), any()) }
+        transaction {
+            GameEntity.findById(Snowflake(1L))?.name shouldBe "Game One (Updated)"
+        }
     }
 
-    test("If the refresh fails and the id exists in the stale store, the stale name should be returned.") {
+    test("If the refresh fails and the id exists in the stale database, the stale name should be returned.") {
         val staleTimestamp = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(91)
-        mockkObject(GameStore)
+        GameResolver.setFetchTimestamp(staleTimestamp)
+        transaction {
+            GameEntity.new(Snowflake(1L)) {
+                name = "Old Game Name"
+            }
+        }
         mockkObject(DiscordGameApi)
-        coEvery { GameStore.lastFetchedAt() } returns staleTimestamp
         coEvery { DiscordGameApi.getDetectableGames() } returns null
-        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Old Game Name")
 
         val result = GameResolver.resolve(listOf(1L))
 
         result shouldBe mapOf(1L to "Old Game Name")
-        coVerify(exactly = 0) { GameStore.replaceAll(any(), any()) }
     }
 
-    test("If the refresh fails and the id does not exist in the store, it should be unresolved.") {
-        mockkObject(GameStore)
+    test("If the refresh fails and the id does not exist in the database, it should be unresolved.") {
         mockkObject(DiscordGameApi)
-        coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns null
-        coEvery { GameStore.findAll(setOf(999L)) } returns emptyMap()
 
         val result = GameResolver.resolve(listOf(999L))
 
-        result shouldBe mapOf(999L to null)
+        result shouldBe emptyMap()
     }
 
     test("If multiple ids are requested, the catalog should be refreshed only once.") {
-        mockkObject(GameStore)
         mockkObject(DiscordGameApi)
-        coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns mapOf(1L to "Game One", 2L to "Game Two")
-        coEvery { GameStore.replaceAll(any(), any()) } returns Unit
-        coEvery { GameStore.findAll(setOf(1L, 2L)) } returns mapOf(1L to "Game One", 2L to "Game Two")
 
         val result = GameResolver.resolve(listOf(1L, 2L))
 
@@ -119,36 +123,26 @@ class GameResolverTest : FunSpec({
     }
 
     test("If resolve is called concurrently while the catalog is stale, the refresh should still happen only once.") {
-        mockkObject(GameStore)
         mockkObject(DiscordGameApi)
-        var lastFetchedAt: Long? = null
-        coEvery { GameStore.lastFetchedAt() } answers { lastFetchedAt }
         coEvery { DiscordGameApi.getDetectableGames() } coAnswers {
-            delay(50)
+            delay(50.milliseconds)
             mapOf(1L to "Game One", 2L to "Game Two")
         }
-        coEvery { GameStore.replaceAll(any(), any()) } coAnswers {
-            lastFetchedAt = secondArg<Long>()
-        }
-        coEvery { GameStore.findAll(setOf(1L)) } returns mapOf(1L to "Game One")
-        coEvery { GameStore.findAll(setOf(2L)) } returns mapOf(2L to "Game Two")
 
-        coroutineScope {
+        val (r1, r2) = coroutineScope {
             val d1 = async { GameResolver.resolve(listOf(1L)) }
             val d2 = async { GameResolver.resolve(listOf(2L)) }
-            d1.await()
-            d2.await()
+            d1.await() to d2.await()
         }
 
+        r1 shouldBe mapOf(1L to "Game One")
+        r2 shouldBe mapOf(2L to "Game Two")
         coVerify(exactly = 1) { DiscordGameApi.getDetectableGames() }
     }
 
     test("If a refresh fails, the next resolve within the cooldown window should not retry the fetch.") {
-        mockkObject(GameStore)
         mockkObject(DiscordGameApi)
-        coEvery { GameStore.lastFetchedAt() } returns null
         coEvery { DiscordGameApi.getDetectableGames() } returns null
-        coEvery { GameStore.findAll(setOf(1L)) } returns emptyMap()
 
         GameResolver.resolve(listOf(1L))
         GameResolver.resolve(listOf(1L))

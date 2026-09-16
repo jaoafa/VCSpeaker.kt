@@ -3,13 +3,15 @@
 .venv
 build
 
-store/
-cache/
-data/
-logs/
+/store/
+/cache/
+/data/
+/logs/
 
 config.yml
 
-store-test/
-
-site/
+/store-test/
+/site/
+/database/
+/test-database/
+/test-data/
