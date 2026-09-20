@@ -18,6 +18,7 @@ import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.configs.TokenSpec
 import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.StoreDBMigrator
+import com.jaoafa.vcspeaker.reload.ReloadServerCredential
 import com.jaoafa.vcspeaker.tools.discord.DiscordCommandCleaner
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
@@ -175,10 +176,17 @@ class Entrypoint : CliktCommand() {
 
             if (shouldWait) { // this instance is LATEST
                 KordStarter.start(launch = false)
-                val updateServer = UpdateServer(UpdateServerType.Latest, options.apiToken, options.waitFor)
+                val updateServer = UpdateServer(
+                    type = UpdateServerType.Latest,
+                    targetCredential = run {
+                        val id = options.waitFor ?: return@run null
+                        val token = options.apiToken ?: return@run null
+                        ReloadServerCredential(id, token)
+                    }
+                )
                 VCSpeaker.apiUpdateServer = updateServer
                 updateServer.start(
-                    options.updateApiPort ?: config[EnvSpec.updateApiPort],
+                    port = options.updateApiPort ?: config[EnvSpec.updateApiPort],
                     wait = true,
                     sendBackIntSignal = true
                 )

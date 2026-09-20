@@ -266,9 +266,9 @@ object Reload {
             add("--update-api-port")
             add("2001")
             add("--wait-for")
-            add(updateServer.selfId)
+            add(updateServer.selfCredential.id)
             add("--api-token")
-            add(updateServer.selfToken)
+            add(updateServer.selfCredential.token)
         }
 
         ProcessBuilder(command)

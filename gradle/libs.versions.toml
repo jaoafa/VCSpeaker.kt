@@ -46,6 +46,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 
 # Test
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-runner-junit5" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 junit = { module = "junit:junit", version.ref = "junit" }
 
@@ -106,7 +107,7 @@ shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 application = { id = "application" }
 
 [bundles]
-testing = ["kotlin-test", "kotest-runner-junit5", "mockk"]
+testing = ["kotlin-test", "ktor-server-test-host", "kotest-runner-junit5", "mockk"]
 logging = ["slf4j-api", "log4j-slf4j-impl", "log4j-core", "kotlin-logging"]
 discord = ["kord-core", "kord-extensions", "lavakord"]
 ktor-client = ["ktor-client-cio-jvm", "ktor-client-cio", "ktor-client-content-negotiation", "ktor-client-core", "ktor-client-resources", "ktor-client-logging"]

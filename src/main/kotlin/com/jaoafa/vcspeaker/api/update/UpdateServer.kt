@@ -1,10 +1,7 @@
 package com.jaoafa.vcspeaker.api.update
 
-import com.jaoafa.vcspeaker.api.update.modules.ReloadModule
-import com.jaoafa.vcspeaker.reload.Reload
-import com.jaoafa.vcspeaker.tts.providers.ProviderContext
-import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
-import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextContext
+import com.jaoafa.vcspeaker.api.update.ReloadModule.Companion.ReloaderJson
+import com.jaoafa.vcspeaker.reload.ReloadServerCredential
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -13,12 +10,6 @@ import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
-import java.security.SecureRandom
-import kotlin.io.encoding.Base64
 
 enum class UpdateServerType {
     Latest, Current, Unknown
@@ -28,36 +19,18 @@ enum class UpdateServerType {
  * VCSpeaker の更新用 API サーバーを表すクラスです。
  *
  * @property type [UpdateServerType]
- * @property targetToken [type] が [UpdateServerType.Latest] の場合、[UpdateServerType.Current] サーバーの認証トークン
- * @property targetId [type] が [UpdateServerType.Latest] の場合、[UpdateServerType.Current] の ID
+ * @property targetCredential [type] が [UpdateServerType.Latest] の場合、[UpdateServerType.Current] サーバーの認証情報
  */
-class UpdateServer(val type: UpdateServerType, var targetToken: String? = null, var targetId: String? = null) {
+class UpdateServer(val type: UpdateServerType, var targetCredential: ReloadServerCredential? = null) {
     private val logger = KotlinLogging.logger {}
 
-    val reloaderJsonFormat = Json {
-        explicitNulls = false
-        serializersModule = SerializersModule {
-            polymorphic(ProviderContext::class) {
-                subclass(SoundmojiContext::class)
-                subclass(VoiceTextContext::class)
-            }
-        }
-    }
-
-    val selfId = Reload.serverIds.random()
-
-    val selfToken = run {
-        val random = SecureRandom()
-        val bytes = ByteArray(32)
-        random.nextBytes(bytes)
-        Base64.encode(bytes)
-    }
+    val selfCredential = ReloadServerCredential.generate()
 
     var targetPort = 0
 
     val client = HttpClient(io.ktor.client.engine.cio.CIO) {
         install(ContentNegotiation) {
-            json(reloaderJsonFormat)
+            json(ReloaderJson)
         }
     }
 
@@ -77,9 +50,9 @@ class UpdateServer(val type: UpdateServerType, var targetToken: String? = null, 
         // rotate the port between 2000 and 2001
         targetPort = if (port == 2000) port + 1 else port - 1
 
-        logger.info { "Initiating a server as $type instance. $selfId [$port] <----> [$targetPort] $targetId" }
+        logger.info { "Initiating a server as $type instance. ${selfCredential.id} [$port] <----> [$targetPort] ${targetCredential?.id}" }
 
-        val reloadModule = ReloadModule(type, targetToken, targetId, sendBackIntSignal)
+        val reloadModule = ReloadModule(type, selfCredential, targetCredential, targetPort, sendBackIntSignal)
 
         val server = embeddedServer(CIO, port = port) {
             with(reloadModule) {

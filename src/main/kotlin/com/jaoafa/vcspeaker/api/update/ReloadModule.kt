@@ -1,13 +1,9 @@
-package com.jaoafa.vcspeaker.api.update.modules
+package com.jaoafa.vcspeaker.api.update
 
 import com.jaoafa.vcspeaker.KordStarter
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.api.update.UpdateServerType
-import com.jaoafa.vcspeaker.api.update.UpdateServerTypePlugin
-import com.jaoafa.vcspeaker.api.update.invalidTypeKey
-import com.jaoafa.vcspeaker.api.update.types.InitFinishedRequest
 import com.jaoafa.vcspeaker.api.update.types.UpdateError
-import com.jaoafa.vcspeaker.reload.Reload
+import com.jaoafa.vcspeaker.reload.ReloadServerCredential
 import com.jaoafa.vcspeaker.reload.UpdateRequest
 import com.jaoafa.vcspeaker.reload.state.State
 import com.jaoafa.vcspeaker.reload.state.StateManager
@@ -18,12 +14,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ServerContentNegotiation
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -35,45 +32,39 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import java.security.SecureRandom
-import kotlin.io.encoding.Base64
 import kotlin.system.exitProcess
 
 class ReloadModule(
     val type: UpdateServerType,
-    var targetToken: String? = null,
-    var targetId: String? = null,
-    val sendBackIntSignal: Boolean
+    val selfCredential: ReloadServerCredential,
+    providedTargetCredential: ReloadServerCredential? = null,
+    val targetPort: Int,
+    val sendBackIntSignal: Boolean,
+    private val exitHandler: (Int) -> Unit = { exitProcess(it) },
+    client: HttpClient? = null
 ) {
-    private val logger = KotlinLogging.logger { }
-
-    val reloaderJsonFormat = Json {
-        explicitNulls = false
-        serializersModule = SerializersModule {
-            polymorphic(ProviderContext::class) {
-                subclass(SoundmojiContext::class)
-                subclass(VoiceTextContext::class)
+    companion object {
+        val ReloaderJson = Json {
+            explicitNulls = false
+            serializersModule = SerializersModule {
+                polymorphic(ProviderContext::class) {
+                    subclass(SoundmojiContext::class)
+                    subclass(VoiceTextContext::class)
+                }
             }
         }
     }
 
+    private val logger = KotlinLogging.logger { }
+
+    lateinit var targetCredential: ReloadServerCredential
+
     var sequence = 0
         private set
 
-    val selfId = Reload.serverIds.random()
-
-    val selfToken = run {
-        val random = SecureRandom()
-        val bytes = ByteArray(32)
-        random.nextBytes(bytes)
-        Base64.encode(bytes)
-    }
-
-    var targetPort = 0
-
-    val client = HttpClient(CIO) {
-        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-            json(reloaderJsonFormat)
+    val client = client ?: HttpClient(CIO) {
+        install(ClientContentNegotiation) {
+            json(ReloaderJson)
         }
     }
 
@@ -82,8 +73,8 @@ class ReloadModule(
         accept(ContentType.Application.Json)
 
         basicAuth(
-            username = selfId,
-            password = targetToken ?: ""
+            username = selfCredential.id,
+            password = targetCredential.token
         )
 
         if (body != null) setBody(body)
@@ -107,7 +98,7 @@ class ReloadModule(
         val response = client.post(
             url,
             requesterConfig(
-                reloaderJsonFormat.encodeToString(
+                ReloaderJson.encodeToString(
                     UpdateRequest.serializer(serializer),
                     UpdateRequest(sequence, data)
                 )
@@ -130,7 +121,7 @@ class ReloadModule(
      * @return UpdateRequest<T>
      */
     suspend fun <T> RoutingCall.receiveUpdateOf(serializer: KSerializer<T>): UpdateRequest<T> {
-        val response = reloaderJsonFormat
+        val response = ReloaderJson
             .decodeFromString(UpdateRequest.serializer(serializer), receiveText())
         return response
     }
@@ -152,18 +143,15 @@ class ReloadModule(
                 runBlocking {
                     requestUpdate(
                         "update/current/init-finished",
-                        InitFinishedRequest(
-                            selfId,
-                            selfToken
-                        ),
-                        InitFinishedRequest.serializer()
+                        selfCredential,
+                        ReloadServerCredential.serializer()
                     )
                 }
             }
         }
 
-        install(ContentNegotiation) {
-            json(reloaderJsonFormat)
+        install(ServerContentNegotiation) {
+            json(ReloaderJson)
         }
 
         install(UpdateServerTypePlugin) {
@@ -174,11 +162,10 @@ class ReloadModule(
             basic("update-basic-auth") {
                 realm = "VCSpeaker Updater API"
                 validate { credentials ->
-                    val namePass = if (targetId == null) true else { // Accept username only once
-                        credentials.name == targetId.toString()
-                    }
+                    val namePass = !this@ReloadModule::targetCredential.isInitialized
+                            || credentials.name == targetCredential.id // Accept username only once
 
-                    if (namePass && credentials.password == selfToken) {
+                    if (namePass && credentials.password == selfCredential.token) {
                         UserIdPrincipal(credentials.name)
                     } else null
                 }
@@ -195,24 +182,23 @@ class ReloadModule(
                     route("/current") {
                         /**
                          * S0 - Latest から Current へ、初期化が完了したことを通知します。
-                         * Body: UpdateRequest<InitFinishedRequest>
+                         * Body: UpdateRequest<ReloadServerCredential>
                          */
                         post("/init-finished") {
                             if (call.attributes[invalidTypeKey]) return@post
 
-                            val (s, request) = call.receiveUpdateOf(InitFinishedRequest.serializer())
+                            val (s, request) = call.receiveUpdateOf(ReloadServerCredential.serializer())
 
                             if (s != 0) {
                                 call.respond(HttpStatusCode.BadRequest, UpdateError("Sequence mismatch."))
                                 return@post
                             }
 
-                            targetId = request.id
-                            targetToken = request.token
+                            targetCredential = request
 
                             call.ok(s)
 
-                            logger.info { "[S$sequence] $targetId has finished init. Transferring the state..." }
+                            logger.info { "[S$sequence] ${targetCredential.id} has finished init. Transferring the state..." }
 
                             try {
                                 requestUpdate(
@@ -243,7 +229,7 @@ class ReloadModule(
 
                             call.ok(s)
 
-                            logger.info { "[S$sequence] $targetId is ready. Exiting..." }
+                            logger.info { "[S$sequence] ${targetCredential.id} is ready. Exiting..." }
 
                             try {
                                 requestUpdate(
@@ -257,7 +243,7 @@ class ReloadModule(
                             }
 
                             VCSpeaker.removeShutdownHook()
-                            exitProcess(0)
+                            exitHandler(0)
                         }
                     }
 
@@ -276,7 +262,7 @@ class ReloadModule(
                                 return@post
                             }
 
-                            logger.info { "[S$sequence] $targetId has frozen the state. Restoring..." }
+                            logger.info { "[S$sequence] ${targetCredential.id} has frozen the state. Restoring..." }
 
                             StateManager.restore(state)
 
@@ -323,6 +309,12 @@ class ReloadModule(
                     }
                 }
             }
+        }
+    }
+
+    init {
+        if (providedTargetCredential != null) {
+            targetCredential = providedTargetCredential
         }
     }
 }
