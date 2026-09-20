@@ -10,8 +10,10 @@ import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
@@ -21,6 +23,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.timer
 import kotlin.time.Clock
 
@@ -56,13 +59,13 @@ object CacheAction {
         return context.getCacheFile()
     }
 
-    val readOrCreateMutex = Mutex()
+    private val providerJobs = ConcurrentHashMap<String, Deferred<File>>()
 
     suspend fun <T : ProviderContext> readOrCreate(
         context: T,
         onMissProvide: suspend () -> ByteArray,
         onHit: () -> Unit
-    ): File = readOrCreateMutex.withLock {
+    ): File {
         val readCache = read(context)
 
         if (readCache != null) {
@@ -70,7 +73,20 @@ object CacheAction {
             return readCache
         }
 
-        return create(context, onMissProvide())
+        val job = coroutineScope {
+            providerJobs.computeIfAbsent(context.hash()) {
+                async(Dispatchers.IO) {
+                    try {
+                        val byteArray = onMissProvide()
+                        create(context, byteArray)
+                    } finally {
+                        providerJobs.remove(context.hash())
+                    }
+                }
+            }
+        }
+
+        return job.await()
     }
 
     fun cleanCache(): Int {
