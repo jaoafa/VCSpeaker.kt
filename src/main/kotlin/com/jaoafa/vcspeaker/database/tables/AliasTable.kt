@@ -30,7 +30,8 @@ object AliasTable : IntIdTable("alias"), VersionedTable {
     }
 }
 
-class AliasEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<AliasSnapshot, AliasEntity> {
+class AliasEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<AliasSnapshot, AliasEntity>,
+    OwnedEntity<Snowflake> {
     companion object : IntEntityClass<AliasEntity>(AliasTable)
 
     var guildEntity by GuildEntity referencedOn AliasTable.guildDid
@@ -41,6 +42,9 @@ class AliasEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<AliasSnaps
     var version by AliasTable.version
 
     override fun getSnapshot() = transaction { AliasSnapshot.from(readValues) }
+
+    override val ownerId: Snowflake
+        get() = guildEntity.id.value
 }
 
 @Serializable

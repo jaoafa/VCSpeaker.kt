@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.takeIfOwnedBy
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Ignore
@@ -106,8 +107,10 @@ class IgnoreCommand : Extension() {
 
             publicSubCommand("delete", "無視条件を削除します。", ::DeleteOptions) {
                 action {
+                    val guild = guild ?: return@action
+
                     val ignoreEntity = transaction {
-                        Entity.findById(arguments.ignoreId)
+                        Entity.findById(arguments.ignoreId)?.takeIfOwnedBy(guild.id)
                     }
 
                     if (ignoreEntity == null) {

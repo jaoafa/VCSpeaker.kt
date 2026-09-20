@@ -154,7 +154,9 @@ class VCSpeakerCommand : Extension() {
                             arguments.autoJoin?.also { autoJoin = it; modified = true }
                         }
 
-                        modified = modified || guildEntity.speakerVoiceEntity.modifyByOptions(arguments)
+                        val voiceModified = guildEntity.speakerVoiceEntity.modifyByOptions(arguments)
+
+                        modified = modified || voiceModified
                     }.unwrap()
 
                     val (guildSnapshot, voiceSnapshot) = transaction {

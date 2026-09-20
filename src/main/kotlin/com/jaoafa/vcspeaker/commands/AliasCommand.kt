@@ -3,6 +3,7 @@ package com.jaoafa.vcspeaker.commands
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.onDuplicate
+import com.jaoafa.vcspeaker.database.takeIfOwnedBy
 import com.jaoafa.vcspeaker.database.transactionResulting
 import com.jaoafa.vcspeaker.database.unwrap
 import com.jaoafa.vcspeaker.features.Alias
@@ -150,8 +151,10 @@ class AliasCommand : Extension() {
 
             publicSubCommand("update", "エイリアスを更新します。", ::UpdateOptions) {
                 action {
+                    val guild = guild ?: return@action
+
                     val aliasEntity = transaction {
-                        Entity.findById(arguments.aliasId)
+                        Entity.findById(arguments.aliasId)?.takeIfOwnedBy(guild.id)
                     } ?: run {
                         respondEmbed(
                             ":question: Alias Not Found",
@@ -238,8 +241,10 @@ class AliasCommand : Extension() {
 
             publicSubCommand("delete", "エイリアスを削除します。", ::DeleteOptions) {
                 action {
+                    val guild = guild ?: return@action
+
                     val aliasEntity = transaction {
-                        Entity.findById(arguments.aliasId)
+                        Entity.findById(arguments.aliasId)?.takeIfOwnedBy(guild.id)
                     }
 
                     if (aliasEntity == null) {

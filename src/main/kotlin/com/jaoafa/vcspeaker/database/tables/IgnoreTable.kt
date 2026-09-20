@@ -29,7 +29,8 @@ object IgnoreTable : IntIdTable("ignore"), VersionedTable {
     }
 }
 
-class IgnoreEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<IgnoreSnapshot, IgnoreEntity> {
+class IgnoreEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<IgnoreSnapshot, IgnoreEntity>,
+    OwnedEntity<Snowflake> {
     companion object : IntEntityClass<IgnoreEntity>(IgnoreTable)
 
     var guildEntity by GuildEntity referencedOn IgnoreTable.guildDid
@@ -39,6 +40,9 @@ class IgnoreEntity(id: EntityID<Int>) : IntEntity(id), SnappableEntity<IgnoreSna
     var version by IgnoreTable.version
 
     override fun getSnapshot() = transaction { IgnoreSnapshot.from(readValues) }
+
+    override val ownerId: Snowflake
+        get() = guildEntity.id.value
 }
 
 @Serializable
