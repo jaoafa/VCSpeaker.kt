@@ -8,23 +8,23 @@ import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kordex.core.extensions.Extension
 import dev.kordex.core.extensions.event
 
-class SelfVoiceJoinEvent : Extension() {
+class SelfAfkVoiceJoinEvent : Extension() {
     override val name = this::class.simpleName!!
 
     override suspend fun setup() {
         event<VoiceStateUpdateEvent> {
             check {
                 failIf(event.state.getMember().id != VCSpeaker.kord.selfId)
-                failIf(!(event.state.getChannelOrNull()?.isAfk() ?: false))
+                failIf(!(event.state.getChannelOrNull()?.isAfk() ?: false)) // the destination is AFK channel
             }
 
             action {
                 val guild = event.state.getGuildOrNull() ?: return@action // checked
                 val channelLeft = event.old?.getChannelOrNull()
-                val textChannel = guild.getVoiceTextChannelOrNull() ?: return@action
+                val textChannel = guild.getVoiceTextChannelOrNull()
 
                 channelLeft?.join {
-                    textChannel.createMessage(
+                    textChannel?.createMessage(
                         "**:zzz: AFK チャンネルには接続できないので、${channelLeft.mention} に戻りました。**"
                     )
                 }
