@@ -44,7 +44,7 @@ class ReloadModuleLatestTest : FunSpec({
         selfCredential = selfCredential,
         providedTargetCredential = currentCredential,
         targetPort = targetPort,
-        sendBackIntSignal = false,
+        sendBackInitSignal = false,
         client = client
     )
 

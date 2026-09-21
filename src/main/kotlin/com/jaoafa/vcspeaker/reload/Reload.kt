@@ -151,23 +151,23 @@ object Reload {
             }
 
             logger.warn { "Existing jar ${jar.name} is stale (version=${existingVersion ?: "unknown"}, size=${existingSize} bytes, expected version=$releaseVersion, expected size=$expectedSize). Re-downloading." }
-            
+
             try {
                 if (!jar.delete() && jar.exists()) {
                     logger.error {
                         "Failed to delete existing jar file: ${jar.absolutePath}. " +
-                        "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
-                        "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
-                        "Aborting update."
+                                "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
+                                "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
+                                "Aborting update."
                     }
                     return null
                 }
             } catch (e: Exception) {
                 logger.error(e) {
                     "Exception occurred while deleting existing jar file: ${jar.absolutePath}. " +
-                    "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
-                    "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
-                    "Aborting update."
+                            "CanWrite=${jar.canWrite()}, Exists=${jar.exists()}, " +
+                            "Readable=${jar.canRead()}, Executable=${jar.canExecute()}. " +
+                            "Aborting update."
                 }
                 return null
             }
@@ -239,9 +239,14 @@ object Reload {
                 }
             }
 
-        val updateServer = UpdateServer(UpdateServerType.Current)
-        VCSpeaker.apiUpdateServer?.stop()
-        VCSpeaker.apiUpdateServer = updateServer
+        val updateServer = UpdateServer(
+            UpdateServerType.Current,
+            onReadyCalled = {
+                runBlocking { VCSpeaker.dataServer?.stopSuspend() }
+            }
+        )
+        runBlocking { VCSpeaker.updateServer?.stopSuspend() }
+        VCSpeaker.updateServer = updateServer
         updateServer.start(2000)
 
         // Remove update-specific options that will be re-added with new values

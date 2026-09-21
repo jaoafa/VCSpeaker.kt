@@ -120,5 +120,13 @@ class DataServer {
 
         this.server = server
         server.start(wait)
+        logger.info { "Server started." }
+    }
+
+    suspend fun stopSuspend() {
+        logger.info { "Stopping Data API server..." }
+        server?.stopSuspend(1000, 1000)
+        server = null
+        logger.info { "Server stopped." }
     }
 }

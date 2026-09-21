@@ -169,28 +169,37 @@ class Entrypoint : CliktCommand() {
             exitProcess(0)
         }
 
-        DataServer().start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
-
         runBlocking {
             val shouldWait = options.waitFor != null
 
             if (shouldWait) { // this instance is LATEST
                 KordStarter.start(launch = false)
+
                 val updateServer = UpdateServer(
                     type = UpdateServerType.Latest,
                     targetCredential = run {
                         val id = options.waitFor ?: return@run null
                         val token = options.apiToken ?: return@run null
                         ReloadServerCredential(id, token)
+                    },
+                    onAckCalled = {
+                        VCSpeaker.dataServer = DataServer().also {
+                            it.start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
+                        }
                     }
                 )
-                VCSpeaker.apiUpdateServer = updateServer
-                updateServer.start(
-                    port = options.updateApiPort ?: config[EnvSpec.updateApiPort],
-                    wait = true,
-                    sendBackIntSignal = true
-                )
+                VCSpeaker.updateServer = updateServer.also {
+                    it.start(
+                        port = options.updateApiPort ?: config[EnvSpec.updateApiPort],
+                        wait = true,
+                        sendBackInitSignal = true
+                    )
+                }
             } else {
+                VCSpeaker.dataServer = DataServer().also {
+                    it.start(options.dataApiPort ?: config[EnvSpec.dataApiPort])
+                }
+
                 KordStarter.start()
             }
         }

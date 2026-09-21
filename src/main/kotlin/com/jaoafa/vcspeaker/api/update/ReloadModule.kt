@@ -39,8 +39,10 @@ class ReloadModule(
     val selfCredential: ReloadServerCredential,
     providedTargetCredential: ReloadServerCredential? = null,
     val targetPort: Int,
-    val sendBackIntSignal: Boolean,
+    val sendBackInitSignal: Boolean,
     private val exitHandler: (Int) -> Unit = { exitProcess(it) },
+    val onAckCalled: () -> Unit = {},
+    val onReadyCalled: () -> Unit = {},
     client: HttpClient? = null
 ) {
     companion object {
@@ -139,7 +141,7 @@ class ReloadModule(
 
     fun Application.module() {
         monitor.subscribe(ServerReady) {
-            if (sendBackIntSignal) {
+            if (sendBackInitSignal) {
                 runBlocking {
                     requestUpdate(
                         "update/current/init-finished",
@@ -243,6 +245,8 @@ class ReloadModule(
                             }
 
                             VCSpeaker.removeShutdownHook()
+                            onReadyCalled()
+                            logger.info { "Exiting VCSpeaker..." }
                             exitHandler(0)
                         }
                     }
@@ -295,6 +299,8 @@ class ReloadModule(
                             }
 
                             call.ok(s)
+
+                            onAckCalled()
 
                             logger.info { "Logging in..." }
 
