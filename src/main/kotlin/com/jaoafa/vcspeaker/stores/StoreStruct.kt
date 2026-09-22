@@ -144,11 +144,14 @@ open class StoreStruct<T : DBMigratableData>(
     private fun auditData(dataCandidate: MutableList<T>): MutableList<T> =
         auditor?.let { it(dataCandidate) } ?: dataCandidate
 
-    suspend fun migrateToDB() = withData {
+    suspend fun migrateToDB() {
         for (entry in data) {
             try {
                 if (!entry.migrated) {
-                    entry.migrateEntryToDB()
+                    withData {
+                        entry.migrateEntryToDB()
+                        writeLocked()
+                    }
                 }
             } catch (e: Exception) {
                 if (e is ExposedSQLException && e.errorCode == DUPLICATE_KEY_1) {
@@ -159,7 +162,5 @@ open class StoreStruct<T : DBMigratableData>(
                 throw StoreDBMigrationFailedException(entry, name ?: "Unknown Store", e)
             }
         }
-
-        writeLocked()
     }
 }
