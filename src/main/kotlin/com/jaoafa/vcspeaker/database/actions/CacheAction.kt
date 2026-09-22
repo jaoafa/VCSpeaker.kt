@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.database.actions
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.recoverDuplicate
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheSnapshot
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheTable
@@ -30,15 +31,26 @@ import kotlin.time.Clock
 object CacheAction {
     private val logger = KotlinLogging.logger { }
 
-    fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
+    fun <T : ProviderContext> createOrUpdate(context: T, byteArray: ByteArray): File {
         val provider = providerOf(context)
-        val file = context.getCacheFile().apply { writeBytes(byteArray) }
+        val file = context.getCacheFile().apply {
+            writeBytes(byteArray)
+        }
 
         transactionResulting(commit = true) {
             SpeechCacheEntity.new {
                 this.providerId = provider.id
                 this.hash = context.hash()
                 this.lastUsedAt = Clock.System.now()
+            }
+        }.recoverDuplicate {
+            transaction {
+                SpeechCacheEntity
+                    .find { SpeechCacheTable.hash eq context.hash() }
+                    .single()
+                    .apply {
+                        this.lastUsedAt = Clock.System.now()
+                    }
             }
         }.unwrap()
 
@@ -56,7 +68,7 @@ object CacheAction {
             entity.lastUsedAt = Clock.System.now()
         }.unwrap()
 
-        return context.getCacheFile()
+        return context.getCacheFile().takeIf { it.exists() }
     }
 
     private val providerJobs = ConcurrentHashMap<String, Deferred<File>>()
@@ -78,7 +90,7 @@ object CacheAction {
                 async(Dispatchers.IO) {
                     try {
                         val byteArray = onMissProvide()
-                        create(context, byteArray)
+                        createOrUpdate(context, byteArray)
                     } finally {
                         providerJobs.remove(context.hash())
                     }

@@ -80,6 +80,13 @@ inline fun <T> TransactionResult<T>.onDuplicate(action: (ExposedSQLException) ->
     return this
 }
 
+inline fun <T> TransactionResult<T>.recoverDuplicate(transform: (ExposedSQLException) -> T): TransactionResult<T> {
+    if (this is TransactionResult.Duplicate) {
+        return TransactionResult.Success(transform(exception))
+    }
+    return this
+}
+
 inline fun <T> TransactionResult<T>.onFailure(action: (Exception) -> Unit): TransactionResult<T> {
     if (this is TransactionResult.Failure) {
         action(exception)
