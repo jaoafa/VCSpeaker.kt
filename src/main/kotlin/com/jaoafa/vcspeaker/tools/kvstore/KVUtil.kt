@@ -42,8 +42,8 @@ object KVUtil {
  *
  * Example:
  * ```
- * val exampleProperty1 by storedValue<Long>()
- * val exampleProperty2 by storedValue<String>(key = "customKey")
+ * var exampleProperty1 by storedValue<Long>()
+ * var exampleProperty2 by storedValue<String>(key = "customKey")
  * ```
  *
  * @param key Optionally specifies the key used to store the value in the DB.
@@ -61,7 +61,7 @@ inline fun <reified T> storedValue(key: String? = null): KVProperty<T> =
  *
  * Example:
  * ```
- * val exampleProperty1 by storedValue<String>("defaultValue")
+ * var exampleProperty1 by storedValue<String>("defaultValue")
  * ```
  *
  * @param defaultValue The value to fall-back when the entry is non-existent.
