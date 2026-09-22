@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.FlywayException
 import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.SizedIterable
@@ -17,7 +16,7 @@ object DatabaseUtil {
 
     const val DEFAULT_DB_URL = "jdbc:h2:file:./database/h2;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE"
 
-    val tables: List<IdTable<*>> = listOf(
+    val tables: List<Table> = listOf(
         VoiceTable,
         GuildTable,
         AliasTable,
@@ -28,7 +27,8 @@ object DatabaseUtil {
         UserTable,
         VCTitleTable,
         VisionAPICounterTable,
-        GameTable
+        GameTable,
+        KVTable
     )
 
     fun connect(url: String): Database {

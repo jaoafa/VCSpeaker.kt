@@ -4,6 +4,7 @@ import com.jaoafa.vcspeaker.database.actions.GameAction
 import com.jaoafa.vcspeaker.database.tables.GameEntity
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toLong
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toSnowflake
+import com.jaoafa.vcspeaker.tools.kvstore.storedValue
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -15,7 +16,7 @@ import kotlin.time.Duration.Companion.minutes
  * カタログ全体の最終取得時刻(GameResolver.lastFetchedAt)を基準に行う。
  */
 object GameResolver {
-    var lastFetchedAt: Long? = null
+    var lastFetchedAt by storedValue<Long>()
         private set
 
     fun setFetchTimestamp(lastFetchedAt: Long) {
