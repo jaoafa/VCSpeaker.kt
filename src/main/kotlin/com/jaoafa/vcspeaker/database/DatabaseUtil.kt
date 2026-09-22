@@ -34,7 +34,6 @@ object DatabaseUtil {
     fun connect(url: String): Database {
         val db = Database.connect(url, driver = "org.h2.Driver")
         TransactionManager.defaultDatabase = db
-
         return db
     }
 
@@ -66,16 +65,28 @@ object DatabaseUtil {
         return true
     }
 
-    fun createTables() {
-        transaction {
+    fun createTables(vararg tables: Table) {
+        val tablesAfter = transaction {
             val tablesBefore = SchemaUtils.listTables()
             logger.info { "Creating tables... (Current: $tablesBefore)" }
-            SchemaUtils.create(*tables.toTypedArray(), inBatch = true)
+            SchemaUtils.create(*tables, inBatch = true)
 
-            val tablesAfter = SchemaUtils.listTables().mapNotNull { it.takeIf { !tablesBefore.contains(it) } }
-            logger.info { "Tables created: $tablesAfter" }
+            SchemaUtils.listTables().mapNotNull { it.takeIf { !tablesBefore.contains(it) } }
         }
+        logger.info { "Tables created: $tablesAfter" }
     }
+
+    fun createAllTables() = createTables(*tables.toTypedArray())
+
+    fun dropTables(vararg tables: Table) {
+        transaction {
+            logger.info { "Dropping all tables..." }
+            SchemaUtils.drop(*tables, inBatch = true)
+        }
+        logger.info { "Dropped all tables." }
+    }
+
+    fun dropAllTables() = dropTables(*tables.toTypedArray())
 
     fun Table.version() = integer("version").default(0)
 

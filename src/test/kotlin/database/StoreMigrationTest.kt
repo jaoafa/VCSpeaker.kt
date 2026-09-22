@@ -1,8 +1,10 @@
 package database
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.DatabaseUtil.getSnapshots
-import com.jaoafa.vcspeaker.database.tables.*
+import com.jaoafa.vcspeaker.database.tables.GuildEntity
+import com.jaoafa.vcspeaker.database.tables.GuildSnapshot
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.database.tables.VoiceSnapshot
 import com.jaoafa.vcspeaker.stores.DBMigratableData
 import com.jaoafa.vcspeaker.stores.GuildData
 import com.jaoafa.vcspeaker.stores.StoreDBMigrationFailedException
@@ -18,10 +20,9 @@ import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import utils.Constants.TEST_DB_MEM_URL
 import utils.ResourceUtil
+import utils.useAllTables
 
 @Serializable
 data class DummyData(
@@ -34,19 +35,7 @@ data class DummyData(
 
 @Suppress("DEPRECATION")
 class StoreMigrationTest : FunSpec({
-    beforeEach {
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        transaction {
-            DatabaseUtil.createTables()
-        }
-    }
-
-    afterEach {
-        transaction {
-            GuildTable.deleteAll()
-            VoiceTable.deleteAll()
-        }
-    }
+    useAllTables()
 
     test("Valid GuildStore should be migrated to database") {
         val tempFile = tempfile()

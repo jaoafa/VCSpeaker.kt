@@ -1,11 +1,7 @@
 package com.jaoafa.vcspeaker.tts
 
 import com.jaoafa.vcspeaker.database.tables.VoiceSnapshot
-import com.jaoafa.vcspeaker.features.EMOTION_LEVEL_DEFAULT
-import com.jaoafa.vcspeaker.features.PITCH_DEFAULT
-import com.jaoafa.vcspeaker.features.SPEAKER_DEFAULT
-import com.jaoafa.vcspeaker.features.SPEED_DEFAULT
-import com.jaoafa.vcspeaker.features.VOLUME_DEFAULT
+import com.jaoafa.vcspeaker.features.*
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
 import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
 import kotlinx.serialization.Serializable

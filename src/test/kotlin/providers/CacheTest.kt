@@ -1,16 +1,14 @@
 package providers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.actions.CacheAction
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheTable
 import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import utils.Constants.TEST_DB_MEM_URL
+import utils.useTables
 import java.nio.file.Files
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -18,10 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class CacheActionTest : FunSpec({
     lateinit var tempCacheDir: java.io.File
 
-    beforeSpec {
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        DatabaseUtil.createTables()
-    }
+    useTables(SpeechCacheTable)
 
     beforeEach {
         tempCacheDir = Files.createTempDirectory("cache-action-test").toFile()
@@ -29,9 +24,6 @@ class CacheActionTest : FunSpec({
     }
 
     afterEach {
-        transaction {
-            SpeechCacheTable.deleteAll()
-        }
         tempCacheDir.deleteRecursively()
     }
 

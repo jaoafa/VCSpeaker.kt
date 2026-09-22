@@ -1,8 +1,8 @@
 package tools.discord
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.tables.GameEntity
 import com.jaoafa.vcspeaker.database.tables.GameTable
+import com.jaoafa.vcspeaker.database.tables.KVTable
 import com.jaoafa.vcspeaker.tools.discord.DiscordGameApi
 import com.jaoafa.vcspeaker.tools.discord.GameResolver
 import dev.kord.common.entity.Snowflake
@@ -12,34 +12,23 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockkObject
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import utils.Constants.TEST_DB_MEM_URL
+import utils.useTables
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 
 class GameResolverTest : FunSpec({
-    beforeSpec {
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        DatabaseUtil.createTables()
-    }
+    useTables(GameTable, KVTable)
 
     afterEach {
         clearAllMocks()
-        transaction {
-            GameTable.deleteAll()
-        }
 
         val refreshFailedUntilField = GameResolver::class.java.getDeclaredField("refreshFailedUntil")
         refreshFailedUntilField.isAccessible = true
         refreshFailedUntilField.set(GameResolver, null)
-
-        val lastFetchedAtField = GameResolver::class.java.getDeclaredField("lastFetchedAt")
-        lastFetchedAtField.isAccessible = true
-        lastFetchedAtField.set(GameResolver, null)
     }
 
     test("If the catalog is fresh, DiscordGameApi should not be called.") {

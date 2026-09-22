@@ -40,6 +40,12 @@ object KVUtil {
  * The value needs to conform Serializable superclass.
  * 永続化された委譲プロパティを作成する。値は Serializable である必要がある。
  *
+ * Example:
+ * ```
+ * val exampleProperty1 by storedValue<Long>()
+ * val exampleProperty2 by storedValue<String>(key = "customKey")
+ * ```
+ *
  * @param key Optionally specifies the key used to store the value in the DB.
  */
 inline fun <reified T> storedValue(key: String? = null): KVProperty<T> =
@@ -52,6 +58,11 @@ inline fun <reified T> storedValue(key: String? = null): KVProperty<T> =
  * Guarantees the retrieved value to be non-null.
  * 永続化された委譲プロパティを作成する。値は Serializable である必要がある。
  * 値が null でないことを保証する。
+ *
+ * Example:
+ * ```
+ * val exampleProperty1 by storedValue<String>("defaultValue")
+ * ```
  *
  * @param defaultValue The value to fall-back when the entry is non-existent.
  * @param key Optionally specifies the key used to store the value in the DB.

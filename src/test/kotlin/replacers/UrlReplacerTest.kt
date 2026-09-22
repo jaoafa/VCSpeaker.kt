@@ -1,14 +1,10 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction
 import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction.isReadableChannel
-import com.jaoafa.vcspeaker.database.tables.GuildEntity
-import com.jaoafa.vcspeaker.database.tables.GuildTable
-import com.jaoafa.vcspeaker.database.tables.ReadableChannelEntity
-import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.database.tables.*
 import com.jaoafa.vcspeaker.models.original.discord.DiscordInvite
 import com.jaoafa.vcspeaker.models.original.twitter.Tweet
 import com.jaoafa.vcspeaker.models.response.steam.SteamAppDetail
@@ -33,10 +29,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.*
 import kotlinx.coroutines.flow.flow
-import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import utils.Constants.TEST_DB_MEM_URL
 import utils.createGuildMockk
+import utils.useTables
 
 class UrlReplacerTest : FunSpec({
     val mockedGuildId = Snowflake(123456789012345678)
@@ -44,10 +39,11 @@ class UrlReplacerTest : FunSpec({
     val mockedInviterId = Snowflake(2)
     val mockedEventId = Snowflake(3)
     val mockedMessageId = Snowflake(123456789012345678)
+
+    useTables(GuildTable, ReadableChannelTable)
+
     // テスト前に早期にモックを初期化
     beforeSpec {
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        DatabaseUtil.createTables()
         mockkObject(VCSpeaker)
     }
 
@@ -63,9 +59,6 @@ class UrlReplacerTest : FunSpec({
 
     // テスト後にモックを削除
     afterEach {
-        transaction {
-            GuildTable.deleteAll()
-        }
         clearAllMocks()
     }
 

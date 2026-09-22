@@ -1,27 +1,16 @@
 package tools
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.tables.KVTable
 import com.jaoafa.vcspeaker.tools.kvstore.storedValue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import utils.Constants.TEST_DB_MEM_URL
+import utils.useTables
 
 class KVStoreTest : FunSpec({
-    beforeSpec {
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        DatabaseUtil.createTables()
-    }
-
-    afterEach {
-        transaction {
-            KVTable.deleteAll()
-        }
-    }
+    useTables(KVTable)
 
     test("KVProperty should store and retrieve values correctly") {
         val testObject = object {

@@ -1,6 +1,7 @@
 package stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.KVTable
 import com.jaoafa.vcspeaker.stores.GameStore
 import com.jaoafa.vcspeaker.tools.discord.GameResolver
 import io.kotest.core.spec.style.FunSpec
@@ -8,9 +9,12 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockkObject
+import utils.useTables
 import java.io.File
 
 class GameStoreTest : FunSpec({
+    useTables(KVTable)
+
     beforeSpec {
         mockkObject(VCSpeaker)
         every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker-test-${System.currentTimeMillis()}")

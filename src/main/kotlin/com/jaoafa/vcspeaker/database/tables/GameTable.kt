@@ -1,13 +1,7 @@
 package com.jaoafa.vcspeaker.database.tables
 
+import com.jaoafa.vcspeaker.database.*
 import com.jaoafa.vcspeaker.database.DatabaseUtil.version
-import com.jaoafa.vcspeaker.database.EntitySnapshot
-import com.jaoafa.vcspeaker.database.SnappableEntity
-import com.jaoafa.vcspeaker.database.SnapshotFactory
-import com.jaoafa.vcspeaker.database.SnowflakeEntity
-import com.jaoafa.vcspeaker.database.SnowflakeEntityClass
-import com.jaoafa.vcspeaker.database.SnowflakeIdTable
-import com.jaoafa.vcspeaker.database.VersionedTable
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ResultRow

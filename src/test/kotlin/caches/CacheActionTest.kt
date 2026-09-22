@@ -1,7 +1,6 @@
 package caches
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.actions.CacheAction
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
 import com.jaoafa.vcspeaker.database.tables.SpeechCacheTable
@@ -16,17 +15,13 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import utils.Constants.TEST_DB_MEM_URL
+import utils.useTables
 import java.io.File
 import kotlin.time.Clock
 
 class CacheActionTest : FunSpec({
-    beforeSpec {
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        DatabaseUtil.createTables()
-    }
+    useTables(SpeechCacheTable)
 
     beforeEach {
         mockkObject(VCSpeaker)
@@ -38,9 +33,6 @@ class CacheActionTest : FunSpec({
     }
 
     afterEach {
-        transaction {
-            SpeechCacheTable.deleteAll()
-        }
         VCSpeaker.cacheFolder.deleteRecursively()
         clearAllMocks()
     }

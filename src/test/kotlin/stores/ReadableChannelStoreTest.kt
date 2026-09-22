@@ -1,6 +1,5 @@
 package stores
 
-import com.jaoafa.vcspeaker.database.DatabaseUtil
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
 import com.jaoafa.vcspeaker.database.actions.ReadableChannelAction.isReadableChannel
 import com.jaoafa.vcspeaker.database.onDuplicate
@@ -17,11 +16,10 @@ import io.mockk.clearAllMocks
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
-import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import utils.Constants.TEST_DB_MEM_URL
 import utils.createGuildMockk
 import utils.createTextChannelMockk
+import utils.useTables
 import com.jaoafa.vcspeaker.database.tables.ReadableChannelEntity as Entity
 import com.jaoafa.vcspeaker.database.tables.ReadableChannelTable as Table
 
@@ -32,10 +30,7 @@ class ReadableChannelStoreTest : FunSpec({
     val channelId2 = Snowflake(444444444444444444UL)
     val creatorId = Snowflake(0UL)
 
-    beforeSpec {
-        DatabaseUtil.connect(TEST_DB_MEM_URL)
-        DatabaseUtil.createTables()
-    }
+    useTables(GuildTable, Table)
 
     beforeEach {
         transaction {
@@ -49,9 +44,6 @@ class ReadableChannelStoreTest : FunSpec({
     }
 
     afterEach {
-        transaction {
-            GuildTable.deleteAll()
-        }
         clearAllMocks()
     }
 

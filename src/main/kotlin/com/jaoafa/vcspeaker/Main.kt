@@ -156,7 +156,7 @@ class Entrypoint : CliktCommand() {
         VCSpeaker.init(version, config, options)
 
         DatabaseUtil.connect(config[EnvSpec.databaseUrl])
-        DatabaseUtil.createTables()
+        DatabaseUtil.createAllTables()
         val isMigrationSuccessful = DatabaseUtil.migrate(config[EnvSpec.databaseUrl])
 
         if (!isMigrationSuccessful) {
