@@ -8,6 +8,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * game ID からゲーム名を解決する。fresh/stale 判定は game ID 単位ではなく、
@@ -29,7 +30,7 @@ object GameResolver {
     // 取得失敗時のプロセスローカル cooldown。プロセス内メモリのみで永続化せず、再起動でリセットされる。
     // 固定値であり仕様値ではない。再取得の連続失敗によるリトライストームを避けるためのもの。
     private var refreshFailedUntil: Long? = null
-    private val failureCooldownMillis = TimeUnit.MINUTES.toMillis(5)
+    private val failureCooldownMillis = 5.minutes.inWholeMilliseconds
 
     suspend fun resolve(gameIds: List<Long>): Map<Long, String?> {
         refreshCatalogIfStale()

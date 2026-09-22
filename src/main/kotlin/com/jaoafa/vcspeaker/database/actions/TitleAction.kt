@@ -28,7 +28,7 @@ object TitleAction {
     ): Pair<VCTitleSnapshot?, VCTitleSnapshot> {
         val originalName = channel.getName()
 
-        channel.rename(title)
+        channel.rename(title).join()
 
         return try {
             suspendTransaction transaction@{
@@ -83,7 +83,7 @@ object TitleAction {
             return null
         }
 
-        channel.rename(oldSnapshot.originalTitle)
+        channel.rename(oldSnapshot.originalTitle).join()
 
         return try {
             suspendTransaction transaction@{
