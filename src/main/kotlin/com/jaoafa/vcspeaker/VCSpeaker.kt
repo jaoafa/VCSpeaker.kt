@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker
 
-import com.jaoafa.vcspeaker.api.Server
+import com.jaoafa.vcspeaker.api.data.DataServer
+import com.jaoafa.vcspeaker.api.update.UpdateServer
 import com.jaoafa.vcspeaker.configs.EnvSpec
 import com.jaoafa.vcspeaker.tools.Emoji
 import com.uchuhimo.konf.Config
@@ -28,7 +29,8 @@ object VCSpeaker {
 
     lateinit var prefix: String
 
-    var apiServer: Server? = null
+    var updateServer: UpdateServer? = null
+    var dataServer: DataServer? = null
 
     // 開発環境のコマンドを登録する Guild ID (null で開発環境を無効化)
     var devGuildId: Snowflake? = null
@@ -65,15 +67,13 @@ object VCSpeaker {
         config: Config,
         options: Options,
     ) {
-        VCSpeaker.run {
-            this.version = version
-            this.config = config
-            this.options = options
-            this.storeFolder = (options.storePath ?: Path(config[EnvSpec.storeFolder])).toFile()
-            this.cacheFolder = (options.cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile()
-            this.devGuildId = (options.devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) }
-            this.prefix = options.prefix ?: config[EnvSpec.commandPrefix]
-        }
+        this.version = version
+        this.config = config
+        this.options = options
+        this.storeFolder = (options.storePath ?: Path(config[EnvSpec.storeFolder])).toFile()
+        this.cacheFolder = (options.cachePath ?: Path(config[EnvSpec.cacheFolder])).toFile()
+        this.devGuildId = (options.devGuildId ?: config[EnvSpec.devGuildId])?.let { Snowflake(it) }
+        this.prefix = options.prefix ?: config[EnvSpec.commandPrefix]
 
         Emoji // init
 

@@ -1,15 +1,28 @@
 package com.jaoafa.vcspeaker.tools.discord
 
-import com.jaoafa.vcspeaker.stores.GameStore
+import com.jaoafa.vcspeaker.database.actions.GameAction
+import com.jaoafa.vcspeaker.database.tables.GameEntity
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toLong
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.toSnowflake
+import com.jaoafa.vcspeaker.tools.kvstore.storedValue
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * game ID からゲーム名を解決する。fresh/stale 判定は game ID 単位ではなく、
- * カタログ全体の最終取得時刻(GameStore.lastFetchedAt())を基準に行う。
+ * カタログ全体の最終取得時刻(GameResolver.lastFetchedAt)を基準に行う。
  */
 object GameResolver {
+    var lastFetchedAt by storedValue<Long>()
+        private set
+
+    fun setFetchTimestamp(lastFetchedAt: Long) {
+        this.lastFetchedAt = lastFetchedAt
+    }
+
     private val ttlMillis = TimeUnit.DAYS.toMillis(7)
 
     // カタログの再取得を直列化する。キーは単一(カタログ全体で 1 つ)のため Mutex のみで足りる。
@@ -18,13 +31,14 @@ object GameResolver {
     // 取得失敗時のプロセスローカル cooldown。プロセス内メモリのみで永続化せず、再起動でリセットされる。
     // 固定値であり仕様値ではない。再取得の連続失敗によるリトライストームを避けるためのもの。
     private var refreshFailedUntil: Long? = null
-    private val failureCooldownMillis = TimeUnit.MINUTES.toMillis(5)
+    private val failureCooldownMillis = 5.minutes.inWholeMilliseconds
 
     suspend fun resolve(gameIds: List<Long>): Map<Long, String?> {
         refreshCatalogIfStale()
 
-        val names = GameStore.findAll(gameIds.toSet())
-        return gameIds.associateWith { id -> names[id] }
+        return transaction {
+            GameEntity.forIds(gameIds.map { it.toSnowflake() }).associate { it.id.value.toLong() to it.name }
+        }
     }
 
     private suspend fun refreshCatalogIfStale() {
@@ -42,12 +56,9 @@ object GameResolver {
                 refreshFailedUntil = System.currentTimeMillis() + failureCooldownMillis
                 return@withLock
             }
-            GameStore.replaceAll(games, System.currentTimeMillis())
+            GameAction.replaceAll(games)
         }
     }
 
-    private suspend fun isStale(): Boolean {
-        val lastFetchedAt = GameStore.lastFetchedAt() ?: return true
-        return System.currentTimeMillis() - lastFetchedAt > ttlMillis
-    }
+    private fun isStale() = lastFetchedAt?.let { System.currentTimeMillis() - it > ttlMillis } ?: true
 }
