@@ -10,7 +10,9 @@ import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.charLength
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -29,7 +31,10 @@ interface BaseReplacer {
         transform: (AliasSnapshot, MutableList<TextToken>) -> MutableList<TextToken>
     ): MutableList<TextToken> {
         val aliases = transaction {
-            AliasEntity.find { AliasTable.guildDid eq guildId and (AliasTable.type eq type) }.getSnapshots()
+            AliasEntity
+                .find { AliasTable.guildDid eq guildId and (AliasTable.type eq type) }
+                .orderBy(AliasTable.search.charLength() to SortOrder.DESC)
+                .getSnapshots()
         }
 
         val replacedText = aliases.fold(tokens) { replacedTokens, alias ->

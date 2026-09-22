@@ -59,7 +59,11 @@ class AliasReplacerTest : FunSpec({
         }
 
         val tokens = mutableListOf(TextToken("Hello, world!"))
-        val expectedTokens = mutableListOf(TextToken("Hello, "), TextToken("Kotlin", "Text Alias「world」→「Kotlin」"), TextToken("!"))
+        val expectedTokens = mutableListOf(
+            TextToken("Hello, "),
+            TextToken("Kotlin", "Text Alias「world」→「Kotlin」"),
+            TextToken("!")
+        )
 
         val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
 
@@ -85,5 +89,37 @@ class AliasReplacerTest : FunSpec({
         val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
 
         processedTokens shouldBe tokens
+    }
+
+    // エイリアスは最長マッチから検索される
+    test("Aliases should be matched in the descending order of its length.") {
+        val guild = createGuildMockk(Snowflake(0))
+
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Text
+                search = "cdef"
+                replace = "Replace2"
+            }
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Text
+                search = "abcdefgh"
+                replace = "Replace1"
+            }
+        }
+
+        val tokens = mutableListOf(TextToken("abcdefghijklmnop"))
+        val expectedTokens = mutableListOf(
+            TextToken("Replace1", "Text Alias「abcdefgh」→「Replace1」"),
+            TextToken("ijklmnop")
+        )
+
+        val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
+
+        processedTokens shouldBe expectedTokens
     }
 })

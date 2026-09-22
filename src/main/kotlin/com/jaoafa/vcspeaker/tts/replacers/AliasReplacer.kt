@@ -26,7 +26,7 @@ object AliasReplacer : BaseReplacer {
 
                     val additions = splitTexts.mixin {
                         TextToken(alias.replace, "Text Alias「${alias.search}」→「${alias.replace}」")
-                    }
+                    }.filter { it.text.isNotEmpty() }
 
                     addAll(additions)
                 }
