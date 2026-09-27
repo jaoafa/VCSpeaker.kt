@@ -27,7 +27,7 @@ kotlinx-serialization-json = "1.11.0"
 
 # Database
 exposed = "1.1.1"
-h2 = "2.4.240"
+h2 = "2.5.252"
 flyway = "12.1.0"
 
 # Other Libraries
