@@ -26,7 +26,7 @@ coroutines = "1.11.0"
 kotlinx-serialization-json = "1.11.0"
 
 # Database
-exposed = "1.1.1"
+exposed = "1.5.0"
 h2 = "2.4.240"
 flyway = "12.1.0"
 
