@@ -4,7 +4,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
-// x.com ドメイン（platform.x.com / pic.x.com / 単独の x.com）にのみマッチし、
+// x.com ドメイン (platform.x.com / pic.x.com / 単独の x.com) にのみマッチし、
 // twitter.com のような無関係な単語には影響しないよう単語境界で区切る
 private val DOMAIN_X_COM = Regex("\\bx\\.com\\b")
 
@@ -20,11 +20,19 @@ class TwitterTest : FunSpec({
 
         tweet.authorName shouldBe "jao Community"
         // Twitter oEmbed API のレスポンスドメインが twitter.com → x.com に変更されたため、
-        // 実測値のドメイン部分のみ（単語境界で区切られた x.com）を twitter.com に正規化してから期待値と比較する。
+        // 実測値のドメイン部分のみ (単語境界で区切られた x.com) を twitter.com に正規化してから期待値と比較する。
         // "pic.x.com" のようにプロトコルを伴わない表記もあるため、URL プレフィックスではなく \b で範囲を限定する
-        tweet.html.replace(DOMAIN_X_COM, "twitter.com") shouldBe "<blockquote class=\"twitter-tweet\"><p lang=\"ja\" dir=\"ltr\">この度、jao Minecraft Serverでは2023年08月02日 22時00分をもって、Minecraft サーバのサービス提供を終了させていただくこととなりました。<br>利用者のみなさまには、突然のお知らせとなりますことをお詫びいたします。<br><br>7年間、本当にありがとうございました。<a href=\"https://twitter.com/hashtag/jaoafa?src=hash&amp;ref_src=twsrc%5Etfw\">#jaoafa</a></p>&mdash; jao Community (@jaoafa) <a href=\"https://twitter.com/jaoafa/status/1685568414084124673?ref_src=twsrc%5Etfw\">July 30, 2023</a></blockquote>\n<script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n\n"
-        tweet.plainText.replace(DOMAIN_X_COM, "twitter.com") shouldBe "この度、jao Minecraft Serverでは2023年08月02日 22時00分をもって、Minecraft サーバのサービス提供を終了させていただくこととなりました。\n利用者のみなさまには、突然のお知らせとなりますことをお詫びいたします。\n\n7年間、本当にありがとうございました。#jaoafa <https://twitter.com/hashtag/jaoafa?src=hash&ref_src=twsrc%5Etfw>"
+        // whitespace ignore-begin
+        tweet.html.replace(
+            DOMAIN_X_COM,
+            "twitter.com"
+        ) shouldBe "<blockquote class=\"twitter-tweet\"><p lang=\"ja\" dir=\"ltr\">この度、jao Minecraft Serverでは2023年08月02日 22時00分をもって、Minecraft サーバのサービス提供を終了させていただくこととなりました。<br>利用者のみなさまには、突然のお知らせとなりますことをお詫びいたします。<br><br>7年間、本当にありがとうございました。<a href=\"https://twitter.com/hashtag/jaoafa?src=hash&amp;ref_src=twsrc%5Etfw\">#jaoafa</a></p>&mdash; jao Community (@jaoafa) <a href=\"https://twitter.com/jaoafa/status/1685568414084124673?ref_src=twsrc%5Etfw\">July 30, 2023</a></blockquote>\n<script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n\n"
+        tweet.plainText.replace(
+            DOMAIN_X_COM,
+            "twitter.com"
+        ) shouldBe "この度、jao Minecraft Serverでは2023年08月02日 22時00分をもって、Minecraft サーバのサービス提供を終了させていただくこととなりました。\n利用者のみなさまには、突然のお知らせとなりますことをお詫びいたします。\n\n7年間、本当にありがとうございました。#jaoafa <https://twitter.com/hashtag/jaoafa?src=hash&ref_src=twsrc%5Etfw>"
         tweet.readText shouldBe "この度、jao Minecraft Serverでは2023年08月02日 22時00分をもって、Minecraft サーバのサービス提供を終了させていただくこととなりました。\n利用者のみなさまには、突然のお知らせとなりますことをお詫びいたします。\n\n7年間、本当にありがとうございました。 ハッシュタグ「jaoafa」"
+        // whitespace ignore-end
     }
 
     test("If the tweet does not exist, null should be returned.") {
@@ -44,10 +52,18 @@ class TwitterTest : FunSpec({
 
         tweet.authorName shouldBe "jao Community"
         // Twitter oEmbed API のレスポンスドメインが twitter.com → x.com に変更されたため、
-        // 実測値のドメイン部分のみ（単語境界で区切られた x.com）を twitter.com に正規化してから期待値と比較する。
+        // 実測値のドメイン部分のみ (単語境界で区切られた x.com) を twitter.com に正規化してから期待値と比較する。
         // "pic.x.com" のようにプロトコルを伴わない表記もあるため、URL プレフィックスではなく \b で範囲を限定する
-        tweet.html.replace(DOMAIN_X_COM, "twitter.com") shouldBe "<blockquote class=\"twitter-tweet\"><p lang=\"en\" dir=\"ltr\">Do you remember when you joined X? I do! <a href=\"https://twitter.com/hashtag/MyXAnniversary?src=hash&amp;ref_src=twsrc%5Etfw\">#MyXAnniversary</a> <a href=\"https://t.co/JbXvgioO6o\">pic.twitter.com/JbXvgioO6o</a></p>&mdash; jao Community (@jaoafa) <a href=\"https://twitter.com/jaoafa/status/1775559092742021223?ref_src=twsrc%5Etfw\">April 3, 2024</a></blockquote>\n<script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n\n"
-        tweet.plainText.replace(DOMAIN_X_COM, "twitter.com") shouldBe "Do you remember when you joined X? I do! #MyXAnniversary <https://twitter.com/hashtag/MyXAnniversary?src=hash&ref_src=twsrc%5Etfw> pic.twitter.com/JbXvgioO6o <https://t.co/JbXvgioO6o>"
+        // whitespace ignore-begin
+        tweet.html.replace(
+            DOMAIN_X_COM,
+            "twitter.com"
+        ) shouldBe "<blockquote class=\"twitter-tweet\"><p lang=\"en\" dir=\"ltr\">Do you remember when you joined X? I do! <a href=\"https://twitter.com/hashtag/MyXAnniversary?src=hash&amp;ref_src=twsrc%5Etfw\">#MyXAnniversary</a> <a href=\"https://t.co/JbXvgioO6o\">pic.twitter.com/JbXvgioO6o</a></p>&mdash; jao Community (@jaoafa) <a href=\"https://twitter.com/jaoafa/status/1775559092742021223?ref_src=twsrc%5Etfw\">April 3, 2024</a></blockquote>\n<script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n\n"
+        tweet.plainText.replace(
+            DOMAIN_X_COM,
+            "twitter.com"
+        ) shouldBe "Do you remember when you joined X? I do! #MyXAnniversary <https://twitter.com/hashtag/MyXAnniversary?src=hash&ref_src=twsrc%5Etfw> pic.twitter.com/JbXvgioO6o <https://t.co/JbXvgioO6o>"
         tweet.readText shouldBe "Do you remember when you joined X? I do!  ハッシュタグ「MyXAnniversary」"
+        // whitespace ignore-end
     }
 })

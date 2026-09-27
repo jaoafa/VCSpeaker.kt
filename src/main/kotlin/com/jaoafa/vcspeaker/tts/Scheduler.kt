@@ -6,7 +6,6 @@ import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
-import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import dev.arbjerg.lavalink.protocol.v4.Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
@@ -15,7 +14,6 @@ import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.audio.TrackEndEvent
 import dev.schlaubi.lavakord.audio.on
-import dev.schlaubi.lavakord.audio.player.applyFilters
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.*
 import kotlinx.io.IOException

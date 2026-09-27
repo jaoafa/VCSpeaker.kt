@@ -1,30 +1,36 @@
 package com.jaoafa.vcspeaker.stores
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.tables.SpeechCacheEntity
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
 import com.jaoafa.vcspeaker.tts.providers.getProvider
 import com.jaoafa.vcspeaker.tts.providers.providerOf
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.io.File
+import kotlin.concurrent.timer
+import kotlin.time.Instant
 
 @Serializable
+@Deprecated("Use database instead")
 data class CacheData(
     val providerId: String,
     val hash: String,
     val lastUsed: Long
-)
+) : DBMigratableData() {
+    override fun migrationTransaction() = transaction {
+        SpeechCacheEntity.new {
+            providerId = this@CacheData.providerId
+            hash = this@CacheData.hash
+            lastUsedAt = Instant.fromEpochMilliseconds(lastUsed)
+        }
+        return@transaction
+    }
+}
 
+@Deprecated("Use database instead")
 object CacheStore : StoreStruct<CacheData>(
     VCSpeaker.Files.caches.path,
     CacheData.serializer(),
@@ -64,33 +70,24 @@ object CacheStore : StoreStruct<CacheData>(
         }.toMutableList()
     }
 ) {
-    private val pendingMutex = Mutex()
-    private val pendingByHash = mutableMapOf<String, Deferred<File>>()
-    private val auditScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val fetchScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
     private fun <T : ProviderContext> cacheFile(context: T) =
         VCSpeaker.cacheFolder.resolve(File("${context.hash()}.${providerOf(context).format}"))
 
-    private suspend fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File {
+    private suspend fun <T : ProviderContext> create(context: T, byteArray: ByteArray): File = withData {
         val provider = providerOf(context)
         val hash = context.hash()
         val file = cacheFile(context).apply { writeBytes(byteArray) }
 
-        withData {
-            data += CacheData(provider.id, hash, System.currentTimeMillis())
-            writeLocked()
-        }
+        data += CacheData(provider.id, hash, System.currentTimeMillis())
 
-        return file
+        file
     }
 
     private suspend fun <T : ProviderContext> read(context: T): File? = withData {
-        val index = data.indexOfFirst { it.hash == context.hash() }
-        if (index == -1) return@withData null
+        val cache = data.find { it.hash == context.hash() } ?: return@withData null
 
-        data[index] = data[index].copy(lastUsed = System.currentTimeMillis())
-        writeLocked()
+        // update lastUsed
+        data[data.indexOf(cache)] = cache.copy(lastUsed = System.currentTimeMillis())
 
         cacheFile(context)
     }
@@ -100,42 +97,20 @@ object CacheStore : StoreStruct<CacheData>(
         onNoCache: suspend () -> ByteArray,
         onCached: () -> Unit
     ): File {
-        val hash = context.hash()
+        val file = read(context)
 
-        val deferred = pendingMutex.withLock {
-            // 完了済み Deferred(掃除が非同期のため一時的に残る)に合流すると、
-            // read()/onCached() を経ずに lastUsed 更新が抜けるため、未完了のものだけ合流させる。
-            val inFlight = pendingByHash[hash]?.takeIf { !it.isCompleted }
-
-            inFlight ?: fetchScope.async {
-                val file = read(context)
-                if (file != null) {
-                    onCached()
-                    file
-                } else {
-                    cacheFile(context).writeText("")
-                    create(context, onNoCache())
-                }
-            }.also { newDeferred ->
-                pendingByHash[hash] = newDeferred
-                // 呼び出し元の finally で remove すると、待機側だけキャンセルされた場合に
-                // fetch 未完了のままエントリが消え二重 fetch を招くため、fetch 自体の完了時に掃除する。
-                newDeferred.invokeOnCompletion {
-                    fetchScope.launch {
-                        pendingMutex.withLock {
-                            if (pendingByHash[hash] === newDeferred) pendingByHash.remove(hash)
-                        }
-                    }
-                }
-            }
+        return if (file != null) {
+            onCached()
+            file
+        } else {
+            cacheFile(context).writeText("")
+            create(context, onNoCache())
         }
-
-        return deferred.await()
     }
 
     fun initiateAuditJob(interval: Int) {
-        auditScope.launch {
-            while (isActive) {
+        timer("CacheAudit", false, 0, 1000L * 60 * 60 * 24 * interval) {
+            runBlocking {
                 withData {
                     data.sortByDescending { it.lastUsed }
                     data.drop(100).forEach {
@@ -143,9 +118,9 @@ object CacheStore : StoreStruct<CacheData>(
                         VCSpeaker.cacheFolder.resolve(File("${it.hash}.${provider.format}")).delete()
                     }
                     data = data.take(100).toMutableList()
+
                     writeLocked()
                 }
-                delay(1000L * 60 * 60 * 24 * interval)
             }
         }
     }

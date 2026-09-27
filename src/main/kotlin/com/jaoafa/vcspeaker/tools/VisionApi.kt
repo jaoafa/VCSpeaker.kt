@@ -4,7 +4,7 @@ import com.google.cloud.vision.v1.*
 import com.google.protobuf.ByteString
 import com.google.rpc.Status
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.VisionApiCounterStore
+import com.jaoafa.vcspeaker.database.actions.VisionApiCounterAction
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.canvas.drawables.FilledRect
 import com.sksamuel.scrimage.canvas.drawables.Text
@@ -32,14 +32,14 @@ data class VisionTextAnnotation(
 
 object VisionApi {
     /**
-     * Vision APIにリクエストを送信し、VisionTextAnnotationのリストを取得する。
+     * Vision API にリクエストを送信し、VisionTextAnnotation のリストを取得する。
      *
      * @throws VisionApiLimitExceededException 月のリクエスト数が上限に達している場合
      * @throws VisionApiUnsupportedMimeTypeException サポートされていない MIME タイプの ByteArray が指定された場合
      * @throws VisionApiErrorException Vision API でエラーが発生した場合
      */
     suspend fun getTextAnnotations(binaryArray: ByteArray): List<VisionTextAnnotation> {
-        // MimeTypeを確認し、対応しているか確認する
+        // MimeType を確認し、対応しているか確認する
         val mimeType = binaryArray.getMimeType()
         if (mimeType !in setOf(
                 "image/jpeg",
@@ -65,7 +65,7 @@ object VisionApi {
             return response.textAnnotationsList.map { it.convertVisionTextAnnotation() }
         }
 
-        if (VisionApiCounterStore.isLimitExceeded()) {
+        if (VisionApiCounterAction.getCurrent()?.isLimitReached() == true) {
             throw VisionApiLimitExceededException()
         }
 
@@ -77,7 +77,7 @@ object VisionApi {
             val feature = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build()
             val request = AnnotateImageRequest.newBuilder().addFeatures(feature).setImage(image).build()
 
-            VisionApiCounterStore.increment()
+            VisionApiCounterAction.increment()
             val responses = vision.batchAnnotateImages(listOf(request))
             vision.close()
             if (responses.responsesCount == 0) {
@@ -97,7 +97,7 @@ object VisionApi {
     }
 
     /**
-     * Vision APIのキャッシュデータをもとに、画像に対して文字位置を示す画像を生成する。
+     * Vision API のキャッシュデータをもとに、画像に対して文字位置を示す画像を生成する。
      */
     fun drawTextAnnotations(binaryArray: ByteArray): ImmutableImage {
         val fileHash = DigestUtils.md5Hex(binaryArray)
@@ -171,7 +171,7 @@ object VisionApi {
     /** File の加算拡張関数: `this + file` で `this` と `file` を連結する。 */
     private operator fun File.plus(file: File) = File(this, file.name)
 
-    // Systemがモックできないので、ラップする
+    // System がモックできないので、ラップする
     // https://toranoana-lab.hatenablog.com/entry/2023/09/26/100000
     // https://github.com/mockk/mockk/issues/98
     /** Google Application Credentials が存在するか確認する */

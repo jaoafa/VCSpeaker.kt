@@ -1,148 +1,72 @@
 package com.jaoafa.vcspeaker.commands
 
-import com.jaoafa.vcspeaker.stores.VoiceStore
+import com.jaoafa.vcspeaker.database.tables.UserEntity
+import com.jaoafa.vcspeaker.database.tables.VoiceEntity
+import com.jaoafa.vcspeaker.database.transactionResulting
+import com.jaoafa.vcspeaker.database.unwrap
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionLevelOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.EmotionOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.PitchOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeakerOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.SpeedOption
+import com.jaoafa.vcspeaker.features.Voice.CommandOptions.VolumeOption
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.authorOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.respondEmbed
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.successColor
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.voiceParameterFieldsOf
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.warningColor
 import com.jaoafa.vcspeaker.tools.discord.DiscordLoggingExtension.log
 import com.jaoafa.vcspeaker.tools.discord.Options
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSlashCommand
 import com.jaoafa.vcspeaker.tools.discord.SlashCommandExtensions.publicSubCommand
-import com.jaoafa.vcspeaker.tts.DEFAULT_EMOTION_LEVEL
-import com.jaoafa.vcspeaker.tts.EmotionData
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Emotion
-import com.jaoafa.vcspeaker.tts.providers.voicetext.Speaker
-import dev.kordex.core.checks.anyGuild
+import com.jaoafa.vcspeaker.tools.discord.VoiceOptions
+import com.jaoafa.vcspeaker.tools.discord.anyGuildRegistered
 import dev.kordex.core.commands.application.slash.converters.impl.optionalStringChoice
 import dev.kordex.core.commands.converters.impl.optionalInt
 import dev.kordex.core.extensions.Extension
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class VoiceCommand : Extension() {
     override val name = this::class.simpleName!!
     private val logger = KotlinLogging.logger {}
 
-    inner class VoiceOptions : Options() {
-        val speaker by optionalStringChoice {
-            name = "speaker"
-            description = "話者"
-
-            for (value in Speaker.entries)
-                choice(value.speakerName, value.name)
-        }
-
-        val emotion by optionalStringChoice {
-            name = "emotion"
-            description = "感情"
-
-            for (value in Emotion.entries)
-                choice(value.emotionName, value.name)
-
-            choice("なし", "none")
-        }
-
-        val emotionLevel by optionalInt {
-            name = "emotion-level"
-            description = "感情レベル"
-
-            maxValue = 4
-            minValue = 1
-        }
-
-        val pitch by optionalInt {
-            name = "pitch"
-            description = "ピッチ"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val speed by optionalInt {
-            name = "speed"
-            description = "速度"
-
-            maxValue = 200
-            minValue = 50
-        }
-
-        val volume by optionalInt {
-            name = "volume"
-            description = "音量"
-
-            maxValue = 200
-            minValue = 50
-        }
+    class VoiceSetOptions : Options(), VoiceOptions {
+        override val speaker by optionalStringChoice(SpeakerOption)
+        override val emotion by optionalStringChoice(EmotionOption)
+        override val emotionLevel by optionalInt(EmotionLevelOption)
+        override val pitch by optionalInt(PitchOption)
+        override val speed by optionalInt(SpeedOption)
+        override val volume by optionalInt(VolumeOption)
     }
 
     override suspend fun setup() {
         publicSlashCommand("voice", "自分の声を設定します。") {
-            check { anyGuild() }
-            publicSubCommand("set", "自分の声を設定します。", ::VoiceOptions) {
+            check { anyGuildRegistered() }
+            publicSubCommand("set", "自分の声を設定します。", ::VoiceSetOptions) {
                 action {
-                    val oldVoice = VoiceStore.byIdOrDefault(event.interaction.user.id)
-
-                    val givenEmotion = arguments.emotion
-                    val emotion = if (givenEmotion != null) {
-                        if (givenEmotion == "none") null else Emotion.valueOf(givenEmotion)
-                    } else oldVoice.emotion
-
-                    val newVoice = oldVoice.copyNotNull(
-                        speaker = arguments.speaker?.let { Speaker.valueOf(it) },
-                        pitch = arguments.pitch,
-                        speed = arguments.speed,
-                        volume = arguments.volume
-                    ).copy(
-                        emotionData = emotion?.let {
-                            EmotionData(
-                                it,
-                                arguments.emotionLevel ?: oldVoice.emotionLevel ?: DEFAULT_EMOTION_LEVEL
-                            )
+                    val userEntity = transaction {
+                        UserEntity.findById(user.id) ?: run {
+                            UserEntity.new(user.id) {
+                                voiceEntity = VoiceEntity.new { }
+                            }
                         }
-                    )
+                    }
 
-                    VoiceStore[event.interaction.user.id] = newVoice
+                    val modified = transactionResulting(commit = true) {
+                        userEntity.voiceEntity.modifyByOptions(arguments)
+                    }.unwrap()
 
-                    val emotionEmoji = newVoice.emotion?.emoji ?: ":neutral_face:"
-
-                    val viewOnly = oldVoice == newVoice
+                    val new = transaction {
+                        userEntity.voiceEntity.getSnapshot()
+                    }
 
                     respondEmbed(
-                        if (viewOnly) ":loudspeaker: Current Voice"
+                        if (!modified) ":loudspeaker: Current Voice"
                         else ":arrows_counterclockwise: Voice Updated"
                     ) {
                         authorOf(user)
-
-                        field {
-                            name = ":grinning: 話者"
-                            value = newVoice.speaker.speakerName
-                            inline = true
-                        }
-                        field {
-                            name = "$emotionEmoji 感情"
-                            value = newVoice.emotion?.emotionName ?: "未設定"
-                            inline = true
-                        }
-                        field {
-                            name = ":signal_strength: 感情レベル"
-                            value = newVoice.emotionLevel?.let { "`Level $it`" } ?: "未設定"
-                            inline = true
-                        }
-                        field {
-                            name = ":arrow_up_down: ピッチ"
-                            value = newVoice.pitch.let { "`$it%`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":fast_forward: 速度"
-                            value = newVoice.speed.let { "`$it%`" }
-                            inline = true
-                        }
-                        field {
-                            name = ":loud_sound: 音量"
-                            value = newVoice.volume.let { "`$it%`" }
-                            inline = true
-                        }
-
+                        voiceParameterFieldsOf(new)
                         successColor()
                     }
 
@@ -154,7 +78,25 @@ class VoiceCommand : Extension() {
 
             publicSubCommand("reset", "自分の声を初期化します。") {
                 action {
-                    VoiceStore.remove(user.id)
+                    val userEntity = transaction {
+                        UserEntity.findById(user.id)
+                    } ?: run {
+                        respondEmbed(
+                            ":question: Voice Not Found",
+                            "声がまだ設定されていません。`/voice set` で設定することができます。"
+                        ) {
+                            authorOf(user)
+                            warningColor()
+                        }
+
+                        return@action
+                    }
+
+                    transactionResulting(commit = true) {
+                        val voiceEntity = userEntity.voiceEntity
+                        userEntity.voiceEntity = VoiceEntity.new { }
+                        voiceEntity.delete()
+                    }.unwrap()
 
                     respondEmbed(":broom: Voice Reset", "声を初期化しました。") {
                         authorOf(user)

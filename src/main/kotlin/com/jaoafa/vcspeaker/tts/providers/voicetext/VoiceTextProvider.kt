@@ -10,11 +10,8 @@ import com.jaoafa.vcspeaker.tts.providers.voicetext.VoiceTextProvider.id
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.logging.DEFAULT
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*

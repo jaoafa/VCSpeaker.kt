@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tools.discord
 
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.name
+import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.getName
 import com.jaoafa.vcspeaker.tts.Speech
 import com.jaoafa.vcspeaker.tts.narrators.NarrationScripts
 import com.jaoafa.vcspeaker.tts.narrators.Narrator
@@ -8,9 +8,16 @@ import com.jaoafa.vcspeaker.tts.narrators.NarratorManager
 import com.jaoafa.vcspeaker.tts.narrators.NarratorManager.getNarrator
 import dev.kord.common.annotation.KordVoice
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
+import dev.kord.core.behavior.channel.edit
+import dev.kord.core.entity.channel.StageChannel
+import dev.kord.core.entity.channel.VoiceChannel
 import dev.schlaubi.lavakord.audio.player.Player
 import dev.schlaubi.lavakord.kord.connectAudio
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 object VoiceExtensions {
     private val logger = KotlinLogging.logger { }
@@ -36,7 +43,7 @@ object VoiceExtensions {
             replier
         )
 
-        val name = name()
+        val name = getName()
         val guildName = guild.asGuild().name
 
         logger.info {
@@ -67,7 +74,7 @@ object VoiceExtensions {
             replier
         )
 
-        val name = name()
+        val name = getName()
         val guildName = guild.asGuild().name
 
         logger.info {
@@ -102,7 +109,7 @@ object VoiceExtensions {
             replier
         )
 
-        val name = name()
+        val name = getName()
         val guildName = guild.asGuild().name
 
         logger.info {
@@ -128,5 +135,27 @@ object VoiceExtensions {
                 "[$guildName] Failed to Play Track: Audio track for ${speech.describe(withText = true)} have failed to play."
             }
         }
+    }
+
+    suspend fun BaseVoiceChannelBehavior.rename(name: String): Job {
+        val channel = this
+        val originalName = channel.getName()
+        if (name == originalName) {
+            logger.info { "VC Rename Skipped: The specified channel already has the same name $originalName" }
+            return Job().apply { complete() }
+        }
+
+        val job = CoroutineScope(Dispatchers.Default).launch {
+            when (channel) {
+                is VoiceChannel -> channel.edit { this.name = name }
+                is StageChannel -> channel.edit { this.name = name }
+            }
+        }
+
+        job.invokeOnCompletion {
+            logger.info { "VC Renamed: Renamed from $originalName to $name" }
+        }
+
+        return job
     }
 }

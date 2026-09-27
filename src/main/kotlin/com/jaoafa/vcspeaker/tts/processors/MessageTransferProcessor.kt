@@ -64,8 +64,8 @@ class MessageTransferProcessor : BaseProcessor() {
         is ChannelType.GuildDirectory -> "ディレクトリ"
         is ChannelType.GuildForum -> "フォーラム"
         is ChannelType.GuildMedia -> "メディアチャンネル"
-        is ChannelType.DM -> "DMチャンネル"
-        is ChannelType.GroupDM -> "グループDMチャンネル"
+        is ChannelType.DM -> "DM チャンネル"
+        is ChannelType.GroupDM -> "グループ DM チャンネル"
         else -> channel.type.toString() + "チャンネル"
     }
 }

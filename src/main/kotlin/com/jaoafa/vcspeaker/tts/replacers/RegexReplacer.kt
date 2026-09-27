@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
-import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 

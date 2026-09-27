@@ -2,7 +2,7 @@ package com.jaoafa.vcspeaker.tts.providers
 
 import com.jaoafa.vcspeaker.VCSpeaker
 import com.jaoafa.vcspeaker.configs.EnvSpec
-import com.jaoafa.vcspeaker.stores.CacheStore
+import com.jaoafa.vcspeaker.database.actions.CacheAction
 import dev.arbjerg.lavalink.protocol.v4.LoadResult
 import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.schlaubi.lavakord.audio.Link
@@ -49,23 +49,28 @@ class BatchProvider(private val link: Link, private val contexts: List<ProviderC
 
                 // Context -> Audio -> AudioTrack までロードして、即時再生できる状態にする
                 launch {
-                    val file = CacheStore.readOrCreate(context, onNoCache = {
-                        val audio: ByteArray
-                        val downloadTime = measureTimeMillis {
-                            audio = provider.provide(context)
+                    val file = CacheAction.readOrCreate(
+                        context,
+                        onMissProvide = {
+                            val audio: ByteArray
+                            val downloadTime = measureTimeMillis {
+                                audio = provider.provide(context)
+                            }
+                            logger.info { "Audio Downloaded: Downloading the audio for ${context.describe()} took $downloadTime ms" }
+
+                            audio
+                        },
+                        onHit = {
+                            logger.info { "Cache Found: Audio for ${context.describe()} already exists" }
                         }
-                        logger.info { "Audio Downloaded: Downloading the audio for ${context.describe()} took $downloadTime ms" }
+                    )
 
-                        audio
-                    }, onCached = {
-                        logger.info { "Cache Found: Audio for ${context.describe()} already exists" }
-                    })
-
-                    val track = when (val item = link.loadItem(VCSpeaker.config[EnvSpec.lavalinkCachePath] + file.name)) {
-                        is LoadResult.TrackLoaded -> item.data
-                        is LoadResult.LoadFailed -> throw UnexpectedException(item.data.causeStackTrace)
-                        else -> throw UnexpectedException("Code should not reach here: $item")
-                    }
+                    val track =
+                        when (val item = link.loadItem(VCSpeaker.config[EnvSpec.lavalinkCachePath] + file.name)) {
+                            is LoadResult.TrackLoaded -> item.data
+                            is LoadResult.LoadFailed -> throw UnexpectedException(item.data.causeStackTrace)
+                            else -> throw UnexpectedException("Code should not reach here: $item")
+                        }
 
                     trackList[i] = track
                 }
