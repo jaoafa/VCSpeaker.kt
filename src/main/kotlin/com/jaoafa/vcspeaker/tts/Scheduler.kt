@@ -21,10 +21,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.*
 import kotlinx.io.IOException
 
-/**
- * トップレベル関数として切り出しているのは、テストで [Scheduler] を実インスタンス化せずに検証できるようにするためです
- * （[Scheduler] のコンストラクタは [TrackEndEvent] の購読を開始するため、モックの [Link] では初期化時に例外が発生します）。
- */
 suspend fun trackVolume(guildId: Snowflake, context: ProviderContext): Int {
     if (context !is SoundmojiContext) return 100
 
