@@ -39,30 +39,12 @@ data class GuildDataV1(
     var voice: VoiceV1,
     var autoJoin: Boolean
 ) {
-    fun toV2() = GuildDataV2(
+    fun toV2() = GuildData(
         guildId = guildId,
         channelId = channelId,
         prefix = prefix,
         voice = voice.toV2(),
         autoJoin = autoJoin
-    )
-}
-
-@Serializable
-data class GuildDataV2(
-    val guildId: Snowflake,
-    var channelId: Snowflake?,
-    var prefix: String?,
-    var voice: Voice,
-    var autoJoin: Boolean
-) {
-    fun toV3() = GuildData(
-        guildId = guildId,
-        channelId = channelId,
-        prefix = prefix,
-        voice = voice,
-        autoJoin = autoJoin,
-        soundboardVolume = 50
     )
 }
 

@@ -31,7 +31,7 @@ class ChannelMentionReplacerTest : FunSpec({
     // 既知のチャンネルメンションを置き換える
     test("Mentions of known channels should be replaced with their associated name.") {
         every { VCSpeaker.kord } returns mockk {
-            every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+            every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
             coEvery { getChannel(Snowflake(123456789012345678)) } returns mockk {
                 every { data } returns mockk {
                     every { name } returns mockk {
@@ -63,7 +63,7 @@ class ChannelMentionReplacerTest : FunSpec({
     // 未知のチャンネルメンションを置き換える
     test("Mentions of unknown channels should be replaced as unknown channels.") {
         every { VCSpeaker.kord } returns mockk {
-            every { resources } returns mockk<ClientResources>() // kordをmock化するために必要
+            every { resources } returns mockk<ClientResources>() // kord を mock 化するために必要
             coEvery { getChannel(Snowflake(123456789012345678)) } returns null
         }
 

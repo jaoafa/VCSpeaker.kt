@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tts
 
-import com.jaoafa.vcspeaker.stores.GuildStore
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getSoundboardVolume
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.deleteOwnReactionSafe
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
@@ -25,11 +25,11 @@ import kotlinx.io.IOException
  * トップレベル関数として切り出しているのは、テストで [Scheduler] を実インスタンス化せずに検証できるようにするためです
  * （[Scheduler] のコンストラクタは [TrackEndEvent] の購読を開始するため、モックの [Link] では初期化時に例外が発生します）。
  */
-internal suspend fun trackVolume(guildId: Snowflake, context: ProviderContext): Int {
+suspend fun trackVolume(guildId: Snowflake, context: ProviderContext): Int {
     if (context !is SoundmojiContext) return 100
 
     // lavakord の PlayOptions.volume は 1..1000 のみを許可し、0 を渡すと IllegalArgumentException になる。
-    return GuildStore.getOrDefault(guildId).soundboardVolume.coerceAtLeast(1)
+    return getSoundboardVolume(guildId).coerceAtLeast(1)
 }
 
 class Scheduler(

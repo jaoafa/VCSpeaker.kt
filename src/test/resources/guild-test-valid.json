@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "list": [
+    {
+      "guildId": 1111111111111111111,
+      "channelId": 2222222222222222222,
+      "prefix": null,
+      "voice": {
+        "speaker": "hikari",
+        "emotionData": {
+          "emotion": "happiness",
+          "level": 1
+        }
+      },
+      "autoJoin": true
+    }
+  ]
+}

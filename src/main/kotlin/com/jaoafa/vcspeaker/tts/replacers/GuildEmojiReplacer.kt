@@ -4,7 +4,7 @@ import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 
 /**
- * Guildの絵文字を置換するクラス
+ * Guild の絵文字を置換するクラス
  */
 object GuildEmojiReplacer : BaseReplacer {
     override val priority = ReplacerPriority.Normal

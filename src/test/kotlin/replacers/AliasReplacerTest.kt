@@ -1,65 +1,58 @@
 package replacers
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.stores.*
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getEntity
+import com.jaoafa.vcspeaker.database.tables.*
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
 import com.jaoafa.vcspeaker.tts.replacers.AliasReplacer
 import dev.kord.common.entity.Snowflake
-import dev.kord.core.entity.Message
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.*
-import java.io.File
+import io.mockk.clearAllMocks
+import io.mockk.mockkObject
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import utils.createGuildMockk
+import utils.useTables
 
 class AliasReplacerTest : FunSpec({
+    useTables(GuildTable, AliasTable)
+
     // テスト前にモックを初期化
-    beforeTest {
+    beforeEach {
         mockkObject(VCSpeaker)
-        every { VCSpeaker.storeFolder } returns File(System.getProperty("java.io.tmpdir") + File.separator + "vcspeaker")
-
-        val storeStruct = mockk<StoreStruct<IgnoreData>>()
-        coEvery { storeStruct.write() } returns Unit
-
-        mockkObject(IgnoreStore)
-        coEvery { IgnoreStore.write() } returns Unit
-
-        IgnoreStore.data.clear()
-
-        mockkObject(AliasStore)
-        coEvery { AliasStore.write() } returns Unit
-
-        AliasStore.data.clear()
+        transaction {
+            GuildEntity.new(id = Snowflake(0)) {
+                this.speakerVoiceEntity = VoiceEntity.new { }
+            }
+        }
     }
 
     // テスト後にモックを削除
-    afterTest {
+    afterEach {
         clearAllMocks()
-    }
-
-    // 全てのテスト後にフォルダを削除
-    afterSpec {
-        File(System.getProperty("java.io.tmpdir"), "vcspeaker").deleteRecursively()
     }
 
     // テキストエイリアスを設定した場合、正しく置き換えられる
     test("If a text alias matches the message, the replaced text should be returned.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
+        val guild = createGuildMockk(Snowflake(0))
+
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Text
+                search = "world"
+                replace = "Kotlin"
+            }
         }
 
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Text,
-                search = "world",
-                replace = "Kotlin"
-            )
-        )
-
         val tokens = mutableListOf(TextToken("Hello, world!"))
-        val expectedTokens = mutableListOf(TextToken("Hello, "), TextToken("Kotlin", "Text Alias「world」→「Kotlin」"), TextToken("!"))
+        val expectedTokens = mutableListOf(
+            TextToken("Hello, "),
+            TextToken("Kotlin", "Text Alias「world」→「Kotlin」"),
+            TextToken("!")
+        )
 
         val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
 
@@ -68,25 +61,54 @@ class AliasReplacerTest : FunSpec({
 
     // テキストエイリアスを設定していても合致しない場合、変更されない
     test("If a text alias does not match the content, the text should remain unchanged.") {
-        val message = mockk<Message>()
-        coEvery { message.getGuild() } returns mockk {
-            every { id } returns Snowflake(0)
-        }
+        val guild = createGuildMockk(Snowflake(0))
 
-        AliasStore.create(
-            AliasData(
-                guildId = Snowflake(0),
-                userId = Snowflake(0),
-                type = AliasType.Text,
-                search = "Java",
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Text
+                search = "Java"
                 replace = "Kotlin"
-            )
-        )
+            }
+        }
 
         val tokens = mutableListOf(TextToken("Hello, world!"))
 
         val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
 
         processedTokens shouldBe tokens
+    }
+
+    // エイリアスは最長マッチから検索される
+    test("Aliases should be matched in the descending order of its length.") {
+        val guild = createGuildMockk(Snowflake(0))
+
+        transaction {
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Text
+                search = "cdef"
+                replace = "Replace2"
+            }
+            AliasEntity.new {
+                guildEntity = guild.getEntity()
+                creatorDid = Snowflake(0)
+                type = AliasType.Text
+                search = "abcdefgh"
+                replace = "Replace1"
+            }
+        }
+
+        val tokens = mutableListOf(TextToken("abcdefghijklmnop"))
+        val expectedTokens = mutableListOf(
+            TextToken("Replace1", "Text Alias「abcdefgh」→「Replace1」"),
+            TextToken("ijklmnop")
+        )
+
+        val processedTokens = AliasReplacer.replace(tokens, Snowflake(0))
+
+        processedTokens shouldBe expectedTokens
     }
 })

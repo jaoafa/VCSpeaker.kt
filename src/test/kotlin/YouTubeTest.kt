@@ -9,7 +9,7 @@ class YouTubeTest : FunSpec({
         val video = YouTube.getVideo("aEbZ1UXcKhI")
 
         video.shouldNotBeNull()
-        video.title shouldBe "とまち式! わかりやすい! BIGみそか"
+        video.title shouldBe "とまち式! わかりやすい! BIGみそか" // whitespace ignore
         video.authorName shouldBe "jaotan"
     }
 

@@ -1,6 +1,6 @@
 package com.jaoafa.vcspeaker.tts.replacers
 
-import com.jaoafa.vcspeaker.stores.AliasType
+import com.jaoafa.vcspeaker.features.AliasType
 import com.jaoafa.vcspeaker.tts.TextToken
 import dev.kord.common.entity.Snowflake
 
@@ -26,7 +26,7 @@ object AliasReplacer : BaseReplacer {
 
                     val additions = splitTexts.mixin {
                         TextToken(alias.replace, "Text Alias「${alias.search}」→「${alias.replace}」")
-                    }
+                    }.filter { it.text.isNotEmpty() }
 
                     addAll(additions)
                 }

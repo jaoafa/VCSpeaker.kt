@@ -1,12 +1,13 @@
 package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
-import com.jaoafa.vcspeaker.features.Ignore.shouldIgnoreOn
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getSoundboardVolume
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoice
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoiceTextChannelOrNull
+import com.jaoafa.vcspeaker.database.actions.IgnoreAction
+import com.jaoafa.vcspeaker.database.actions.UserAction
 import com.jaoafa.vcspeaker.reload.state.UseState
-import com.jaoafa.vcspeaker.stores.GuildStore
-import com.jaoafa.vcspeaker.stores.VoiceStore
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
-import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.asChannelOf
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.deleteOwnReactionSafe
 import com.jaoafa.vcspeaker.tools.getClassesIn
 import com.jaoafa.vcspeaker.tts.Scheduler
@@ -21,7 +22,6 @@ import dev.kord.common.annotation.KordVoice
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
-import dev.kord.core.entity.channel.TextChannel
 import dev.schlaubi.lavakord.audio.Link
 import kotlin.reflect.full.createInstance
 
@@ -44,16 +44,16 @@ class Narrator @OptIn(KordVoice::class) constructor(
             voice: String,
             text: String,
             replier: (suspend (String) -> Unit)? = null,
-            isOnlyMessage: Boolean = false,
+            isMessageOnly: Boolean = false,
         ) {
             if (replier != null) {
                 replier(text)
             } else {
-                val channel = GuildStore.getOrDefault(id).channelId?.asChannelOf<TextChannel>()
+                val channel = this.getVoiceTextChannelOrNull()
                 channel?.createMessage(text)
             }
 
-            if (!isOnlyMessage)
+            if (!isMessageOnly)
                 getNarrator()?.scheduleAsSystem(voice)
         }
     }
@@ -64,14 +64,12 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * @param text 読み上げる文章
      */
     suspend fun scheduleAsSystem(text: String) {
-        val guildData = GuildStore.getOrDefault(guildId)
-
+        val guild = VCSpeaker.kord.getGuild(guildId)
         schedule(
             text = text,
-            voice = guildData.voice,
-            guild = VCSpeaker.kord.getGuild(guildId),
-            actor = SpeechActor.System,
-            soundboardVolume = guildData.soundboardVolume
+            voice = guild.getVoice(),
+            guild = guild,
+            actor = SpeechActor.System
         )
     }
 
@@ -84,10 +82,9 @@ class Narrator @OptIn(KordVoice::class) constructor(
         schedule(
             message = message,
             text = message.content,
-            voice = VoiceStore.byIdOrDefault(message.author!!.id),
+            voice = UserAction.getVoiceOrDefaultOf(message.author!!.id),
             guild = message.getGuild(),
-            actor = SpeechActor.User,
-            soundboardVolume = GuildStore.getOrDefault(guildId).soundboardVolume
+            actor = SpeechActor.User
         )
 
     /**
@@ -98,17 +95,15 @@ class Narrator @OptIn(KordVoice::class) constructor(
      * @param voice 読み上げに使用する音声
      * @param guild サーバー
      * @param actor 読み上げの種類
-     * @param soundboardVolume ギルドのサウンドボード音量設定
      */
     private suspend fun schedule(
         message: Message? = null,
         text: String,
         voice: Voice,
         guild: Guild,
-        actor: SpeechActor,
-        soundboardVolume: Int
+        actor: SpeechActor
     ) {
-        if (text.shouldIgnoreOn(guildId)) return
+        if (IgnoreAction.shouldBeIgnored(text, guildId)) return
 
         val sounds = soundRegex.findAll(text).mapNotNull {
             val id = it.groupValues[1].toLongOrNull() ?: return@mapNotNull null
@@ -129,7 +124,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
                 contexts.add(SoundmojiContext(Snowflake(sounds[i].second)))
         }
 
-        filterDisabledSoundmoji(contexts, soundboardVolume)
+        filterDisabledSoundmoji(contexts, guild.getSoundboardVolume())
 
         if (contexts.isEmpty()) return
 
@@ -158,7 +153,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
             val (processedText, processedVoice) = processor.process(message, processText, processVoice)
             println("Processed by ${processor::class.simpleName}: $processedText [isCancelled=${processor.isCancelled()}, isImmediately=${processor.isImmediately()}]")
             if (processor.isCancelled()) return null // キャンセルされた場合は、即座に null を返却。
-            if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、このProcessorを最後とし読み上げる
+            if (processor.isImmediately()) return processedText to processedVoice // 即座に返す場合は、この Processor を最後とし読み上げる
 
             processedText to processedVoice
         }
@@ -227,7 +222,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
 
     private val soundRegex = Regex("<sound:\\d+:(\\d+)>")
 
-    internal fun filterDisabledSoundmoji(contexts: MutableList<ProviderContext>, soundboardVolume: Int) {
+    fun filterDisabledSoundmoji(contexts: MutableList<ProviderContext>, soundboardVolume: Int) {
         if (soundboardVolume <= 0) contexts.removeAll { it is SoundmojiContext }
     }
 }
