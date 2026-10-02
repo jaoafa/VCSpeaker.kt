@@ -1,6 +1,7 @@
 package com.jaoafa.vcspeaker.tts.narrators
 
 import com.jaoafa.vcspeaker.VCSpeaker
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getSoundboardVolume
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoice
 import com.jaoafa.vcspeaker.database.actions.GuildAction.getVoiceTextChannelOrNull
 import com.jaoafa.vcspeaker.database.actions.IgnoreAction
@@ -36,7 +37,7 @@ class Narrator @OptIn(KordVoice::class) constructor(
     val guildId: Snowflake,
     val channelId: Snowflake,
     val link: Link,
-    val scheduler: Scheduler = Scheduler(link),
+    val scheduler: Scheduler = Scheduler(link, guildId),
 ) : UseState<NarratorState>() {
     companion object {
         suspend fun Guild.announce(
@@ -122,6 +123,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
             if (i < sounds.size)
                 contexts.add(SoundmojiContext(Snowflake(sounds[i].second)))
         }
+
+        filterDisabledSoundmoji(contexts, guild.getSoundboardVolume())
 
         if (contexts.isEmpty()) return
 
@@ -218,4 +221,8 @@ class Narrator @OptIn(KordVoice::class) constructor(
     }
 
     private val soundRegex = Regex("<sound:\\d+:(\\d+)>")
+
+    fun filterDisabledSoundmoji(contexts: MutableList<ProviderContext>, soundboardVolume: Int) {
+        if (soundboardVolume <= 0) contexts.removeAll { it is SoundmojiContext }
+    }
 }

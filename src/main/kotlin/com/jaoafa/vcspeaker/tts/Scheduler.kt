@@ -1,12 +1,15 @@
 package com.jaoafa.vcspeaker.tts
 
+import com.jaoafa.vcspeaker.database.actions.GuildAction.getSoundboardVolume
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.addReactionSafe
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.deleteOwnReactionSafe
 import com.jaoafa.vcspeaker.tools.discord.DiscordExtensions.errorColor
 import com.jaoafa.vcspeaker.tools.discord.VoiceExtensions.speak
 import com.jaoafa.vcspeaker.tts.providers.BatchProvider
 import com.jaoafa.vcspeaker.tts.providers.ProviderContext
+import com.jaoafa.vcspeaker.tts.providers.soundmoji.SoundmojiContext
 import dev.arbjerg.lavalink.protocol.v4.Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
@@ -18,9 +21,16 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.*
 import kotlinx.io.IOException
 
+suspend fun trackVolume(guildId: Snowflake, context: ProviderContext): Int {
+    if (context !is SoundmojiContext) return 100
+
+    // lavakord の PlayOptions.volume は 1..1000 のみを許可し、0 を渡すと IllegalArgumentException になる。
+    return getSoundboardVolume(guildId).coerceAtLeast(1)
+}
 
 class Scheduler(
     private val link: Link,
+    private val guildId: Snowflake,
     /**
      * 再生中・再生待ちの Speech の Queue.
      * 0 番目が現在再生中の Speech です。
@@ -168,9 +178,12 @@ class Scheduler(
 
         // Speech 内に次の Track が存在し、かつ再生が可能な場合、次の Track を再生
         if (endReason.mayStartNext && next != null) {
-            val (nextTrack, _) = next
+            val (nextTrack, nextContext) = next
+            val volume = trackVolume(guildId, nextContext)
 
-            link.player.playTrack(nextTrack)
+            link.player.playTrack(nextTrack) {
+                this.volume = volume
+            }
             return
         }
 
@@ -200,7 +213,7 @@ class Scheduler(
      */
     suspend fun beginSpeech(speech: Speech) {
         speech.message?.addReactionSafe("🔊")
-        link.player.speak(speech)
+        link.player.speak(speech, trackVolume(guildId, speech.contexts[0]))
     }
 
     init {

@@ -112,6 +112,11 @@ object DiscordExtensions {
             value = if (snapshot.autoJoin) "有効" else "無効"
             inline = true
         }
+        field {
+            name = ":loud_sound: サウンドボード音量"
+            value = "`${snapshot.soundboardVolume}%`"
+            inline = true
+        }
     }
 
     object EmbedColors {

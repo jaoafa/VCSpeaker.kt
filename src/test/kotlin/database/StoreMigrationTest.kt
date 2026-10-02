@@ -84,6 +84,7 @@ class StoreMigrationTest : FunSpec({
                 channelDid = Snowflake(2222222222222222222),
                 prefix = null,
                 autoJoin = true,
+                soundboardVolume = 50,
                 speakerVoiceId = speakerVoiceId,
                 version = 0
             )
@@ -162,6 +163,7 @@ class StoreMigrationTest : FunSpec({
                 channelDid = Snowflake(2222222222222222222),
                 prefix = null,
                 autoJoin = true,
+                soundboardVolume = 50,
                 speakerVoiceId = speakerVoiceId,
                 version = 0
             )

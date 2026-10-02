@@ -69,6 +69,14 @@ class VCSpeakerCommand : Extension() {
             name = "auto-join"
             description = "VC に自動で入退室するかどうか"
         }
+
+        val soundboardVolume by optionalInt {
+            name = "soundboard-volume"
+            description = "サウンドボード（Soundmoji）の再生音量。0 で再生を無効化"
+
+            maxValue = 100
+            minValue = 0
+        }
     }
 
     override suspend fun setup() {
@@ -152,6 +160,7 @@ class VCSpeakerCommand : Extension() {
                             arguments.channel?.id?.also { channelDid = it; modified = true }
                             arguments.prefix?.also { prefix = it; modified = true }
                             arguments.autoJoin?.also { autoJoin = it; modified = true }
+                            arguments.soundboardVolume?.also { soundboardVolume = it; modified = true }
                         }
 
                         val voiceModified = guildEntity.speakerVoiceEntity.modifyByOptions(arguments)

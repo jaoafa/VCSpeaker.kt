@@ -19,7 +19,7 @@ VCSpeaker の設定を行います。この設定は、サーバごとに保存�
 VCSpeaker を使いはじめる場合、この設定操作を行うことによって登録されます。
 
 ```text
-/vcspeaker settings [channel] [prefix] [speaker] [emotion] [emotion-level] [pitch] [speed] [volume] [auto-join]
+/vcspeaker settings [channel] [prefix] [speaker] [emotion] [emotion-level] [pitch] [speed] [volume] [auto-join] [soundboard-volume]
 ```
 
 - `[channel]`: 読み上げるテキストチャンネル
@@ -31,6 +31,7 @@ VCSpeaker を使いはじめる場合、この設定操作を行うことによ�
 - `[speed]`: 速度 (50% から 200%)
 - `[volume]`: 音量 (50% から 200%)
 - `[auto-join]`: ボイスチャンネルに自動で入退室するかどうか
+- `[soundboard-volume]`: サウンドボード (Soundmoji) の再生音量 (0% から 100%、デフォルトは 50%)。0 にするとサウンドボードを再生しません
 
 ### remove
 
