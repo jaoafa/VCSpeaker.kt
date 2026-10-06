@@ -8,11 +8,14 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
+const val DEFAULT_SOUNDBOARD_VOLUME = 50
+
 object GuildTable : SnowflakeIdTable("guild", columnName = "did"), VersionedTable {
     val channelDid = long("channel_did").nullable()
         .transform(NullableSnowflakeTransformer())
     val prefix = varchar("prefix", 16).nullable()
     val autoJoin = bool("auto_join").default(false)
+    val soundboardVolume = integer("soundboard_volume").default(DEFAULT_SOUNDBOARD_VOLUME)
     val speakerVoiceId = reference(
         "speaker_voice_id",
         VoiceTable,
@@ -27,6 +30,7 @@ class GuildEntity(id: EntityID<Snowflake>) : SnowflakeEntity(id), SnappableEntit
     var channelDid by GuildTable.channelDid
     var prefix by GuildTable.prefix
     var autoJoin by GuildTable.autoJoin
+    var soundboardVolume by GuildTable.soundboardVolume
     var speakerVoiceEntity by VoiceEntity referencedOn GuildTable.speakerVoiceId
     var version by GuildTable.version
 
@@ -39,6 +43,7 @@ data class GuildSnapshot(
     val channelDid: Snowflake?,
     val prefix: String?,
     val autoJoin: Boolean,
+    val soundboardVolume: Int,
     val speakerVoiceId: Int,
     val version: Int,
 ) : EntitySnapshot<GuildEntity>() {
@@ -48,6 +53,7 @@ data class GuildSnapshot(
             channelDid = row[GuildTable.channelDid],
             prefix = row[GuildTable.prefix],
             autoJoin = row[GuildTable.autoJoin],
+            soundboardVolume = row[GuildTable.soundboardVolume],
             speakerVoiceId = row[GuildTable.speakerVoiceId].value,
             version = row[GuildTable.version],
         )

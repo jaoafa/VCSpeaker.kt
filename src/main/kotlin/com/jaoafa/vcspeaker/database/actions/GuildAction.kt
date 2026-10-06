@@ -1,10 +1,13 @@
 package com.jaoafa.vcspeaker.database.actions
 
+import com.jaoafa.vcspeaker.database.tables.DEFAULT_SOUNDBOARD_VOLUME
 import com.jaoafa.vcspeaker.database.tables.GuildEntity
 import com.jaoafa.vcspeaker.tts.Voice
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.getChannelOf
 import dev.kord.core.entity.channel.TextChannel
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object GuildAction {
@@ -29,6 +32,11 @@ object GuildAction {
 
         return getChannelOf<TextChannel>(channelId)
     }
+
+    suspend fun getSoundboardVolume(guildId: Snowflake): Int =
+        suspendTransaction { GuildEntity.findById(guildId)?.soundboardVolume } ?: DEFAULT_SOUNDBOARD_VOLUME
+
+    suspend fun GuildBehavior.getSoundboardVolume(): Int = getSoundboardVolume(id)
 
     fun GuildBehavior.isAutoJoinEnabled(): Boolean = transaction { getEntity().autoJoin }
 
