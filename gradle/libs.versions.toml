@@ -28,7 +28,7 @@ kotlinx-serialization-json = "1.11.0"
 # Database
 exposed = "1.1.1"
 h2 = "2.4.240"
-flyway = "12.1.0"
+flyway = "13.10.0"
 
 # Other Libraries
 sentry = "8.52.0"
