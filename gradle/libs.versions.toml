@@ -31,7 +31,7 @@ h2 = "2.4.240"
 flyway = "12.1.0"
 
 # Other Libraries
-sentry = "8.52.0"
+sentry = "8.60.0"
 jsoup = "1.23.1"
 reflections = "0.10.2"
 google-cloud-vision = "3.93.0"
