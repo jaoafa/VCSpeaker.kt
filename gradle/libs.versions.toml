@@ -6,7 +6,7 @@ shadow = "9.6.1"
 # Logging
 slf4j = "2.1.0-alpha1"
 log4j = "2.26.1"
-kotlin-logging = "8.0.4"
+kotlin-logging = "8.0.7"
 
 # Test and Kotlin
 kotest-runner-junit5 = "6.2.4"
